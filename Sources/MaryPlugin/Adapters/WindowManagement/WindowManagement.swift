@@ -50,6 +50,102 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         }
     }
 
+    /// Make the application produce a NEW window, launching it if it is not up.
+    ///
+    /// THE APPLICATION'S OWN COMMAND, NOT A KEYSTROKE STANDING IN FOR ONE.
+    /// `File → New` is tried first and ⌘N only as the fallback, because the
+    /// menu item is the command the application publishes: it is localized by
+    /// the app, it is greyed out when the app means "not now" (which is an
+    /// answer, and one a posted chord cannot hear), and it cannot land in the
+    /// wrong window. This is the `nativeCommandOnly` guardrail, which
+    /// `window-management` already declares.
+    ///
+    /// A COLD LAUNCH OFTEN IS THE WHOLE ANSWER. Most Mac applications open a
+    /// window when they start, so asking for New immediately afterwards would
+    /// leave two where one was asked for. The count decides, not a guess about
+    /// which applications behave that way.
+    public func openNewWindow(application: String) async -> WindowManagementResult {
+        let query = application.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return .failure(.invalidApplication) }
+        let wasRunning = (try? resolver.runningApplication(named: query).get()) != nil
+        let before = wasRunning ? (try? await windowCount(application: query)) ?? 0 : 0
+
+        let resolved: ManagedApplication
+        switch await resolver.activateApplication(named: query) {
+        case .success(let application): resolved = application
+        case .failure(let error): return .failure(error)
+        }
+
+        // Launching may have made the window by itself.
+        if !wasRunning, (try? await windowCount(application: query)) ?? 0 > 0 {
+            return WindowManagementResult(
+                ok: true, summary: "Opened \(resolved.displayName) with a new window.")
+        }
+
+        let pid = resolved.processIdentifier
+        var refusal: String?
+        switch await ApplicationMenuDriver.choose(path: ["File", "New"], pid: pid) {
+        case .success:
+            break
+        // "GREYED OUT" IS THE APPLICATION ANSWERING, NOT FAILING TO.
+        //
+        // MEASURED: run against a TextEdit that was midway through quitting,
+        // this came back `itemDisabled` — the app had disabled New because it
+        // was on its way out. Posting ⌘N there would be synthesizing input to
+        // do the very thing the application had just said it could not do,
+        // which is exactly what the `nativeCommandOnly` guardrail forbids, and
+        // the result would be a cheerful summary about a window that does not
+        // exist. A disabled command is a final answer; it is reported.
+        case .failure(.itemDisabled(let title)):
+            return .failure(.operationFailed(
+                ApplicationMenuDriver.Failure.itemDisabled(title)
+                    .spoken(app: resolved.displayName)))
+        case .failure(let failure):
+            // The menu could not ANSWER — no menu bar published yet, or the
+            // command sits under a localized title this path cannot name. That
+            // is ignorance, not refusal, so the chord is a fair fallback. It is
+            // the weaker gesture (it lands wherever focus is), so it runs only
+            // behind the frontmost check, against the app just proved forward.
+            refusal = failure.spoken(app: resolved.displayName)
+            guard KeyChordPress.press(
+                key: .n, modifiers: [.command],
+                targetPrefix: resolved.bundleIdentifier)
+            else {
+                return .failure(.operationFailed(
+                    refusal ?? "I couldn't ask \(resolved.displayName) for a new window."))
+            }
+        }
+
+        // VERIFY BY LOOKING, not by having pressed something. Poll rather than
+        // sleep once: an application makes its window on its own run loop.
+        let deadline = Date().addingTimeInterval(2.0)
+        while Date() < deadline {
+            if (try? await windowCount(application: query)) ?? 0 > before {
+                let verb = wasRunning ? "" : "Opened \(resolved.displayName) and made "
+                return WindowManagementResult(
+                    ok: true,
+                    summary: wasRunning
+                        ? "New \(resolved.displayName) window."
+                        : "\(verb)a new window.")
+            }
+            if Task.isCancelled {
+                return .failure(.operationFailed(
+                    "Opening a \(resolved.displayName) window was cancelled."))
+            }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        // The app is forward and the count never moved. Say exactly that
+        // rather than reporting a window nobody can see.
+        return .failure(.operationFailed(
+            refusal ?? "\(resolved.displayName) never opened a new window."))
+    }
+
+    /// Windows the adapter can see right now, or a throw. Zero is a real answer.
+    private func windowCount(application: String) async throws -> Int {
+        let (_, _, windows) = try await resolvedWindows(application: application)
+        return windows.count
+    }
+
     public func listWindows(application: String) async -> WindowManagementResult {
         do {
             let (app, _, windows) = try await resolvedWindows(application: application)

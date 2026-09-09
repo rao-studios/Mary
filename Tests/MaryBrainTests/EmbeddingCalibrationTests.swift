@@ -71,7 +71,9 @@ private extension String {
                 observers: MaryAdapterCatalog.observers()),
             semanticIndex: abilityIndex,
             semanticSkillIndex: skillIndex,
-            semanticIntentIndex: intent)
+            semanticIntentIndex: intent,
+            semanticApplicationIndex: SemanticApplicationIndex.build(
+                records: records, vectorizer: vectorizer))
         return Environment(snapshot: snapshot, intent: intent, skills: skillIndex)
     }
 
@@ -910,5 +912,104 @@ private extension String {
                 recentUserTurns: ["what's the time", "how's the weather"])
             try Self.assertUniquePlayPlaylist(query, store: store)
         }
+    }
+}
+
+// MARK: - Which application a system-control Skill was pointed at
+//
+// THE DISTANCE TIER, MEASURED. `ApplicationReferenceResolutionTests` covers
+// the exact-naming tier on a snapshot with no index at all; only here, against
+// the real on-device model and every shipped package, is the ranking itself
+// exercised. Numbers are printed rather than asserted tightly, for the reason
+// this whole suite exists: it measures, it does not guess.
+extension EmbeddingCalibrationTests {
+
+    private func openerAndSnapshot() throws -> (AbilityRuntimeSkill, AbilityRuntime.Snapshot)? {
+        guard let environment = try Self.environment() else { return nil }
+        guard let skill = environment.snapshot.skill(
+            id: SkillID("window-management.open-new-window")) else { return nil }
+        return (skill, environment.snapshot)
+    }
+
+    /// THE REPORTED SENTENCE, with nothing asserted by the caller — the whole
+    /// answer has to come from the words and the packages' own names.
+    @Test func theWordsAloneReachTheRightApplication() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Open a new textedit window."))
+        for row in verdict.candidates.prefix(6) {
+            print(String(
+                format: "[application] %@ %@ %@",
+                row.applicationID,
+                row.score.map { String(format: "%.3f", $0) } ?? "—",
+                row.standing.rawValue))
+        }
+        #expect(verdict.chosen?.applicationID == "textedit")
+    }
+
+    /// ASR SAYS "TEXT EDIT". The package's own alias carries it, and the
+    /// two-word form must not drift to a different editor.
+    @Test func theSpokenTwoWordFormReachesTheSameApplication() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Open a new text edit window."))
+        #expect(verdict.chosen?.applicationID == "textedit")
+    }
+
+    @Test func aBrowserSentenceReachesTheBrowser() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Open a new safari window."))
+        #expect(verdict.chosen?.applicationID == "safari")
+    }
+
+    /// NAMING NOTHING MUST RESOLVE NOTHING. This is the measurement that
+    /// matters most: a bare "open a new window" that confidently picked an
+    /// application would open the wrong one silently, forever.
+    @Test func aBareRequestNamesNoApplication() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot, utterance: "Open a new window."))
+        let best = verdict.candidates.compactMap(\.score).max() ?? 0
+        print(String(format: "[application] bare request — best %.3f", best))
+        #expect(verdict.chosen == nil)
+    }
+
+    /// An application no package claims cannot be reached, and the honest
+    /// answer is nothing rather than the nearest editor that does have one.
+    @Test func anUnclaimedApplicationResolvesToNothing() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Open a new calculator window."))
+        for row in verdict.candidates.prefix(4) {
+            print(String(
+                format: "[application] calculator -> %@ %@",
+                row.applicationID,
+                row.score.map { String(format: "%.3f", $0) } ?? "—"))
+        }
+        #expect(verdict.chosen == nil)
+    }
+
+    /// "NOTES" IS TEXTEDIT'S OWN WORD, and this pins that on purpose.
+    ///
+    /// `textedit.mary` declares the trigger tokens `note` and `notes` — its
+    /// `documentNoun` is "note" — so in this roster "open a new Notes window"
+    /// resolves to TextEdit and NOT to Apple's Notes, which ships no package
+    /// and therefore does not exist as far as the reverse lookup is concerned.
+    ///
+    /// That is the closed world working as declared, not a bug in the ranking:
+    /// the fix, if this is ever the wrong answer for somebody, is to stop
+    /// claiming the word in `textedit.mary` or to ship a package for Notes —
+    /// a data change either way, which is the whole point of the design.
+    @Test func aWordAPackageClaimsResolvesToThatPackage() throws {
+        guard let (skill, snapshot) = try openerAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Open a new Notes window."))
+        #expect(verdict.chosen?.applicationID == "textedit")
     }
 }

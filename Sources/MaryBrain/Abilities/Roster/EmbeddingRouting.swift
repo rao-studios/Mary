@@ -200,9 +200,27 @@ public enum EmbeddingRouting {
             args[parameter.name] = peeled.value
             stages.append("span \(parameter.name): \"\(peeled.value)\"")
         }
-        if let applicationID, !applicationID.isEmpty,
-           parameters.contains(where: { $0.name == "app" }) {
-            args["app"] = applicationID
+        if let applicationID, !applicationID.isEmpty {
+            // THE PARAMETER THAT TAKES AN APPLICATION IS NOT ALWAYS CALLED
+            // `app`. A Skill that DECLARED `resolvesApplication` gets the
+            // resolved id in whichever parameter it exposes for one, and it
+            // OVERRIDES the peeled span above: the span is what is left of the
+            // sentence after the verb, so for "open a new textedit window" it
+            // is "a new textedit window" — the words, not the application, and
+            // useless to a binding that wants an identity.
+            //
+            // A Skill that did NOT declare it keeps the exact behaviour it had:
+            // only a parameter literally named `app`. Widening the name test
+            // for every Skill would have quietly rewritten
+            // `bring_application_forward`'s `app_name`, which works today by
+            // taking the span.
+            if skill.skill.requirements.resolvesApplication,
+               let receiver = ApplicationParameterNames.receiver(in: parameters.map(\.name)) {
+                args[receiver] = applicationID
+                stages.append("application \(receiver): \"\(applicationID)\"")
+            } else if parameters.contains(where: { $0.name == ApplicationParameterNames.canonical }) {
+                args[ApplicationParameterNames.canonical] = applicationID
+            }
         }
         let data = (try? JSONSerialization.data(
             withJSONObject: args, options: [.sortedKeys])) ?? Data("{}".utf8)

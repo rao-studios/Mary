@@ -61,7 +61,8 @@
       "window-management.bring-all-windows-forward",
       "window-management.restore-window",
       "window-management.make-window-full-screen",
-      "window-management.exit-full-screen"
+      "window-management.exit-full-screen",
+      "window-management.open-new-window"
     ],
     "summary" : "Resolve, restore, and foreground macOS applications and windows as a reusable supporting ability.",
     "threadProjections" : [
@@ -76,7 +77,8 @@
         "bring-all-windows-forward",
         "restore-window",
         "make-window-full-screen",
-        "exit-full-screen"
+        "exit-full-screen",
+        "open-new-window"
       ],
       "intentSeeds" : {
         "operate" : [
@@ -84,14 +86,17 @@
           "close the window",
           "fill the screen with this",
           "get my windows up on screen",
+          "give me another window",
           "hide everything except this one",
           "make this window full screen",
           "minimize this window",
+          "open a second window for this",
           "put them all in front",
           "raise everything for me",
           "show me all my windows",
           "shrink this back down",
           "stack them where I can see them",
+          "start a fresh window",
           "unminimize the ones I had open"
         ]
       },
@@ -104,7 +109,10 @@
         "show all windows",
         "switch to",
         "full screen",
-        "exit full screen"
+        "exit full screen",
+        "open a new window",
+        "new window",
+        "another window"
       ],
       "seedFamilies" : {
 
@@ -118,7 +126,9 @@
         "unminimize",
         "switch",
         "fullscreen",
-        "maximize"
+        "maximize",
+        "new",
+        "another"
       ]
     },
     "version" : "1.0.0"
@@ -388,6 +398,46 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.open-new-window",
+      "id" : "open-new-window-bare",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Give me another window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.open-new-window",
+      "id" : "open-new-window-browser",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Open a new safari window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.open-new-window",
+      "id" : "open-new-window-named-app",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Open a new textedit window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.open-new-window",
+      "id" : "open-new-window-spoken-alias",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Open a new text edit window."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.bring-all-windows-forward",
       "id" : "raise-all-document-windows",
       "interactions" : [
@@ -439,7 +489,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "0c904279a792ee75735bdd9e347c495f245feccb5ae9e9eb2450050867e86fcb"
+    "digest" : "fa02dc7a765ead844f1d3f0b085e8a4fefde03aad4e4a7f3c539792dd26aaf85"
   },
   "interactions" : [
     {
@@ -521,6 +571,113 @@
     }
   ],
   "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_all_windows_forward",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_all_windows_forward",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.bring-all-windows-forward",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.application-target"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "bring_all_windows_forward",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Application name or bundle identifier; omit for frontmost.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.raise-all"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.bring-all"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Restore and raise all windows of one application while preserving their relative stacking order.",
+      "title" : "Bring All Windows Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
     {
       "access" : "reversible",
       "execution" : {
@@ -638,113 +795,6 @@
       "summary" : "Launch or activate an explicitly named application as a whole. This Skill cannot target a named, titled, or referred window; bring_window_forward is mandatory whenever the request identifies a window.",
       "title" : "Bring Application Forward",
       "usesStage" : true,
-      "version" : "1.0.0"
-    },
-    {
-      "access" : "seamless",
-      "execution" : {
-        "bindings" : [
-          {
-            "adapterID" : "window-management",
-            "operation" : "list_app_windows",
-            "preference" : 240,
-            "targetClasses" : [
-              "document-window"
-            ]
-          },
-          {
-            "adapterID" : "window-management",
-            "operation" : "list_app_windows",
-            "preference" : 120,
-            "targetClasses" : [
-              "macos-application-window"
-            ]
-          }
-        ],
-        "kind" : "binding",
-        "steps" : [
-
-        ]
-      },
-      "id" : "window-management.list-app-windows",
-      "inputs" : [
-        {
-          "name" : "request",
-          "required" : true,
-          "summary" : "Typed request for this skill.",
-          "valueType" : "window-management.application-target"
-        }
-      ],
-      "kind" : "effectful",
-      "modelExposure" : {
-        "enabled" : true,
-        "inheritsBindingContract" : true,
-        "invocationName" : "list_app_windows",
-        "parameters" : [
-          {
-            "enumValues" : [
-
-            ],
-            "name" : "app",
-            "required" : false,
-            "requiresComposition" : false,
-            "spokenValues" : {
-
-            },
-            "summary" : "Application name or bundle identifier; omit for frontmost.",
-            "type" : "string"
-          }
-        ]
-      },
-      "outputs" : [
-        {
-          "name" : "result",
-          "required" : true,
-          "summary" : "Typed result returned by this skill.",
-          "valueType" : "window-management.window-list"
-        }
-      ],
-      "requirements" : {
-        "capabilities" : [
-          "window.enumerate"
-        ],
-        "interactions" : [
-
-        ],
-        "optionalInteractions" : [
-
-        ],
-        "optionalPerceptions" : [
-
-        ],
-        "perceptions" : [
-
-        ],
-        "supportingAbilities" : [
-
-        ]
-      },
-      "routing" : {
-        "conflictGroup" : "window-read",
-        "conflictPolicy" : "preferFocusedWorkspace",
-        "eligibility" : {
-          "children" : [
-
-          ],
-          "kind" : "targetClass",
-          "value" : "window-operation.list"
-        },
-        "excludes" : [
-
-        ],
-        "fallbacks" : [
-
-        ],
-        "preference" : 170
-      },
-      "summary" : "Enumerate one application's windows and mint stable references without reading their contents.",
-      "title" : "List Application Windows",
-      "usesStage" : false,
       "version" : "1.0.0"
     },
     {
@@ -875,15 +925,7 @@
         "bindings" : [
           {
             "adapterID" : "window-management",
-            "operation" : "bring_all_windows_forward",
-            "preference" : 240,
-            "targetClasses" : [
-              "document-window"
-            ]
-          },
-          {
-            "adapterID" : "window-management",
-            "operation" : "bring_all_windows_forward",
+            "operation" : "exit_full_screen",
             "preference" : 120,
             "targetClasses" : [
               "macos-application-window"
@@ -895,114 +937,7 @@
 
         ]
       },
-      "id" : "window-management.bring-all-windows-forward",
-      "inputs" : [
-        {
-          "name" : "request",
-          "required" : true,
-          "summary" : "Typed request for this skill.",
-          "valueType" : "window-management.application-target"
-        }
-      ],
-      "kind" : "effectful",
-      "modelExposure" : {
-        "enabled" : true,
-        "inheritsBindingContract" : true,
-        "invocationName" : "bring_all_windows_forward",
-        "parameters" : [
-          {
-            "enumValues" : [
-
-            ],
-            "name" : "app",
-            "required" : false,
-            "requiresComposition" : false,
-            "spokenValues" : {
-
-            },
-            "summary" : "Application name or bundle identifier; omit for frontmost.",
-            "type" : "string"
-          }
-        ]
-      },
-      "outputs" : [
-        {
-          "name" : "result",
-          "required" : true,
-          "summary" : "Typed result returned by this skill.",
-          "valueType" : "window-management.operation-result"
-        }
-      ],
-      "requirements" : {
-        "capabilities" : [
-          "window.raise-all"
-        ],
-        "interactions" : [
-
-        ],
-        "optionalInteractions" : [
-
-        ],
-        "optionalPerceptions" : [
-
-        ],
-        "perceptions" : [
-
-        ],
-        "supportingAbilities" : [
-
-        ]
-      },
-      "routing" : {
-        "conflictGroup" : "foreground-stage",
-        "conflictPolicy" : "preferFocusedWorkspace",
-        "eligibility" : {
-          "children" : [
-
-          ],
-          "kind" : "targetClass",
-          "value" : "window-operation.bring-all"
-        },
-        "excludes" : [
-
-        ],
-        "fallbacks" : [
-
-        ],
-        "preference" : 180
-      },
-      "summary" : "Restore and raise all windows of one application while preserving their relative stacking order.",
-      "title" : "Bring All Windows Forward",
-      "usesStage" : true,
-      "version" : "1.0.0"
-    },
-    {
-      "access" : "reversible",
-      "execution" : {
-        "bindings" : [
-          {
-            "adapterID" : "window-management",
-            "operation" : "restore_window",
-            "preference" : 240,
-            "targetClasses" : [
-              "document-window"
-            ]
-          },
-          {
-            "adapterID" : "window-management",
-            "operation" : "restore_window",
-            "preference" : 120,
-            "targetClasses" : [
-              "macos-application-window"
-            ]
-          }
-        ],
-        "kind" : "binding",
-        "steps" : [
-
-        ]
-      },
-      "id" : "window-management.restore-window",
+      "id" : "window-management.exit-full-screen",
       "inputs" : [
         {
           "name" : "request",
@@ -1015,7 +950,7 @@
       "modelExposure" : {
         "enabled" : true,
         "inheritsBindingContract" : true,
-        "invocationName" : "restore_window",
+        "invocationName" : "exit_full_screen",
         "parameters" : [
           {
             "enumValues" : [
@@ -1027,7 +962,7 @@
             "spokenValues" : {
 
             },
-            "summary" : "Owning application; omit when the window reference proves it.",
+            "summary" : "Owning application; omit for the frontmost one.",
             "type" : "string"
           },
           {
@@ -1035,12 +970,12 @@
 
             ],
             "name" : "window",
-            "required" : true,
+            "required" : false,
             "requiresComposition" : false,
             "spokenValues" : {
 
             },
-            "summary" : "Stable window handle or exact unambiguous title.",
+            "summary" : "Stable window handle or exact title; omit for the window in front.",
             "type" : "string"
           }
         ]
@@ -1055,8 +990,8 @@
       ],
       "requirements" : {
         "capabilities" : [
-          "window.resolve",
-          "window.restore"
+          "window.full-screen",
+          "window.resolve"
         ],
         "interactions" : [
 
@@ -1082,7 +1017,7 @@
 
           ],
           "kind" : "targetClass",
-          "value" : "window-operation.restore"
+          "value" : "window-operation.full-screen"
         },
         "excludes" : [
 
@@ -1090,11 +1025,118 @@
         "fallbacks" : [
 
         ],
-        "preference" : 210
+        "preference" : 200
       },
-      "summary" : "Unminimize one uniquely resolved application window without reading or changing its contents.",
-      "title" : "Restore Window",
+      "summary" : "Take one application window back out of macOS full screen without reading or changing its contents.",
+      "title" : "Exit Full Screen",
       "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "list_app_windows",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "list_app_windows",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.list-app-windows",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.application-target"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_app_windows",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Application name or bundle identifier; omit for frontmost.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.window-list"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.enumerate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "window-read",
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.list"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 170
+      },
+      "summary" : "Enumerate one application's windows and mint stable references without reading their contents.",
+      "title" : "List Application Windows",
+      "usesStage" : false,
       "version" : "1.0.0"
     },
     {
@@ -1217,10 +1259,10 @@
         "bindings" : [
           {
             "adapterID" : "window-management",
-            "operation" : "exit_full_screen",
-            "preference" : 120,
+            "operation" : "open_new_window",
+            "preference" : 100,
             "targetClasses" : [
-              "macos-application-window"
+              "macos-application"
             ]
           }
         ],
@@ -1229,45 +1271,32 @@
 
         ]
       },
-      "id" : "window-management.exit-full-screen",
+      "id" : "window-management.open-new-window",
       "inputs" : [
         {
           "name" : "request",
           "required" : true,
           "summary" : "Typed request for this skill.",
-          "valueType" : "window-management.window-reference"
+          "valueType" : "window-management.application-target"
         }
       ],
       "kind" : "effectful",
       "modelExposure" : {
         "enabled" : true,
         "inheritsBindingContract" : true,
-        "invocationName" : "exit_full_screen",
+        "invocationName" : "open_new_window",
         "parameters" : [
           {
             "enumValues" : [
 
             ],
-            "name" : "app",
-            "required" : false,
+            "name" : "app_name",
+            "required" : true,
             "requiresComposition" : false,
             "spokenValues" : {
 
             },
-            "summary" : "Owning application; omit for the frontmost one.",
-            "type" : "string"
-          },
-          {
-            "enumValues" : [
-
-            ],
-            "name" : "window",
-            "required" : false,
-            "requiresComposition" : false,
-            "spokenValues" : {
-
-            },
-            "summary" : "Stable window handle or exact title; omit for the window in front.",
+            "summary" : "Application to open a new window in. Resolved from the roster; never a window title.",
             "type" : "string"
           }
         ]
@@ -1282,8 +1311,129 @@
       ],
       "requirements" : {
         "capabilities" : [
-          "window.full-screen",
-          "window.resolve"
+          "application.activate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "resolvesApplication" : true,
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "highestEvidence",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.open-new"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Make a named application produce a new window, opening the application first when it is not running. Cannot raise, resize, or close a window that already exists.",
+      "title" : "Open New Window",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "restore_window",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "restore_window",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.restore-window",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "restore_window",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Owning application; omit when the window reference proves it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "window",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Stable window handle or exact unambiguous title.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.resolve",
+          "window.restore"
         ],
         "interactions" : [
 
@@ -1309,7 +1459,7 @@
 
           ],
           "kind" : "targetClass",
-          "value" : "window-operation.full-screen"
+          "value" : "window-operation.restore"
         },
         "excludes" : [
 
@@ -1317,10 +1467,10 @@
         "fallbacks" : [
 
         ],
-        "preference" : 200
+        "preference" : 210
       },
-      "summary" : "Take one application window back out of macOS full screen without reading or changing its contents.",
-      "title" : "Exit Full Screen",
+      "summary" : "Unminimize one uniquely resolved application window without reading or changing its contents.",
+      "title" : "Restore Window",
       "usesStage" : true,
       "version" : "1.0.0"
     }

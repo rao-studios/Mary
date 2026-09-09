@@ -44,13 +44,37 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
     public var optionalPerceptions: [PerceptionID]
     public var supportingAbilities: [AbilityID]
 
+    /// THE SKILL ACTS ON AN APPLICATION IT DOES NOT OWN.
+    ///
+    /// A discipline's Skill learns which player answers it from
+    /// `ExpertiseResolution` — the dependency graph read backwards. A
+    /// `.systemControl` Skill has no discipline behind it and no application of
+    /// its own, so nothing can be read backwards and the relationship has to be
+    /// SAID: "one of my arguments names an application; resolve it against the
+    /// packages that declare a dependency on my Ability."
+    ///
+    /// DECLARED, NOT DERIVED, and it is the opposite direction from its
+    /// neighbours here. `supportingAbilities` names who helps this Skill do its
+    /// work; this says who the Skill can be POINTED AT. Deriving it from shape
+    /// was the tempting alternative and it is wrong — "operates the computer"
+    /// does not tell you whether a Skill takes an application as its target
+    /// ("bring all my windows forward" does not) and guessing would hand a
+    /// resolved application to Skills that never asked for one.
+    ///
+    /// The receiving parameter is whichever exposed parameter is named in
+    /// `ApplicationParameterNames.all`; the validator refuses a Skill that
+    /// declares this and exposes none of them, because there would be nowhere
+    /// to put the answer.
+    public var resolvesApplication: Bool
+
     public init(
         capabilities: [CapabilityID] = [],
         interactions: [InteractionID] = [],
         perceptions: [PerceptionID] = [],
         optionalInteractions: [InteractionID] = [],
         optionalPerceptions: [PerceptionID] = [],
-        supportingAbilities: [AbilityID] = []
+        supportingAbilities: [AbilityID] = [],
+        resolvesApplication: Bool = false
     ) {
         self.capabilities = capabilities
         self.interactions = interactions
@@ -58,6 +82,7 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
         self.optionalInteractions = optionalInteractions
         self.optionalPerceptions = optionalPerceptions
         self.supportingAbilities = supportingAbilities
+        self.resolvesApplication = resolvesApplication
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -67,6 +92,7 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
         case optionalInteractions
         case optionalPerceptions
         case supportingAbilities
+        case resolvesApplication
     }
 
     public init(from decoder: Decoder) throws {
@@ -83,8 +109,15 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
             [PerceptionID].self, forKey: .optionalPerceptions) ?? []
         supportingAbilities = try values.decodeIfPresent(
             [AbilityID].self, forKey: .supportingAbilities) ?? []
+        resolvesApplication = try values.decodeIfPresent(
+            Bool.self, forKey: .resolvesApplication) ?? false
     }
 
+    /// A NEW KEY IS WRITTEN ONLY WHEN IT SAYS SOMETHING. The six fields above
+    /// are written unconditionally, so every already-sealed package carries
+    /// them and their bytes are settled. A seventh key encoding `false` would
+    /// change every package's digest at once — the same rule
+    /// `ModelParameterSchema.encode` states for `spokenSpan`.
     public func encode(to encoder: Encoder) throws {
         var values = encoder.container(keyedBy: CodingKeys.self)
         try values.encode(capabilities, forKey: .capabilities)
@@ -93,6 +126,9 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
         try values.encode(optionalInteractions, forKey: .optionalInteractions)
         try values.encode(optionalPerceptions, forKey: .optionalPerceptions)
         try values.encode(supportingAbilities, forKey: .supportingAbilities)
+        if resolvesApplication {
+            try values.encode(resolvesApplication, forKey: .resolvesApplication)
+        }
     }
 }
 

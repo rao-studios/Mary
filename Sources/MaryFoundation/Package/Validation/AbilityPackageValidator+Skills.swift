@@ -127,6 +127,26 @@ extension AbilityPackageValidator {
                         "Model enum values must be bounded machine tokens, not prose.")
                 }
             }
+            // A SKILL THAT TAKES AN APPLICATION NEEDS SOMEWHERE TO PUT IT.
+            // `resolvesApplication` buys a resolved application id at routing
+            // time; a Skill exposing no parameter that names one would have the
+            // whole reverse lookup run and its answer dropped on the floor,
+            // silently and on every turn.
+            if skill.requirements.resolvesApplication {
+                let names = skill.modelExposure.parameters.map(\.name)
+                if ApplicationParameterNames.receiver(in: names) == nil {
+                    sink.error(
+                        "missing-application-parameter",
+                        "\(path).requirements.resolvesApplication",
+                        "A Skill that resolves an application must expose a parameter to receive it, named one of: \(ApplicationParameterNames.all.sorted().joined(separator: ", ")).")
+                }
+                if !skill.modelExposure.enabled {
+                    sink.error(
+                        "unexposed-application-resolution",
+                        "\(path).requirements.resolvesApplication",
+                        "An unexposed Skill has no parameters to receive a resolved application.")
+                }
+            }
             duplicates(skill.execution.bindings.map {
                 "\($0.adapterID.rawValue)/\($0.operation)/\($0.targetClasses.sorted().joined(separator: ","))"
             }).forEach {

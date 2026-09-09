@@ -502,8 +502,23 @@ extension MaryBrain {
            // reads around the joiners it finds.
            shape != .noRequiredArguments || EmbeddingRouting.isSingleClause(userText) {
             let name = skill.reference.invocationName
-            let applicationID = route.gate.applications.count == 1
+            // The turn's own naming: exactly one application mentioned is an
+            // instruction, two is an ambiguity nobody should resolve for them.
+            let namedApplicationID = route.gate.applications.count == 1
                 ? route.gate.applications.first : nil
+            // A SKILL POINTED AT AN APPLICATION RESOLVES ONE OF ITS OWN.
+            // `namedApplicationID` is the whole roster's answer and is nil the
+            // moment two apps are mentioned anywhere in the sentence; the
+            // reverse lookup asks the narrower question — which of the
+            // applications THIS ability can be pointed at did they mean — and
+            // answers it by distance when nothing was named outright.
+            let applicationReference = ApplicationReferenceResolution.resolve(
+                for: skill,
+                snapshot: turnRegistry,
+                utterance: userText,
+                assertedApplicationIDs: Set(route.gate.applications))
+            let applicationID = applicationReference?.chosen?.applicationID
+                ?? namedApplicationID
             let filled = EmbeddingRouting.filledArguments(
                 for: skill, utterance: userText, applicationID: applicationID,
                 applicationProfiles: applicationProfiles)

@@ -154,3 +154,40 @@ public enum SchemaIdentifierValidation {
         return value.allSatisfy { $0.isLowercase || $0.isNumber || $0 == "." || $0 == "-" }
     }
 }
+
+/// THE PARAMETER NAMES THAT MEAN "AN APPLICATION".
+///
+/// Three seams already had to agree on this list and none of them owned it:
+/// `WindowManagementPlugin` declared it as adapter aliases so a model saying
+/// `app_name` reached a binding taking `app`; `AbilityRuntime+Arguments`
+/// reconciled the same spellings; `EmbeddingRouting` hardcoded the single name
+/// `"app"` and so silently skipped every Skill that spelled it differently.
+///
+/// `SkillRequirements.resolvesApplication` says a Skill takes an application;
+/// this says which of its parameters receives one. Package-facing, so it is a
+/// name list rather than a schema field — an author writes `app_name` because
+/// that is what the operation calls it, not to opt into anything.
+public enum ApplicationParameterNames {
+
+    /// Canonical spelling. What a binding is invoked with.
+    public static let canonical = "app"
+
+    /// Every spelling a package may use for it, canonical included.
+    public static let all: Set<String> = [
+        canonical,
+        "application",
+        "app_name",
+        "application_name",
+        "bundle_id",
+        "bundle_identifier",
+    ]
+
+    /// The parameter that receives a resolved application, or nil when the
+    /// Skill exposes none. Canonical first so a Skill declaring both `app` and
+    /// a synonym fills the one the binding actually reads; otherwise declared
+    /// order, which is the package's own.
+    public static func receiver(in parameterNames: [String]) -> String? {
+        parameterNames.first { $0 == canonical }
+            ?? parameterNames.first { all.contains($0) }
+    }
+}

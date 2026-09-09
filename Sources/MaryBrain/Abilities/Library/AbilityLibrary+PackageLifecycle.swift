@@ -294,6 +294,12 @@ extension AbilityLibrary {
             semanticSeedFamilyIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticSeedFamilyIndex.build(
                     records: discovery.records, vectorizer: $0)
+            },
+            // The fifth corpus: the applications a system-control Skill can be
+            // pointed at, named the way people say them. Same one model load.
+            semanticApplicationIndex: MaryEmbeddings.vectorizer().flatMap {
+                SemanticApplicationIndex.build(
+                    records: discovery.records, vectorizer: $0)
             })
         lock.lock()
         state.snapshot = next

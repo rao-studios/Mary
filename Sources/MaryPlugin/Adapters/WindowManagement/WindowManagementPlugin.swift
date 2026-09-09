@@ -25,8 +25,8 @@ public struct WindowManagementPlugin: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [bringApplicationForward, listAppWindows, bringWindowForward, bringAllWindowsForward,
-         restoreWindow, makeWindowFullScreen, exitFullScreen]
+        [bringApplicationForward, openNewWindow, listAppWindows, bringWindowForward,
+         bringAllWindowsForward, restoreWindow, makeWindowFullScreen, exitFullScreen]
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -80,6 +80,21 @@ public struct WindowManagementPlugin: MaryAdapter {
                     input: "window-management.application-target",
                     output: "window-management.operation-result",
                     targets: ["macos-application"]),
+                // NEW WINDOW, NOT A RAISED ONE. `application.activate` alone,
+                // like the skill above: what this is POINTED AT is an
+                // application, and the capability model scopes by target class
+                // — `window.enumerate` allows only window classes, so requiring
+                // both describes a dispatch that targets an application and a
+                // window at once, which is why the graph validator refuses it.
+                // Counting windows to prove the new one appeared is internal to
+                // the adapter and runs under the manifest's own accessibility
+                // grant, not a capability this Skill points at anything with.
+                operation(
+                    "open_new_window",
+                    capabilities: ["application.activate"],
+                    input: "window-management.application-target",
+                    output: "window-management.operation-result",
+                    targets: ["macos-application"]),
                 operation(
                     "list_app_windows",
                     capabilities: ["window.enumerate"],
@@ -118,6 +133,20 @@ public struct WindowManagementPlugin: MaryAdapter {
                 "window-management.operation-result",
             ],
             grantedPermissions: [.accessibility, .automation])
+    }
+
+    private var openNewWindow: SkillBinding {
+        SkillBinding(
+            name: "open_new_window",
+            description: "Make a named application produce a new window, opening the application first when it is not running. Uses the application's own New command.",
+            parameters: [appParameter],
+            access: .tweak,
+            backing: .native { [service] arguments, _ in
+                await service.openNewWindow(
+                    application: arguments["app"] ?? "").activityOutcome
+            },
+            stage: true,
+            preparesSurface: true)
     }
 
     private var bringApplicationForward: SkillBinding {

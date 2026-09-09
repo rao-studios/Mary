@@ -18,6 +18,13 @@
 //        repeat itself, which would drift the moment one of them was wrong.
 //        NON-OPTIONAL EDGES ONLY, so an optional support (window-management)
 //        never makes an ability look like somebody's player.
+//  PIN:  TWO BACKWARDS INDEXES, ASKING DIFFERENT QUESTIONS. The expertise index
+//        above answers "which player answers this discipline's skill" and reads
+//        required edges onto disciplines. `applicationsBySupport` answers "which
+//        applications can this system-control ability be pointed at" and reads
+//        OPTIONAL edges onto systemControl — which is precisely the edge the
+//        first one must throw away. They are not a widening of each other; the
+//        discipline election was measured against the first one's exact shape.
 //
 import MaryAmbient
 import MaryFoundation
@@ -66,6 +73,12 @@ extension AbilityRuntime {
         /// revision; see the expertise section below — internal rather
         /// than private because that extension is its only reader.
         let expertiseByDiscipline: [AbilityID: [AbilityID]]
+        /// System-control Ability → the application-bearing Abilities that name
+        /// it as a dependency, OPTIONAL EDGES INCLUDED, preference-ordered.
+        /// A second index rather than a widening of `expertiseByDiscipline`,
+        /// which answers a different question and whose exact shape the
+        /// discipline election was measured against.
+        let applicationsBySupport: [AbilityID: [AbilityID]]
         /// Optional embedding recall for `requestedAbilities(in:)`. Nil — lexical
         /// fallback for tests and hosts with no OS embedding asset.
         private let semanticIndex: SemanticAbilityRequestIndex?
@@ -78,6 +91,10 @@ extension AbilityRuntime {
         public let semanticIntentIndex: SemanticIntentIndex?
         /// Named seed families — see `SemanticSeedFamilyIndex`.
         public let semanticSeedFamilyIndex: SemanticSeedFamilyIndex?
+        /// Optional embedding recall over applications a system-control Skill
+        /// may be pointed at. Nil leaves `ApplicationReferenceResolution` with
+        /// only its exact-naming tier, which is a narrower answer, not a wrong one.
+        public let semanticApplicationIndex: SemanticApplicationIndex?
 
         public init(
             revision: UUID = UUID(),
@@ -90,12 +107,14 @@ extension AbilityRuntime {
             semanticIndex: SemanticAbilityRequestIndex? = nil,
             semanticSkillIndex: SemanticSkillRequestIndex? = nil,
             semanticIntentIndex: SemanticIntentIndex? = nil,
-            semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil
+            semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil,
+            semanticApplicationIndex: SemanticApplicationIndex? = nil
         ) {
             self.semanticIndex = semanticIndex
             self.semanticSkillIndex = semanticSkillIndex
             self.semanticIntentIndex = semanticIntentIndex
             self.semanticSeedFamilyIndex = semanticSeedFamilyIndex
+            self.semanticApplicationIndex = semanticApplicationIndex
             let inventory = InstalledAdapterInventory(
                 manifests: adapterManifests + plugins.adapterManifests,
                 primitiveBindings: primitiveBindings)
@@ -115,6 +134,7 @@ extension AbilityRuntime {
                 records.map { ($0.package.package.id, $0) },
                 uniquingKeysWith: { _, latest in latest })
             self.expertiseByDiscipline = Self.buildExpertiseIndex(records: records)
+            self.applicationsBySupport = Self.buildApplicationSupportIndex(records: records)
 
             let capabilitySchemas = Dictionary(
                 records.flatMap { $0.package.capabilities }.map { ($0.id, $0) },
@@ -597,6 +617,84 @@ extension AbilityRuntime.Snapshot {
                 let discipline = abilityIDs[dependency.packageID]
                     ?? AbilityID(dependency.packageID.rawValue)
                 index[discipline, default: []].append((
+                    ability: package.ability.id,
+                    preference: package.ability.routing.preference))
+            }
+        }
+        return index.mapValues { rows in
+            rows.sorted {
+                $0.preference != $1.preference
+                    ? $0.preference > $1.preference
+                    : $0.ability.rawValue < $1.ability.rawValue
+            }.map(\.ability)
+        }
+    }
+}
+
+// MARK: - The same graph read backwards for a system-control Ability
+
+extension AbilityRuntime.Snapshot {
+
+    /// Application-bearing Abilities that name this one as a dependency.
+    ///
+    /// THE OPTIONAL EDGE IS THE WHOLE POINT. `buildExpertiseIndex` keeps only
+    /// REQUIRED edges onto disciplines, because inheriting a craft is not
+    /// optional — you either extend `writing` or you do not. Being operable by
+    /// the window manager is the other kind of relationship entirely, and every
+    /// application package already declares it exactly that way
+    /// (`window-management, optional`). Nine such edges were sitting in the
+    /// shipped packages, thrown away by the only index that read dependencies.
+    public func applicationsSupporting(_ ability: AbilityID) -> [AbilityID] {
+        applicationsBySupport[ability] ?? []
+    }
+
+    /// The applications a Skill may be pointed at, or empty when it did not ask.
+    ///
+    /// OPT-IN, NEVER AMBIENT. A Skill that did not declare
+    /// `resolvesApplication` gets nothing here even though its Ability may have
+    /// dependents — "bring all my windows forward" names no application and
+    /// must not be handed one.
+    public func applicationCandidates(for skill: AbilityRuntimeSkill) -> [AbilityID] {
+        guard skill.skill.requirements.resolvesApplication else { return [] }
+        return applicationsSupporting(skill.ability.id)
+    }
+
+    /// The logical application an Ability drives, whatever declares it.
+    /// `plugin.application.id` or the first `ability.applications` entry —
+    /// the same join `applicationAffinities` already makes.
+    public func applicationID(ofAbility abilityID: AbilityID) -> String? {
+        records.first { $0.package.ability.id == abilityID }?
+            .package.applicationAffinities.first?.id
+    }
+
+    /// Inverted dependency edges for support, built once per revision.
+    ///
+    /// Deliberately NOT restricted to `.applicationExpertise` dependents: what
+    /// qualifies a candidate is that it carries an application affinity, which
+    /// is the thing being resolved. A package that names an application without
+    /// declaring the paradigm still answers "which app did they mean".
+    static func buildApplicationSupportIndex(
+        records: [AbilityPackageRecord]
+    ) -> [AbilityID: [AbilityID]] {
+        var paradigms: [PackageID: AbilityParadigm] = [:]
+        var abilityIDs: [PackageID: AbilityID] = [:]
+        for record in records {
+            paradigms[record.package.package.id] = record.package.paradigm
+            abilityIDs[record.package.package.id] = record.package.ability.id
+        }
+        var index: [AbilityID: [(ability: AbilityID, preference: Int)]] = [:]
+        for record in records {
+            let package = record.package
+            // No affinity, nothing to resolve TO.
+            guard !package.applicationAffinities.isEmpty else { continue }
+            for dependency in package.dependencies {
+                // Only a system-control Ability operates other applications.
+                // An absent dependency cannot be shown to be one, so it is
+                // skipped rather than assumed — same rule as the expertise index.
+                guard paradigms[dependency.packageID] == .systemControl else { continue }
+                let host = abilityIDs[dependency.packageID]
+                    ?? AbilityID(dependency.packageID.rawValue)
+                index[host, default: []].append((
                     ability: package.ability.id,
                     preference: package.ability.routing.preference))
             }
