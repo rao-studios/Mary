@@ -13,13 +13,15 @@ extension AbilityPackageValidator {
     /// How many applications `{application}` would name for this package —
     /// both reverse-lookup routes, the same union `pointableApplications`
     /// computes at run time, but from the package graph the validator can see.
+    /// Application expertise only, the same rule both runtime indexes apply.
     static func pointableApplicationCount(
         of package: MaryAbilityPackage,
         in packages: [MaryAbilityPackage]
     ) -> Int {
         var seen = Set<String>()
         for candidate in packages {
-            guard let affinity = candidate.applicationAffinities.first,
+            guard candidate.paradigm == .applicationExpertise,
+                  let affinity = candidate.applicationAffinities.first,
                   candidate.dependencies.contains(where: {
                       $0.packageID == package.package.id
                   })

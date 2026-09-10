@@ -83,14 +83,17 @@
       "intentSeeds" : {
         "operate" : [
           "bring the window forward",
+          "can you open {application}",
           "close the window",
           "fill the screen with this",
           "get my windows up on screen",
           "give me another window",
           "hide everything except this one",
+          "launch {application}",
           "make this window full screen",
           "minimize this window",
           "open a second window for this",
+          "open {application}",
           "put them all in front",
           "raise everything for me",
           "show me all my windows",
@@ -372,6 +375,26 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "can-you-open-application",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Can you open {application}?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "could-you-launch-application",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Could you launch {application}?"
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.make-window-full-screen",
       "id" : "fill-the-screen-with-this-window",
       "interactions" : [
@@ -405,6 +428,16 @@
 
       ],
       "utterance" : "Get out of full screen."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "launch-application",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Launch {application}."
     },
     {
       "expectedDisposition" : "route",
@@ -463,6 +496,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "open-application",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Open {application}."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.open-new-window",
       "id" : "open-new-application-window",
       "interactions" : [
@@ -482,6 +525,16 @@
       "utterance" : "Give me another window."
     },
     {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "please-open-up-application",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Please open up {application}."
+    },
+    {
       "expectedDisposition" : "probe",
       "expectedSkill" : "window-management.make-window-full-screen",
       "id" : "probe-blow-this-up-to-fill-the-screen",
@@ -489,6 +542,24 @@
 
       ],
       "utterance" : "blow this up to fill the screen"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "probe-fire-up-xcode",
+      "interactions" : [
+
+      ],
+      "utterance" : "fire up xcode"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "probe-get-calendar-going-for-me",
+      "interactions" : [
+
+      ],
+      "utterance" : "get calendar going for me"
     },
     {
       "expectedDisposition" : "probe",
@@ -654,7 +725,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "c3cfbecaae46aea737815173374c254747f2ab1f69e4409f6b39045bd0337a07"
+    "digest" : "ee265557d6f4e7af6a121daf0b434d3fc82154ec23e1991b61102065619d6373"
   },
   "interactions" : [
     {
@@ -915,6 +986,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
 
         ]
@@ -957,7 +1029,7 @@
         ],
         "preference" : 170
       },
-      "summary" : "Launch or activate an explicitly named application as a whole. This Skill cannot target a named, titled, or referred window; bring_window_forward is mandatory whenever the request identifies a window.",
+      "summary" : "Open an explicitly named application, launching it first when it is not running, or bring it forward as a whole when it is. This Skill cannot target a named, titled, or referred window; bring_window_forward is mandatory whenever the request identifies a window.",
       "title" : "Bring Application Forward",
       "usesStage" : true,
       "version" : "1.0.0"

@@ -737,6 +737,40 @@ extension AbilityRuntime.Snapshot {
         return nil
     }
 
+    /// The bundle an installed application expertise launches, by any name its
+    /// package gives it — the other direction of the join above.
+    ///
+    /// Routing holds a logical id (`apple-music`) or a spoken name ("Apple
+    /// Music"); a process is found by its bundle. Matched ignoring case and
+    /// whitespace, because ASR says "text edit". Nil for a name no installed
+    /// expertise claims, and for one that declares no bundle — known by name
+    /// only has nothing better to offer than the name itself.
+    public func bundleIdentifier(ofApplication name: String) -> String? {
+        let wanted = Self.applicationNameKey(name)
+        guard !wanted.isEmpty else { return nil }
+        for record in records where record.package.paradigm == .applicationExpertise {
+            let package = record.package
+            var names = package.ability.aliases + [package.ability.title]
+            if let application = package.plugin?.application {
+                names += application.aliases + [application.title]
+            }
+            for affinity in package.applicationAffinities {
+                guard let bundleID = affinity.bundleIdentifiers.first,
+                      (names + [affinity.id, affinity.title] + affinity.bundleIdentifiers)
+                          .contains(where: { Self.applicationNameKey($0) == wanted })
+                else { continue }
+                return bundleID
+            }
+        }
+        return nil
+    }
+
+    /// Case- and whitespace-blind — the same fold the window manager's own
+    /// resolver applies, so the two agree on what "the same name" means.
+    private static func applicationNameKey(_ value: String) -> String {
+        value.lowercased().filter { !$0.isWhitespace }
+    }
+
     /// The logical application an Ability drives, whatever declares it.
     /// `plugin.application.id` or the first `ability.applications` entry —
     /// the same join `applicationAffinities` already makes.
@@ -747,10 +781,13 @@ extension AbilityRuntime.Snapshot {
 
     /// Inverted dependency edges for support, built once per revision.
     ///
-    /// Deliberately NOT restricted to `.applicationExpertise` dependents: what
-    /// qualifies a candidate is that it carries an application affinity, which
-    /// is the thing being resolved. A package that names an application without
-    /// declaring the paradigm still answers "which app did they mean".
+    /// ONLY AN INSTALLED APPLICATION EXPERTISE IS A CANDIDATE. It must carry an
+    /// application affinity — the thing being resolved — AND declare the
+    /// `.applicationExpertise` paradigm. The affinity alone used to qualify,
+    /// which let any package that merely mentioned an application stand in for
+    /// one. "Open Chrome" launches a process, and only a package that knows the
+    /// application has standing to say which. Anything else the words name
+    /// resolves to nothing and falls to the model, which can still act on it.
     static func buildApplicationSupportIndex(
         records: [AbilityPackageRecord]
     ) -> [AbilityID: [AbilityID]] {
@@ -763,8 +800,10 @@ extension AbilityRuntime.Snapshot {
         var index: [AbilityID: [(ability: AbilityID, preference: Int)]] = [:]
         for record in records {
             let package = record.package
-            // No affinity, nothing to resolve TO.
-            guard !package.applicationAffinities.isEmpty else { continue }
+            // No expertise, no standing; no affinity, nothing to resolve TO.
+            guard package.paradigm == .applicationExpertise,
+                  !package.applicationAffinities.isEmpty
+            else { continue }
             for dependency in package.dependencies {
                 // Only a system-control Ability operates other applications.
                 // An absent dependency cannot be shown to be one, so it is

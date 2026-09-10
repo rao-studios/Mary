@@ -443,6 +443,31 @@ extension AbilityRuntime {
                     "expertise — discipline=\(verdict.disciplineID.rawValue, privacy: .public) chose=\(chosen.applicationID, privacy: .public) standing=\(chosen.standing.rawValue, privacy: .public) into=\(receiver, privacy: .public)")
             }
         }
+        // A PROCESS IS NAMED BY ITS BUNDLE, NOT BY ITS PACKAGE.
+        //
+        // Both lanes hand a system-control Skill the LOGICAL id the roster
+        // knows an application by (`chrome`, `apple-music`), or the model's own
+        // spelling of it ("Apple Music"). The window manager acts on a macOS
+        // process, and its cold-launch path is `open -a <name>`, which finds
+        // `Music.app` from neither — so "open Apple Music" with the player
+        // closed resolved perfectly and launched nothing. The package already
+        // carries the join, and this is the one seam both lanes pass through.
+        //
+        // SYSTEM CONTROL ONLY. A discipline's receiver (`type_at_cursor`'s
+        // `app`) is read against the roster by logical id. A name no installed
+        // expertise claims ("Calculator") passes through untouched, and the
+        // adapter resolves it by name exactly as it always did.
+        if let runtimeSkill,
+           runtimeSkill.skill.requirements.resolvesApplication,
+           snapshot.paradigm(of: runtimeSkill.ability.id) == .systemControl,
+           let receiver = ApplicationParameterNames.receiver(
+               in: binding.parameters.map(\.name)),
+           let named = arguments[receiver], !named.isEmpty,
+           let bundleID = snapshot.bundleIdentifier(ofApplication: named) {
+            arguments[receiver] = bundleID
+            Self.timingLog.info(
+                "launch identity — \(named, privacy: .public) -> \(bundleID, privacy: .public) into=\(receiver, privacy: .public)")
+        }
         // `type_at_cursor` covers compose and replace-selection — requirement is conditional.
         if binding.name == "type_at_cursor",
            arguments["mode"] == "replace_selection",

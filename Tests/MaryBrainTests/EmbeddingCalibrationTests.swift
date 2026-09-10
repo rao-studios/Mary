@@ -1013,3 +1013,64 @@ extension EmbeddingCalibrationTests {
         #expect(verdict.chosen?.applicationID == "textedit")
     }
 }
+
+// MARK: - Opening an application by name
+//
+// The same distance tier, pointed at `bring-application-forward`. "Can you
+// open chrome" was answered by the model from nothing, with no Skill run and
+// Chrome never touched — the Skill had no application to be pointed at.
+extension EmbeddingCalibrationTests {
+
+    private func activatorAndSnapshot() throws -> (AbilityRuntimeSkill, AbilityRuntime.Snapshot)? {
+        guard let environment = try Self.environment() else { return nil }
+        guard let skill = environment.snapshot.skill(
+            id: SkillID("window-management.bring-application-forward")) else { return nil }
+        return (skill, environment.snapshot)
+    }
+
+    /// THE REPORTED SENTENCE — and the launch goes to the process, not to the
+    /// package id, which `open -a` could not have found.
+    @Test func theReportedSentenceOpensChrome() throws {
+        guard let (skill, snapshot) = try activatorAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot, utterance: "Can you open chrome"))
+        #expect(verdict.chosen?.applicationID == "chrome")
+        #expect(snapshot.bundleIdentifier(
+            ofApplication: verdict.chosen?.applicationID ?? "") == "com.google.Chrome")
+    }
+
+    /// A LOGICAL ID NO LAUNCHER KNOWS. `apple-music` is the package; the
+    /// process is Music.app.
+    @Test func aTwoWordNameOpensItsPlayer() throws {
+        guard let (skill, snapshot) = try activatorAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot, utterance: "Open Apple Music."))
+        #expect(verdict.chosen?.applicationID == "apple-music")
+        #expect(snapshot.bundleIdentifier(
+            ofApplication: verdict.chosen?.applicationID ?? "") == "com.apple.Music")
+    }
+
+    @Test func theSpokenFormLaunchesTheEditor() throws {
+        guard let (skill, snapshot) = try activatorAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot, utterance: "Launch text edit."))
+        #expect(verdict.chosen?.applicationID == "textedit")
+    }
+
+    /// NO EXPERTISE, NO ANSWER BY DISTANCE. Calculator ships no package, so the
+    /// nearest one that does must not be opened in its place; the model keeps
+    /// the turn.
+    @Test func anUnclaimedApplicationIsNotOpenedByDistance() throws {
+        guard let (skill, snapshot) = try activatorAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot, utterance: "Open calculator."))
+        for row in verdict.candidates.prefix(3) {
+            print(String(
+                format: "[application] open calculator -> %@ %@",
+                row.applicationID,
+                row.score.map { String(format: "%.3f", $0) } ?? "—"))
+        }
+        #expect(verdict.chosen == nil)
+        #expect(snapshot.bundleIdentifier(ofApplication: "calculator") == nil)
+    }
+}

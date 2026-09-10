@@ -42,9 +42,13 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         let wasRunning = (try? resolver.runningApplication(named: application).get()) != nil
         switch await resolver.activateApplication(named: application) {
         case .success(let resolved):
-            let verb = wasRunning ? "Brought" : "Opened"
+            // A cold launch is an opening, not a raise — "Opened Chrome
+            // forward." described neither.
             return WindowManagementResult(
-                ok: true, summary: "\(verb) \(resolved.displayName) forward.")
+                ok: true,
+                summary: wasRunning
+                    ? "Brought \(resolved.displayName) forward."
+                    : "Opened \(resolved.displayName).")
         case .failure(let error):
             return .failure(error)
         }
@@ -382,6 +386,26 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
             else { return .failure(.invalidApplication) }
             return .success(value)
         }
+        // A BUNDLE IDENTIFIER NAMES ONE APPLICATION EXACTLY, AND IS LOOKED UP
+        // BY THAT IDENTIFIER.
+        //
+        // Exactly: with Safari closed, five `com.apple.SafariPlatformSupport.Helper`
+        // processes (the AutoFill extensions) share its prefix, so the partial
+        // tier called `com.apple.Safari` ambiguous and the launch never ran.
+        //
+        // By identifier: the process-wide `runningApplications` list is a
+        // cache. Measured in the headless turn probe, polled off the main
+        // thread after `open -b` exited 0, it did not show the freshly launched
+        // Safari once in 46 reads over five seconds, while
+        // `runningApplications(withBundleIdentifier:)` found it on the first —
+        // the lookup `VerifiedActivation.regularApplication` already prefers.
+        if NSWorkspace.shared.urlForApplication(withBundleIdentifier: query) != nil {
+            return Self.resolve(
+                query,
+                candidates: NSRunningApplication.runningApplications(
+                    withBundleIdentifier: query).compactMap(Self.value),
+                exactOnly: true)
+        }
         return Self.resolve(query, candidates: NSWorkspace.shared.runningApplications.compactMap(Self.value))
     }
 
@@ -451,9 +475,12 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
         return .success(running)
     }
 
+    /// `exactOnly` when the query is a bundle identifier: a prefix or substring
+    /// of one is a different application, never a looser spelling of it.
     static func resolve(
         _ application: String,
-        candidates: [ManagedApplication]
+        candidates: [ManagedApplication],
+        exactOnly: Bool = false
     ) -> Result<ManagedApplication, WindowManagementError> {
         let query = normalize(application)
         guard !query.isEmpty else { return .failure(.invalidApplication) }
@@ -463,6 +490,7 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
         }
         if let selected = uniqueApplication(exact) { return .success(selected) }
         if distinctApplications(exact).count > 1 { return .failure(.ambiguousApplication(application)) }
+        if exactOnly { return .failure(.applicationNotRunning(application)) }
 
         let partial = candidates.filter {
             let id = normalize($0.bundleIdentifier)

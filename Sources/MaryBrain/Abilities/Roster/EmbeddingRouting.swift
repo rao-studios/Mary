@@ -220,9 +220,10 @@ public enum EmbeddingRouting {
             //
             // A Skill that did NOT declare it keeps the exact behaviour it had:
             // only a parameter literally named `app`. Widening the name test
-            // for every Skill would have quietly rewritten
-            // `bring_application_forward`'s `app_name`, which works today by
-            // taking the span.
+            // for every Skill would rewrite parameters that never asked for an
+            // application. `bring_application_forward` now DECLARES it, so
+            // "open chrome" fills `app_name` with the resolved id; when nothing
+            // resolves ("open calculator") the span above stands, as before.
             if skill.skill.requirements.resolvesApplication,
                let receiver = ApplicationParameterNames.receiver(in: parameters.map(\.name)) {
                 args[receiver] = applicationID

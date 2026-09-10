@@ -29,11 +29,15 @@ import Testing
         "textedit", "pages", "safari", "chrome",
     ]
 
-    private func shippedSnapshot() throws -> AbilityRuntime.Snapshot? {
+    private func shippedSnapshot(
+        mutating mutate: (inout MaryAbilityPackage) -> Void = { _ in }
+    ) throws -> AbilityRuntime.Snapshot? {
         guard let abilities = InstalledPackages.installed() else { return nil }
         let packages = try Self.names.map { name -> MaryAbilityPackage in
-            try AbilityPackageCodec.load(
+            var package = try AbilityPackageCodec.load(
                 from: abilities.appendingPathComponent("\(name).mary"))
+            mutate(&package)
+            return package
         }
         let plugins = PluginCompiler.compile(
             packages: packages, nativeAdapterManifests: [],
@@ -96,8 +100,27 @@ import Testing
             snapshot.skill(id: SkillID("window-management.open-new-window")))
         let raiser = try #require(
             snapshot.skill(id: SkillID("window-management.bring-all-windows-forward")))
+        let activator = try #require(
+            snapshot.skill(id: SkillID("window-management.bring-application-forward")))
         #expect(!snapshot.applicationCandidates(for: opener).isEmpty)
+        #expect(!snapshot.applicationCandidates(for: activator).isEmpty)
         #expect(snapshot.applicationCandidates(for: raiser).isEmpty)
+    }
+
+    /// ONLY AN EXPERTISE HAS STANDING. A package carrying an application
+    /// affinity and naming `window-management`, but not declaring the
+    /// application-expertise paradigm, is not a candidate — "open TextEdit"
+    /// is not its to answer.
+    @Test func anApplicationThatIsNotAnExpertiseIsNotACandidate() throws {
+        guard let snapshot = try shippedSnapshot(mutating: { package in
+            guard package.ability.id == AbilityID("textedit") else { return }
+            package.ability.paradigm = .discipline
+        }) else { return }
+        let supported = Set(snapshot.applicationsSupporting(
+            AbilityID("window-management")))
+        #expect(!supported.contains(AbilityID("textedit")))
+        #expect(supported.contains(AbilityID("pages")))
+        #expect(snapshot.bundleIdentifier(ofApplication: "textedit") == nil)
     }
 
     // MARK: - The resolution
@@ -179,7 +202,11 @@ import Testing
     /// for its Ability. They were allowed to differ, and did.
     @Test func candidatesAreExactlyWhatTheSlotExpandsTo() throws {
         guard let snapshot = try shippedSnapshot() else { return }
-        for id in ["writing.type-at-cursor", "window-management.open-new-window"] {
+        for id in [
+            "writing.type-at-cursor",
+            "window-management.open-new-window",
+            "window-management.bring-application-forward",
+        ] {
             let skill = try #require(snapshot.skill(id: SkillID(id)))
             let resolved = snapshot.applicationCandidates(for: skill)
                 .compactMap { snapshot.applicationID(ofAbility: $0) }
@@ -267,5 +294,24 @@ import Testing
         #expect(snapshot.applicationID(forBundleIdentifier: "") == nil)
         #expect(snapshot.applicationID(
             forBundleIdentifier: "com.example.nothing") == nil)
+    }
+
+    // MARK: - A process is named by its bundle
+
+    /// THE COLD LAUNCH THAT RESOLVED AND OPENED NOTHING. The resolver answers
+    /// with a logical id and the model with a spoken name; the window manager
+    /// launches a process. Every name a package gives an application reaches
+    /// its bundle, and a name no package claims reaches nothing.
+    @Test func everyNameAPackageGivesReachesItsBundle() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        #expect(snapshot.bundleIdentifier(ofApplication: "chrome") == "com.google.Chrome")
+        #expect(snapshot.bundleIdentifier(ofApplication: "Google Chrome") == "com.google.Chrome")
+        #expect(snapshot.bundleIdentifier(ofApplication: "text edit") == "com.apple.TextEdit")
+        #expect(snapshot.bundleIdentifier(ofApplication: "Safari") == "com.apple.Safari")
+        // Already a bundle: the package's own spelling comes back.
+        #expect(snapshot.bundleIdentifier(
+            ofApplication: "com.google.chrome") == "com.google.Chrome")
+        #expect(snapshot.bundleIdentifier(ofApplication: "calculator") == nil)
+        #expect(snapshot.bundleIdentifier(ofApplication: "") == nil)
     }
 }
