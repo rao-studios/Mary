@@ -142,11 +142,11 @@
       "writing.unsplit-editor"
     ],
     "summary" : "Compose and revise prose, then place it safely in a source-resolved text surface.",
-    "tint" : "#B77AFF",
-    "title" : "Writing",
-    "totemProjections" : [
+    "threadProjections" : [
       "writing.receipts"
     ],
+    "tint" : "#B77AFF",
+    "title" : "Writing",
     "triggers" : {
       "intentAliases" : [
         "compose",
@@ -771,7 +771,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "23eebd80d5a870750df8504ce220504f27dd22cbadd464dae11b52ad1d05d482"
+    "digest" : "f8659bd2d877bff152a841b4af93b532565c17d55f019c8b55187905022fd24e"
   },
   "interactions" : [
     {
@@ -822,8 +822,8 @@
         "documentID",
         "surfaceID"
       ],
+      "threadProjection" : "writing.interaction-ephemera",
       "title" : "Text Selection",
-      "totemProjection" : "writing.interaction-ephemera",
       "valueType" : "writing.text-selection",
       "version" : "1.0.0"
     }
@@ -3934,7 +3934,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
     {
       "exclude" : [
         "rawInputs",

@@ -2,9 +2,9 @@
 //  MaryPrompts.swift
 //  MaryBrain
 //
-//  WHAT: System / Seer instruction adapters over PromptPlan.
+//  WHAT: System / Sewn instruction adapters over PromptPlan.
 //  IN:   prompt provider (rebuilt every turn)
-//  OUT:  PromptCatalog+System / +Voice / +SeerModeOne / +SeerModeTwo
+//  OUT:  PromptCatalog+System / +Voice / +SewnModeOne / +SewnModeTwo
 //  PIN:  Clock is why the prompt is rebuilt; body literals stay byte-identical.
 //
 import MaryAmbient

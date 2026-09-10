@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: One turn's BrainEvents → speaker (local tokens vs server PCM).
-//  IN:   VoicePipeline / SendText / Seer probe
+//  IN:   VoicePipeline / SendText / Sewn probe
 //  OUT:  KokoroStreamSpeaker (feed / remote PCM / softStop / flush)
 //  PIN:  Mid-turn .server→.local re-baselines so local never re-reads server text.
 //

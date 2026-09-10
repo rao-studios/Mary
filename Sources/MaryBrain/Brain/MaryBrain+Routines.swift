@@ -129,7 +129,7 @@ extension MaryBrain {
     }
 
     /// "STILL WORKING ON …" — the lane's own voice, at each mark.
-    /// PIN: IT DOES NOT MERGE INTO HISTORY either, and that one is load-bearing: history is replayed to Seer on every later turn
+    /// PIN: IT DOES NOT MERGE INTO HISTORY either, and that one is load-bearing: history is replayed to Sewn on every later turn
     // internal for file split — treat as private
     func speakRoutineProgress(id: UUID) {
         guard let routine = activeRoutines[id] else { return }

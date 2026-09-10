@@ -4,7 +4,7 @@
 //
 //  WHAT: Compose and speak one follow-up (persona, deadline, fallback).
 //  IN:   finishRoutine / enqueueFollowUp
-//  OUT:  Seer stream or deterministic line
+//  OUT:  Sewn stream or deterministic line
 //  PIN:  One filter does not answer two questions.
 //
 import MaryAmbient
@@ -49,8 +49,8 @@ extension MaryBrain {
                 : Self.groundedResultsBlock(
                     outcomes: grounded, isRead: { dispatcher?.isReadOnly($0) == true })
             let pass = readOnly
-                ? SeerPass(readPassages: [block], readReport: true, assertedFocus: originFocus)
-                : SeerPass(groundedResults: block, assertedFocus: originFocus)
+                ? SewnPass(readPassages: [block], readReport: true, assertedFocus: originFocus)
+                : SewnPass(groundedResults: block, assertedFocus: originFocus)
             let nudge = readOnly
                 ? MaryPrompts.readBackNudge : MaryPrompts.followUpNudge
             // DON'T PAY TO REPHRASE A SENTENCE YOU ALREADY HAVE.
@@ -60,16 +60,16 @@ extension MaryBrain {
                 Self.laneLog.info(
                     "follow-up compose skipped — the plain line already says it")
             }
-            var seerSpoke = false
+            var sewnSpoke = false
             // Concrete failures still need the bounded voice pass: raw AX, AppleScript and process errors are not user-facing speech.
-            if !onlyRestating, let seerChat, await seerChat.isReady() {
+            if !onlyRestating, let sewnChat, await sewnChat.isReady() {
                 var built = spokenMessages()
-                built.append(SeerChatMessage(role: "user", content: nudge))
+                built.append(SewnChatMessage(role: "user", content: nudge))
                 // Immutable before it crosses into the bounded stream's task —
                 // a captured `var` is a data race the Swift 6 mode rejects.
                 let messages = built
                 // THROUGH the provider, not around it. Calling MaryPrompts directly here handed the follow-up neither the capability line nor the live document/file
-                let instructions = seerInstructionsProvider(pass)
+                let instructions = sewnInstructionsProvider(pass)
                 // THE ONE AWAIT THAT WEDGED THE WHOLE CHANNEL, on a deadline.
                 let streamGate = EmissionGate()
                 let proactive = self.proactive
@@ -80,7 +80,7 @@ extension MaryBrain {
                     var text = ""
                     var autoMemory = false
                     do {
-                        for try await event in seerChat.stream(
+                        for try await event in sewnChat.stream(
                             messages: messages, instructions: instructions) {
                             // THE FLAG RIDES THIS SAME STREAM, and this loop used to match `.token` alone — so `.autoMemory` fell on the floor.
                             if case .autoMemory(let flag) = event {
@@ -115,17 +115,17 @@ extension MaryBrain {
                         Self.laneLog.error(
                             "follow-up compose rejected — named \(foreign, privacy: .public) with no such outcome")
                         // Fall through as if the model never spoke: the
-                        // !seerSpoke arm below recites the honest line.
+                        // !sewnSpoke arm below recites the honest line.
                     } else {
                         if bufferedCompose, !streamed.text.isEmpty, gate.isOpen {
                             proactive.yield(.followUpToken(
                                 streamed.text, originUserTurnID: originUserTurnID))
                         }
                         spoken = streamed.text
-                        seerSpoke = !streamed.text.isEmpty
+                        sewnSpoke = !streamed.text.isEmpty
                     }
                     if streamed.autoMemory {
-                        // Same pair the turn-side path runs in `seerTurn`: drop the folded history, tell the app to collapse.
+                        // Same pair the turn-side path runs in `sewnTurn`: drop the folded history, tell the app to collapse.
                         truncateAfterAutomemory()
                         proactive.yield(.autoMemoryTriggered)
                     }
@@ -137,7 +137,7 @@ extension MaryBrain {
                         characters: 0))
                 }
             }
-            if !seerSpoke {
+            if !sewnSpoke {
                 // SAME EXCLUSION AS `speakable`, for the same reason.
                 let usable = grounded.filter {
                     !(servedByPreRead

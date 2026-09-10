@@ -19,13 +19,13 @@ public enum STTBackend: String, Sendable, Codable, CaseIterable {
 public enum TTSBackend: String, Sendable, Codable, CaseIterable {
     /// Kokoro CoreML, on-device.
     case kokoro
-    /// Local Seer `/v1/speak` — signed-in session. PIN: all cloud voice goes here.
-    case seer
+    /// Local Sewn `/v1/speak` — signed-in session. PIN: all cloud voice goes here.
+    case sewn
 
     public var displayName: String {
         switch self {
         case .kokoro: return "Kokoro (on-device)"
-        case .seer:   return "Seer (local server)"
+        case .sewn:   return "Sewn (local server)"
         }
     }
 }

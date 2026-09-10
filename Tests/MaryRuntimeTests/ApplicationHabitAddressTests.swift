@@ -3,7 +3,7 @@
 //  MaryRuntimeTests
 //
 //  WHAT: Habits are addressable, classifiable, and survive the round trip.
-//  PIN:  A prefix that is not in the family tables shows up in the Totems pane
+//  PIN:  A prefix that is not in the family tables shows up in the Threads pane
 //        as "Unrecognized" no matter what it holds — and a ledger that cannot
 //        be decoded looks exactly like a fresh install, silently.
 //
@@ -16,17 +16,17 @@ import Testing
 @Suite struct ApplicationHabitAddressTests {
 
     @Test func theHabitGroupIsFiledUnderPersonal() {
-        let group = TotemMemoryTopology.applicationHabitGroup(ownerID: "owner")
-        let classification = TotemAddressClassifier.classifyGroup(id: group.id)
+        let group = ThreadMemoryTopology.applicationHabitGroup(ownerID: "owner")
+        let classification = ThreadAddressClassifier.classifyGroup(id: group.id)
         #expect(classification.family == .applicationHabitGroup)
         #expect(classification.lane == .personal)
-        #expect(classification.isSeerOwned == false)
+        #expect(classification.isSewnOwned == false)
     }
 
     @Test func theLedgerDocumentIsFiledUnderPersonal() {
-        let id = TotemMemoryTopology.applicationHabitLedgerDocumentID(
+        let id = ThreadMemoryTopology.applicationHabitLedgerDocumentID(
             discipline: "multimedia", ownerID: "owner")
-        let classification = TotemAddressClassifier.classifyDocument(id: id)
+        let classification = ThreadAddressClassifier.classifyDocument(id: id)
         #expect(classification.family == .applicationHabitLedger)
         #expect(classification.lane == .personal)
     }
@@ -34,16 +34,16 @@ import Testing
     /// One document per discipline, per owner — a shared address would let one
     /// person's players overwrite another's, and multimedia overwrite writing.
     @Test func eachOwnerAndDisciplineGetsItsOwnDocument() {
-        let a = TotemMemoryTopology.applicationHabitLedgerDocumentID(
+        let a = ThreadMemoryTopology.applicationHabitLedgerDocumentID(
             discipline: "multimedia", ownerID: "owner")
-        let b = TotemMemoryTopology.applicationHabitLedgerDocumentID(
+        let b = ThreadMemoryTopology.applicationHabitLedgerDocumentID(
             discipline: "writing", ownerID: "owner")
-        let c = TotemMemoryTopology.applicationHabitLedgerDocumentID(
+        let c = ThreadMemoryTopology.applicationHabitLedgerDocumentID(
             discipline: "multimedia", ownerID: "someone-else")
         #expect(a != b)
         #expect(a != c)
         // Stable across calls, or a restore would never find what a deposit wrote.
-        #expect(a == TotemMemoryTopology.applicationHabitLedgerDocumentID(
+        #expect(a == ThreadMemoryTopology.applicationHabitLedgerDocumentID(
             discipline: "multimedia", ownerID: "owner"))
     }
 

@@ -116,7 +116,7 @@ import Testing
     /// target absent from the manifest is PENDING, not passing.
     static let plannedTargets = [
         "MaryFoundation", "MaryAmbient", "MaryComputerUse", "MaryPlugin",
-        "MaryVoice", "MaryBrain", "MaryTotem", "MaryRuntime", "Mary",
+        "MaryVoice", "MaryBrain", "MaryThread", "MaryRuntime", "Mary",
     ]
 
     // MARK: - The rules
@@ -262,7 +262,7 @@ import Testing
 
     /// THE PERCEPTION AND ADAPTER LAYERS STAY OUT OF THE INFERENCE AND
     /// TRANSPORT GRAPHS. Frigate/MLX is consumed only through MaryBrain;
-    /// Conduit/gRPC only through MaryTotem.
+    /// Conduit/gRPC only through MaryThread.
     @Test func perceptionLayersStayOutOfInferenceAndTransport() throws {
         let manifest = try Self.manifest()
         for name in ["MaryAmbient", "MaryComputerUse", "MaryPlugin", "MaryVoice"] {
@@ -329,7 +329,7 @@ import Testing
         }
     }
 
-    /// NO MODEL RUNS IN THIS PROCESS. On-device generation moved into Seer,
+    /// NO MODEL RUNS IN THIS PROCESS. On-device generation moved into Sewn,
     /// so MaryBrain must no longer name an inference product at all — the
     /// rule above is now universal rather than "everyone but MaryBrain", and
     /// this states the half that changed.
@@ -339,13 +339,13 @@ import Testing
         for product in Self.frigateInferenceProducts {
             #expect(
                 !target.contains(product),
-                "MaryBrain names \(product) — generation belongs to Seer now.")
+                "MaryBrain names \(product) — generation belongs to Sewn now.")
         }
         #expect(!target.contains("Frigate"))
     }
 
     /// NOTHING NAMES FLEET. `StructuredSession` ran a LoRA in this process;
-    /// the Life engine now dials Fleet's Complete RPC through MaryTotem's
+    /// the Life engine now dials Fleet's Complete RPC through MaryThread's
     /// generated facade, so no target links the package at all.
     @Test func nothingNamesFleet() throws {
         let manifest = try Self.manifest()
@@ -377,24 +377,24 @@ import Testing
             """)
     }
 
-    /// CONDUIT AND gRPC ARE CONSUMED ONLY THROUGH MARYTOTEM'S FACADE, AND
-    /// MARYTOTEM ONLY BY THE RUNTIME AND THE APP. No other target may import
+    /// CONDUIT AND gRPC ARE CONSUMED ONLY THROUGH MARYTHREAD'S FACADE, AND
+    /// MARYTHREAD ONLY BY THE RUNTIME AND THE APP. No other target may import
     /// generated protos.
-    @Test func totemIsTheOnlyTransportFacade() throws {
+    @Test func threadIsTheOnlyTransportFacade() throws {
         let manifest = try Self.manifest()
-        for name in Self.plannedTargets where name != "MaryTotem" {
+        for name in Self.plannedTargets where name != "MaryThread" {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             for forbidden in ["Conduit", "GRPCCore", "GRPCNIOTransport"] {
                 #expect(
                     !target.contains(forbidden),
-                    "\(name)'s target block names \(forbidden) — that graph is MaryTotem's alone.")
+                    "\(name)'s target block names \(forbidden) — that graph is MaryThread's alone.")
             }
         }
-        for name in Self.plannedTargets where !["MaryRuntime", "Mary", "MaryTotem"].contains(name) {
+        for name in Self.plannedTargets where !["MaryRuntime", "Mary", "MaryThread"].contains(name) {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             #expect(
-                !Self.dependencyNames(target).contains(where: { $0.contains("MaryTotem") }),
-                "\(name) depends on MaryTotem — only MaryRuntime and the app may.")
+                !Self.dependencyNames(target).contains(where: { $0.contains("MaryThread") }),
+                "\(name) depends on MaryThread — only MaryRuntime and the app may.")
         }
     }
 

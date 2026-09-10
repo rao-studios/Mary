@@ -4,7 +4,7 @@
 //
 //  WHAT: The pre-lane awareness pass — when it runs, what it hands the voice,
 //        and how the voice is told to speak it.
-//  OUT:  AbilityRuntime.fetchAwareness / SeerPass / MaryPrompts.seerInstructions
+//  OUT:  AbilityRuntime.fetchAwareness / SewnPass / MaryPrompts.sewnInstructions
 //  PIN:  Every new input defaults empty, so a pass that traced nothing renders
 //        the byte-identical prompt every other suite already pins.
 //
@@ -21,14 +21,14 @@ import Testing
     // MARK: - The prompt is untouched when nothing was traced
 
     @Test func anEmptyPassRendersTheSamePromptAsBefore() {
-        #expect(MaryPrompts.seerInstructions(awareness: [])
-                == MaryPrompts.seerInstructions())
-        #expect(MaryPrompts.seerInstructions(
+        #expect(MaryPrompts.sewnInstructions(awareness: [])
+                == MaryPrompts.sewnInstructions())
+        #expect(MaryPrompts.sewnInstructions(
             liveWork: ["THE_LIVE_BLOCK"],
             liveWorkWorld: .document(name: "Xcode", whole: false),
             readPassages: ["THE_READ"],
             awareness: [])
-                == MaryPrompts.seerInstructions(
+                == MaryPrompts.sewnInstructions(
                     liveWork: ["THE_LIVE_BLOCK"],
                     liveWorkWorld: .document(name: "Xcode", whole: false),
                     readPassages: ["THE_READ"]))
@@ -39,7 +39,7 @@ import Testing
     /// ORDER IS THE DOCTRINE: on-screen work, then what is held, then what was
     /// traced, and the READ stays the last word.
     @Test func bearingsLandAfterHeldFactsAndBeforeTheRead() throws {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWork: ["THE_LIVE_BLOCK"],
             liveWorkWorld: .document(name: "Xcode", whole: false),
             heldFacts: ["THE_HELD_BLOCK"],
@@ -56,7 +56,7 @@ import Testing
     /// The frame says what the bearings ARE and how to speak them — a file
     /// and a line are for finding things again, never for reading aloud.
     @Test func theFrameForbidsSpeakingTheBearingsAloud() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWork: ["THE_LIVE_BLOCK"],
             liveWorkWorld: .document(name: "Xcode", whole: false),
             awareness: ["- open — Sources/Session.swift:6: return reader.read()"])
@@ -69,7 +69,7 @@ import Testing
     /// A traced turn is not small talk, whatever the router called it: the
     /// insight persona speaks and the conversational one stands down.
     @Test func aTracedTurnTakesTheInsightPersonaNotTheConverseOne() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWork: ["THE_LIVE_BLOCK"],
             liveWorkWorld: .document(name: "Xcode", whole: false),
             readPassages: ["func read() -> String { … }"],
@@ -168,16 +168,16 @@ import Testing
     /// END TO END: a converse-scored turn in an editor, and the voice pass
     /// carries the bearings and drops the small-talk persona.
     @Test func theTurnHandsTheBearingsToTheVoice() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [.init(events: [.token("Looks solid.")])])
+        let sewn = BrainFakes.ScriptedSewn(scripts: [.init(events: [.token("Looks solid.")])])
         let engine = BrainFakes.ScriptedEngine(rounds: [.init(text: "NOOP")])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.awarenessSight = AwarenessSight(
             unit: "func read() -> String { load() }",
             surroundings: "Reached from:\n- open — Sources/Session.swift:6: reader.read()")
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
-        await brain.setSeerInstructionsProvider { pass in
-            MaryPrompts.seerInstructions(
+        await brain.setSewnChat(sewn)
+        await brain.setSewnInstructionsProvider { pass in
+            MaryPrompts.sewnInstructions(
                 liveWork: ["THE_LIVE_BLOCK"],
                 liveWorkWorld: .document(name: "Xcode", whole: false),
                 readPassages: pass.readPassages,
@@ -189,7 +189,7 @@ import Testing
         for try await _ in brain.respond(to: "what do you think about this code") {}
 
         #expect(dispatcher.awarenessQueriesSnapshot() == ["what do you think about this code"])
-        let instructions = try #require(seer.callsSnapshot().first?.instructions)
+        let instructions = try #require(sewn.callsSnapshot().first?.instructions)
         #expect(instructions.contains("Sources/Session.swift:6"))
         #expect(instructions.contains("func read() -> String { load() }"))
         #expect(instructions.contains("I also traced this just now"))
@@ -199,14 +199,14 @@ import Testing
     /// AND THE TURN THAT TRACED NOTHING IS UNTOUCHED — no bearings, and the
     /// router's own verdict stands.
     @Test func aTurnThatTracedNothingKeepsItsOwnVerdict() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [.init(events: [.token("Doing well!")])])
+        let sewn = BrainFakes.ScriptedSewn(scripts: [.init(events: [.token("Doing well!")])])
         let engine = BrainFakes.ScriptedEngine(rounds: [.init(text: "NOOP")])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.awarenessSight = nil
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
-        await brain.setSeerInstructionsProvider { pass in
-            MaryPrompts.seerInstructions(
+        await brain.setSewnChat(sewn)
+        await brain.setSewnInstructionsProvider { pass in
+            MaryPrompts.sewnInstructions(
                 conversational: pass.conversational,
                 perceiving: pass.perceiving,
                 awareness: pass.awareness)
@@ -214,7 +214,7 @@ import Testing
 
         for try await _ in brain.respond(to: "how's your day going") {}
 
-        let instructions = try #require(seer.callsSnapshot().first?.instructions)
+        let instructions = try #require(sewn.callsSnapshot().first?.instructions)
         #expect(!instructions.contains("I also traced this just now"))
     }
 

@@ -62,7 +62,7 @@ enum RouteReport {
         lines.append("questions: \(list(row.gate.questions.map(\.rawValue).sorted()))")
         lines.append("abilities: \(list(row.gate.requestedAbilities.map(\.rawValue).sorted()))")
         lines.append("applications: \(list(row.gate.applications))")
-        lines.append("totems: \(list(row.gate.memory.lanes.map(\.rawValue).sorted()))")
+        lines.append("threads: \(list(row.gate.memory.lanes.map(\.rawValue).sorted()))")
         lines.append("needs.locate: \(yesNo(row.needsLocate))")
         lines.append("needs.pre-read: \(yesNo(row.needsPreRead))")
         lines.append("needs.execution: \(yesNo(row.needsExecution))")

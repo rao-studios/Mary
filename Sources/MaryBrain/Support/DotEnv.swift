@@ -3,26 +3,26 @@
 //  MaryBrain
 //
 //  WHAT: Parse KEY=VALUE into the process environment at boot.
-//  IN:   repo `.env` then Seer `.env`
+//  IN:   repo `.env` then Sewn `.env`
 //  OUT:  process env
-//  PIN:  App never authenticates with SEER_TOKEN; only the voice probe reads it.
+//  PIN:  App never authenticates with SEWN_TOKEN; only the voice probe reads it.
 //
 import MaryVoice
 import Foundation
 
 public enum DotEnv {
-    /// The sibling Seer checkout whose `.env` holds the shared keys.
-    public static let seerEnvDirectory = "\(NSHomeDirectory())/Documents/rao/repositories/Seer"
+    /// The sibling Sewn checkout whose `.env` holds the shared keys.
+    public static let sewnEnvDirectory = "\(NSHomeDirectory())/Documents/rao/repositories/Sewn"
 
     /// The voice probe's static bearer — see the header for why this is a
     /// probe credential and not the app's.
-    static let probeTokenKey = "SEER_TOKEN"
+    static let probeTokenKey = "SEWN_TOKEN"
 
-    /// Mary's boot loader: the repo's own `.env` first, then the Seer checkout's as a fallback, never overwriting what is already set
+    /// Mary's boot loader: the repo's own `.env` first, then the Sewn checkout's as a fallback, never overwriting what is already set
     public static func loadMaryEnvironment() {
         load()
         if ProcessInfo.processInfo.environment[probeTokenKey] == nil {
-            load(from: seerEnvDirectory, overwrite: false)
+            load(from: sewnEnvDirectory, overwrite: false)
         }
     }
 

@@ -2,7 +2,7 @@
 //  AbilityDispatching.swift
 //  MaryBrain
 //
-//  WHAT: Brain seam onto the activities system + SeerPass.
+//  WHAT: Brain seam onto the activities system + SewnPass.
 //  IN:   MaryBrain turn loop
 //  OUT:  AbilityRuntime.dispatch / fetch-first / locate
 //  PIN:  Sibling of MaryBrain.swift; treat split members as private.
@@ -67,7 +67,7 @@ public protocol AbilityDispatching: Sendable {
     var pendingSkillConfirmationID: UUID? { get }
     /// The stored question of the action awaiting approval, spoken to the user VERBATIM.
     var pendingSkillConfirmationPreview: String? { get }
-    /// True for query Skills (`.read`) that shouldn't be archived into the Totem context
+    /// True for query Skills (`.read`) that shouldn't be archived into the Thread context
     func isReadOnly(_ skillName: String) -> Bool
     /// WHETHER THIS SKILL MAY RUN WITH NOBODY WATCHING — the Life engine's
     /// only question about an act it is about to perform unattended. A read
@@ -245,12 +245,12 @@ public struct AwarenessSight: Sendable, Equatable {
 }
 
 /// What ONE spoken pass needs beyond the live focus.
-public struct SeerPass: Sendable {
+public struct SewnPass: Sendable {
     /// Finished ACTIONS to report — the detached follow-up persona.
     public var groundedResults: String?
     /// Text READ for this turn: the fetch-first pre-read, or a read the
     /// orchestrator lane performed and joined. Lands LAST, inside the live
-    /// block — see MaryPrompts.seerInstructions(readPassages:).
+    /// block — see MaryPrompts.sewnInstructions(readPassages:).
     public var readPassages: [String]
     /// This pass exists only to speak `readPassages` back — the read persona.
     public var readReport: Bool

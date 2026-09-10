@@ -26,6 +26,7 @@ import Testing
                 AffordancePlugin(),
                 LookingPlugin { _ in SkillOutcome(ok: true, summary: "") },
                 CodingAgentAdapter(),
+                DancePlugin(compose: UnavailableDanceComposer()),
             ]
         let manifests = MaryAdapterCatalog.adapterManifests(
             adapters: adapters,

@@ -28,16 +28,16 @@ public enum PromptSectionID: String, Sendable, Hashable, CaseIterable, Codable {
     case heldFacts
 
     // The VOICE lane, at coarser grain than `system()` and deliberately so.
-    // Nine of `seerInstructions`' pieces are CHILDREN composed inside another piece's template
-    case seerPreamble
-    case seerCompany, seerHeading
-    case seerPersonaRead, seerPersonaGrounded, seerPersonaConverse
-    case seerPersonaInsight, seerPersonaInTurn
-    case seerCapability, seerRetrieval, seerRunningActions, seerLiveWork
+    // Nine of `sewnInstructions`' pieces are CHILDREN composed inside another piece's template
+    case sewnPreamble
+    case sewnCompany, sewnHeading
+    case sewnPersonaRead, sewnPersonaGrounded, sewnPersonaConverse
+    case sewnPersonaInsight, sewnPersonaInTurn
+    case sewnCapability, sewnRetrieval, sewnRunningActions, sewnLiveWork
     // A look fired for THIS turn and nothing is in hand yet — the voice
     // promises the look instead of denying sight. Renders only when the
     // pre-lane look missed its budget; empty on every other pass.
-    case seerSightPending
+    case sewnSightPending
 }
 
 /// Sections that may not both render. Membership is checked at render time, so a plan cannot express a contradiction even if its inputs do.
@@ -46,7 +46,7 @@ public enum PromptExclusiveGroup: String, Sendable, Hashable, CaseIterable {
     /// The voice's four personas — read / grounded / converse / in-turn —
     /// which are a genuine `if / else if / else` in the source and so are
     /// exclusive in fact, not merely in practice.
-    case seerPersona
+    case sewnPersona
 }
 
 /// The ordering doctrine, declared rather than commented.

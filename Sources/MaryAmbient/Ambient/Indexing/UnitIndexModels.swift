@@ -4,7 +4,7 @@
 //
 //  WHAT: Model, protocol, and hashing types AmbientUnitIndexingCoordinator reads and writes.
 //  IN:   UnitIndex.swift (split)
-//  OUT:  Totem (closed predicate vocabulary)
+//  OUT:  Thread (closed predicate vocabulary)
 //
 
 import CryptoKit
@@ -13,7 +13,7 @@ import MaryFoundation
 
 
 /// One edge between two named things in a unit's neighbourhood. The predicate vocabulary is
-/// closed on purpose. These strings reach Totem as graph relationships and become the
+/// closed on purpose. These strings reach Thread as graph relationships and become the
 /// retrieval surface.
 public enum UnitRelationPredicate: String, Sendable, Equatable, Codable, CaseIterable {
     /// A file declares a type.
@@ -92,7 +92,7 @@ public struct UnitAnnotationRequest: Sendable, Equatable {
 
 public enum UnitAnnotationAttempt: Sendable, Equatable {
     case annotated(UnitAnnotation)
-    case seerUnavailable
+    case sewnUnavailable
     case empty
     case unparsable
     /// The round failed before a body arrived. The associated reason is what
@@ -286,7 +286,7 @@ public struct UnitIndexManifest: Sendable, Equatable, Codable {
 
 /// One canonicalizer and one hash for the whole indexing surface. TWO ALREADY EXIST IN THIS
 /// CODEBASE AND THEY DISAGREE: `DepositSubject.canonical` nils on empty and
-/// `TotemMemoryTopology.canonical` does not.
+/// `ThreadMemoryTopology.canonical` does not.
 public enum UnitIndexHashing {
 
     /// Collapse whitespace, lowercase, keep everything else. Punctuation

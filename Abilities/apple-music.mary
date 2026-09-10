@@ -57,11 +57,11 @@
 
     ],
     "summary" : "Apple Music: the user's music library, playlists, tracks and playback.",
-    "tint" : "#FA586A",
-    "title" : "Apple Music",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#FA586A",
+    "title" : "Apple Music",
     "triggers" : {
       "intentAliases" : [
 
@@ -115,7 +115,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3cf939457442fc0b0c3199e28e0be128dc099f7d75036d7957bef24467b8ae7f"
+    "digest" : "1bd7f3f9c8f390999b8625cfde477c5f2c66e77b7a99f1787a06bb1da522660e"
   },
   "interactions" : [
 
@@ -238,7 +238,7 @@
   "skills" : [
 
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

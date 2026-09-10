@@ -60,11 +60,11 @@
 
     ],
     "summary" : "Xcode: the IDE where Swift projects are built, run, debugged and edited.",
-    "tint" : "#7EA6E0",
-    "title" : "Xcode",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#7EA6E0",
+    "title" : "Xcode",
     "triggers" : {
       "intentAliases" : [
 
@@ -125,7 +125,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "be5e5081bda2a5214b0cddcd1572d16c5462554b16c61e790452514a19f9ab9d"
+    "digest" : "a368bdb78945eac94d7577f743b50c4fc3867e25daefb95d4a7042f6fedaf905"
   },
   "interactions" : [
 
@@ -777,7 +777,7 @@
   "skills" : [
 
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

@@ -12,7 +12,7 @@
 import MaryBrain
 import SwiftUI
 
-// MARK: - Totem projections
+// MARK: - Thread projections
 
 @MainActor
 struct AbilityStudioProjectionsSection: View {
@@ -20,10 +20,10 @@ struct AbilityStudioProjectionsSection: View {
     let package: MaryAbilityPackage
 
     var body: some View {
-        if package.totemProjections.isEmpty {
+        if package.threadProjections.isEmpty {
             StudioNote("None. A projection decides which of a skill's fields Mary is allowed to remember afterwards.")
         }
-        ForEach(Array(package.totemProjections.enumerated()), id: \.element.id) { index, projection in
+        ForEach(Array(package.threadProjections.enumerated()), id: \.element.id) { index, projection in
             AbilityStudioDeclarationCard(identifier: projection.id.rawValue) {
                 AbilityStudioFactLine(label: "Keeps", value: projection.purpose.rawValue)
                 AbilityStudioFactLine(label: "For how long", value: persistence(projection))
@@ -36,7 +36,7 @@ struct AbilityStudioProjectionsSection: View {
                     get: { projection.redactContent },
                     set: { next in
                         model.mutateDraftPackage {
-                            $0.totemProjections[index].redactContent = next
+                            $0.threadProjections[index].redactContent = next
                         }
                     })) {
                     Text("Redact the content itself")
@@ -50,7 +50,7 @@ struct AbilityStudioProjectionsSection: View {
         }
     }
 
-    private func persistence(_ projection: TotemProjectionSchema) -> String {
+    private func persistence(_ projection: ThreadProjectionSchema) -> String {
         switch projection.persistence {
         case .none: return "not kept"
         case .session: return "this session"

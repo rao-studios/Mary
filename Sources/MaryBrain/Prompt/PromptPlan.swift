@@ -128,14 +128,14 @@ public extension PromptPlan {
     static let voice = PromptPlan(
         name: "voice",
         order: [
-            .seerPreamble,
-            .seerCompany, .seerHeading,
-            .seerPersonaRead, .seerPersonaGrounded, .seerPersonaConverse,
-            .seerPersonaInsight, .seerPersonaInTurn,
-            .seerCapability, .seerRetrieval,
-            .seerSightPending,
+            .sewnPreamble,
+            .sewnCompany, .sewnHeading,
+            .sewnPersonaRead, .sewnPersonaGrounded, .sewnPersonaConverse,
+            .sewnPersonaInsight, .sewnPersonaInTurn,
+            .sewnCapability, .sewnRetrieval,
+            .sewnSightPending,
             // BEFORE the live work, not after it. The turn loop used to append this to the finished string
-            .seerRunningActions,
-            .seerLiveWork,
+            .sewnRunningActions,
+            .sewnLiveWork,
         ])
 }

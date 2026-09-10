@@ -74,7 +74,7 @@ extension VoicePipeline {
         // Room is quiet by construction; the claim cuts nothing audible.
         guard let lease = await voiceFloor.claim(), stopExitID == exitID else { return }
         _ = await speaker.feed(ack, lease: lease)
-        // Seer owns request bounds; this await ends after playback, not enqueue.
+        // Sewn owns request bounds; this await ends after playback, not enqueue.
         _ = await speaker.flush(lease: lease)
         guard stopExitID == exitID else { return }
 

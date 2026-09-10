@@ -24,14 +24,14 @@ struct SettingsSheet: View {
     @State var permissions: [PermissionItem] = []
     @State var newPronunciationWord: String = ""
     @State var newPronunciationIPA: String = ""
-    /// Seer signed-in. Nil until first read (no red flash on open).
-    @State var seerSignedIn: Bool? = nil
+    /// Sewn signed-in. Nil until first read (no red flash on open).
+    @State var sewnSignedIn: Bool? = nil
     @State var codingDownloading = false
     @State var codingDownloadProgress: Double = 1
     @State var codingPrepared = false
     @State var codingStatus: String?
-    /// What Seer reports for each backend. Empty until the first read.
-    @State var providerStatuses: [SeerProviderStatus] = []
+    /// What Sewn reports for each backend. Empty until the first read.
+    @State var providerStatuses: [SewnProviderStatus] = []
     @State var warmingLocal = false
 
     var voices: [String] {
@@ -124,16 +124,16 @@ struct SettingsSheet: View {
 
     /// The sign-in state the status rows render — the SESSION's own answer,
     /// not an environment variable's.
-    func refreshSeerSignIn() async {
-        seerSignedIn = await MaryRuntime.seerSession.isAuthenticated
+    func refreshSewnSignIn() async {
+        sewnSignedIn = await MaryRuntime.sewnSession.isAuthenticated
     }
 
-    /// Hosted character (`seerVoice`), not the on-device Kokoro slot. Applied immediately.
+    /// Hosted character (`sewnVoice`), not the on-device Kokoro slot. Applied immediately.
     var voiceCharacterBinding: Binding<String> {
         Binding(
-            get: { config.state.seerVoice },
+            get: { config.state.sewnVoice },
             set: { id in
-                config.center.update.send(ConfigService.Update.Meta(seerVoice: id))
+                config.center.update.send(ConfigService.Update.Meta(sewnVoice: id))
                 let backend = config.state.ttsBackend
                 Task {
                     if let notice = await MaryRuntime.applyTTSBackend(
@@ -157,13 +157,13 @@ struct SettingsSheet: View {
                 // THE SERVER SIDE IS READ NOW, the choice is passed as chosen:
                 // the config update above has not landed yet, so reading
                 // `llmEngine` back inside the task would apply the OLD value.
-                let seerEnabled = config.state.seerEnabled
+                let sewnEnabled = config.state.sewnEnabled
                 let skillEngine = config.state.skillEngine
                 Task {
                     let error = await MaryRuntime.applyEngine(
                         choice,
                         skillEngine: skillEngine,
-                        seerEnabled: seerEnabled,
+                        sewnEnabled: sewnEnabled,
                         progress: { status in
                             chat.center.setReadiness.send(
                                 ChatService.SetReadiness.Meta(status: status, ready: false))
@@ -184,13 +184,13 @@ struct SettingsSheet: View {
                 chat.center.setReadiness.send(
                     ChatService.SetReadiness.Meta(status: "switching skill engine…", ready: false)
                 )
-                let seerEnabled = config.state.seerEnabled
+                let sewnEnabled = config.state.sewnEnabled
                 let spoken = config.state.llmEngine
                 Task {
                     let error = await MaryRuntime.applyEngine(
                         spoken,
                         skillEngine: choice,
-                        seerEnabled: seerEnabled,
+                        sewnEnabled: sewnEnabled,
                         progress: { status in
                             chat.center.setReadiness.send(
                                 ChatService.SetReadiness.Meta(status: status, ready: false))
@@ -210,13 +210,13 @@ struct SettingsSheet: View {
                 config.center.update.send(
                     ConfigService.Update.Meta(codingAgentEnabled: enabled))
                 let engine = config.state.codingEngine
-                let seerEnabled = config.state.seerEnabled
+                let sewnEnabled = config.state.sewnEnabled
                 Task {
                     if enabled, engine.isOnDevice { codingDownloading = true }
                     let error = await MaryRuntime.applyCodingAgent(
                         enabled: enabled,
                         engine: engine,
-                        seerEnabled: seerEnabled)
+                        sewnEnabled: sewnEnabled)
                     codingDownloading = false
                     codingStatus = error
                     codingPrepared = error == nil && enabled
@@ -235,13 +235,13 @@ struct SettingsSheet: View {
             set: { choice in
                 config.center.update.send(ConfigService.Update.Meta(codingEngine: choice))
                 guard config.state.codingAgentEnabled else { return }
-                let seerEnabled = config.state.seerEnabled
+                let sewnEnabled = config.state.sewnEnabled
                 Task {
                     if choice.isOnDevice { codingDownloading = true }
                     let error = await MaryRuntime.applyCodingAgent(
                         enabled: true,
                         engine: choice,
-                        seerEnabled: seerEnabled)
+                        sewnEnabled: sewnEnabled)
                     codingDownloading = false
                     codingStatus = error
                     codingPrepared = error == nil
@@ -259,13 +259,13 @@ struct SettingsSheet: View {
         codingDownloadProgress = await CodingAgentSessions.shared.downloadProgress()
     }
 
-    /// What Seer says about each backend, for the on-device status rows.
+    /// What Sewn says about each backend, for the on-device status rows.
     func refreshProviderStatuses() async {
         providerStatuses = await MaryRuntime.providerStatuses()
     }
 
-    /// The row for one backend, or nil while Seer has not answered yet.
-    func providerStatus(_ choice: LLMEngineChoice) -> SeerProviderStatus? {
+    /// The row for one backend, or nil while Sewn has not answered yet.
+    func providerStatus(_ choice: LLMEngineChoice) -> SewnProviderStatus? {
         providerStatuses.first { $0.choice == choice }
     }
 
@@ -317,12 +317,12 @@ struct SettingsSheet: View {
 
 
 
-    var seerTransportBinding: Binding<SeerTransportChoice> {
+    var sewnTransportBinding: Binding<SewnTransportChoice> {
         Binding(
-            get: { config.state.seerTransport },
+            get: { config.state.sewnTransport },
             set: { choice in
-                config.center.update.send(ConfigService.Update.Meta(seerTransport: choice))
-                Task { await MaryRuntime.applySeerTransport(choice) }
+                config.center.update.send(ConfigService.Update.Meta(sewnTransport: choice))
+                Task { await MaryRuntime.applySewnTransport(choice) }
             }
         )
     }
@@ -334,7 +334,7 @@ struct SettingsSheet: View {
                 config.center.update.send(ConfigService.Update.Meta(ttsBackend: backend))
                 Task {
                     if let notice = await MaryRuntime.applyTTSBackend(
-                        backend, hostedVoice: config.state.seerVoice) {
+                        backend, hostedVoice: config.state.sewnVoice) {
                         chat.center.mirrorVoice.send(
                             ChatService.MirrorVoice.Meta(kind: .error(notice)))
                     }

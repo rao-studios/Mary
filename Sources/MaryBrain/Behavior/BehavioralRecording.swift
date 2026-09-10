@@ -4,8 +4,8 @@
 //
 //  WHAT: Where a sealed episode goes.
 //  IN:   BehavioralAssembler.seal
-//  OUT:  Totem deposit / test collector
-//  PIN:  Brain never learns about Totem; runtime injects.
+//  OUT:  Thread deposit / test collector
+//  PIN:  Brain never learns about Thread; runtime injects.
 //
 import Foundation
 import MaryFoundation

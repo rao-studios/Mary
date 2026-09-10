@@ -7,7 +7,7 @@
 //  OUT:  the ranked expertise for a discipline, restored at launch
 //  PIN:  INVERSION, NOT A DIRECT CALL — the same seam shape, and the same
 //        layering reason, as `RoutingHabitMemory`: MaryBrain does not
-//        depend on MaryTotem, so the runtime installs a backend that does.
+//        depend on MaryThread, so the runtime installs a backend that does.
 //
 import Foundation
 import MaryFoundation
@@ -16,7 +16,7 @@ import MaryFoundation
 ///
 /// A HABIT IS PERSONAL MEMORY. Whether you play music in Apple Music or in
 /// Spotify belongs to the person, should follow them to another machine, and
-/// should be forgettable in one gesture — the totem paradigm, not a defaults
+/// should be forgettable in one gesture — the thread paradigm, not a defaults
 /// key. It is deliberately NOT retrieved by resemblance: a tally is asked for
 /// by discipline and read whole, so the backend stores one ledger per
 /// discipline rather than one row per act.

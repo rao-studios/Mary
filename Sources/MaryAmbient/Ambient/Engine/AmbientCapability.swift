@@ -2,14 +2,14 @@
 //  AmbientCapability.swift
 //  MaryAmbient
 //
-//  WHAT: Application metadata used by routing and the application-knowledge totem.
+//  WHAT: Application metadata used by routing and the application-knowledge thread.
 //  IN:   package declarations
-//  OUT:  AmbientPlace / AmbientEngine / Totem knowledgeDocument
+//  OUT:  AmbientPlace / AmbientEngine / Thread knowledgeDocument
 //  PIN:  Aliases vs bundle identifiers are unlike namespaces. Family prefix for versions; launch still uses exact id.
 //
 import Foundation
 
-/// Application metadata used by routing and the application-knowledge totem.
+/// Application metadata used by routing and the application-knowledge thread.
 public struct ApplicationProfile: Sendable, Equatable {
     public struct Skill: Sendable, Equatable {
         public var name: String
@@ -104,7 +104,7 @@ public struct ApplicationProfile: Sendable, Equatable {
             lines.append("Abilities: \(abilities.map(\.rawValue).sorted().joined(separator: ", "))")
         }
         // Bundle names remain routing/Studio metadata. They are package-authored filenames, not
-        // model instructions, and therefore never enter Totem knowledge prose.
+        // model instructions, and therefore never enter Thread knowledge prose.
         if !skills.isEmpty {
             lines.append("Skills:")
             lines.append(contentsOf: skills.map { "- \($0.name): \($0.description)" })

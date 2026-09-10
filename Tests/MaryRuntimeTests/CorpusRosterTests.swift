@@ -14,7 +14,7 @@ import Testing
 @testable import MaryPlugin
 @testable import MaryRuntime
 import MaryAmbient
-import MaryTotem
+import MaryThread
 
 @Suite struct CorpusRosterTests {
 
@@ -57,60 +57,60 @@ import MaryTotem
     }
 
     @Test func leftoverApplicationAddressesAreUnknown() {
-        let group = TotemAddressClassifier.classifyGroup(id: "mary-application-deadbeef")
+        let group = ThreadAddressClassifier.classifyGroup(id: "mary-application-deadbeef")
         #expect(group.family == .unknown)
         #expect(group.lane == nil)
-        let live = TotemAddressClassifier.classifyGroup(id: "mary-ability-cafef00d")
+        let live = ThreadAddressClassifier.classifyGroup(id: "mary-ability-cafef00d")
         #expect(live.lane == .ability)
         #expect(live.family == .abilityGroup)
     }
 
     @Test func leftoverContextAddressesAreUnknown() {
-        let group = TotemAddressClassifier.classifyGroup(id: "mary-context-owner-abc")
+        let group = ThreadAddressClassifier.classifyGroup(id: "mary-context-owner-abc")
         #expect(group.family == .unknown)
         #expect(group.lane == nil)
-        let document = TotemAddressClassifier.classifyDocument(id: "mary-context-owner-abc")
+        let document = ThreadAddressClassifier.classifyDocument(id: "mary-context-owner-abc")
         #expect(document.family == .unknown)
     }
 
     @Test func destinationWithoutAScopeDoesNotMintAContextPool() {
-        #expect(TotemContextStore.destination(subject: .unfocused, ownerID: "o") == nil)
+        #expect(ThreadContextStore.destination(subject: .unfocused, ownerID: "o") == nil)
         let focused = DepositSubject(app: "xcode", projectIdentity: "/repos/Mary")
-        let dest = TotemContextStore.destination(subject: focused, ownerID: "o")
+        let dest = ThreadContextStore.destination(subject: focused, ownerID: "o")
         #expect(dest?.id.hasPrefix("mary-scope-") == true)
         #expect(dest?.id.hasPrefix("mary-context-") != true)
     }
 
     @Test func styleFilesToTheStyleGroup() {
-        let group = TotemMemoryTopology.styleGroup(ownerID: "o")
+        let group = ThreadMemoryTopology.styleGroup(ownerID: "o")
         #expect(group.id == "mary-style-o")
         #expect(group.label == "Style")
-        let classified = TotemAddressClassifier.classifyGroup(id: group.id)
+        let classified = ThreadAddressClassifier.classifyGroup(id: group.id)
         #expect(classified.family == .styleGroup)
         #expect(classified.lane == .personal)
-        let profile = TotemMemoryTopology.styleProfileDocumentID(
+        let profile = ThreadMemoryTopology.styleProfileDocumentID(
             subject: "writing", ownerID: "o")
         #expect(profile.hasPrefix("mary-style-profile-"))
-        #expect(TotemAddressClassifier.classifyDocument(id: profile).family == .styleProfile)
+        #expect(ThreadAddressClassifier.classifyDocument(id: profile).family == .styleProfile)
     }
 
     @Test func behaviorFamiliesPreferTheLongerPrefix() {
-        let interactionGroup = TotemMemoryTopology.interactionGroup(ownerID: "o")
-        #expect(TotemAddressClassifier.classifyGroup(id: interactionGroup.id).family
+        let interactionGroup = ThreadMemoryTopology.interactionGroup(ownerID: "o")
+        #expect(ThreadAddressClassifier.classifyGroup(id: interactionGroup.id).family
                 == .behaviorInteraction)
         let episodeID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
-        let episodeDoc = TotemMemoryTopology.behaviorDocumentID(episodeID: episodeID)
-        let interactionDoc = TotemMemoryTopology.interactionDocumentID(episodeID: episodeID)
-        #expect(TotemAddressClassifier.classifyDocument(id: episodeDoc).family
+        let episodeDoc = ThreadMemoryTopology.behaviorDocumentID(episodeID: episodeID)
+        let interactionDoc = ThreadMemoryTopology.interactionDocumentID(episodeID: episodeID)
+        #expect(ThreadAddressClassifier.classifyDocument(id: episodeDoc).family
                 == .behaviorEpisode)
-        #expect(TotemAddressClassifier.classifyDocument(id: episodeDoc).lane == .ability)
-        #expect(TotemAddressClassifier.classifyDocument(id: interactionDoc).family
+        #expect(ThreadAddressClassifier.classifyDocument(id: episodeDoc).lane == .ability)
+        #expect(ThreadAddressClassifier.classifyDocument(id: interactionDoc).family
                 == .behaviorInteractionDocument)
-        #expect(TotemAddressClassifier.classifyDocument(id: interactionDoc).lane == .personal)
+        #expect(ThreadAddressClassifier.classifyDocument(id: interactionDoc).lane == .personal)
     }
 
     @Test func durableExpertiseReceiptsIndexTheSignaledDiscipline() {
-        let projection = ResolvedTotemProjection(
+        let projection = ResolvedThreadProjection(
             id: "xcode.receipts",
             purpose: .receipt,
             persistence: .durable,
@@ -119,23 +119,23 @@ import MaryTotem
             redactContent: true,
             retentionSeconds: nil)
         let subject = DepositSubject(app: "xcode", projectIdentity: "/repos/Mary")
-        let destinations = TotemContextStore.projectionDestinations(
+        let destinations = ThreadContextStore.projectionDestinations(
             projection: projection,
             subject: subject,
             routingSubject: subject,
             applicationID: "xcode",
             targets: [
-                AbilityTotemTarget(abilityID: "xcode", paradigm: .applicationExpertise),
-                AbilityTotemTarget(abilityID: .coding, paradigm: .discipline),
+                AbilityThreadTarget(abilityID: "xcode", paradigm: .applicationExpertise),
+                AbilityThreadTarget(abilityID: .coding, paradigm: .discipline),
             ],
             ownerID: "o")
         #expect(destinations.map(\.lane) == [.ability, .ability])
         let expected = [
-            TotemMemoryTopology.abilityGroup(
-                target: AbilityTotemTarget(abilityID: "xcode", paradigm: .applicationExpertise),
+            ThreadMemoryTopology.abilityGroup(
+                target: AbilityThreadTarget(abilityID: "xcode", paradigm: .applicationExpertise),
                 ownerID: "o").id,
-            TotemMemoryTopology.abilityGroup(
-                target: AbilityTotemTarget(abilityID: .coding, paradigm: .discipline),
+            ThreadMemoryTopology.abilityGroup(
+                target: AbilityThreadTarget(abilityID: .coding, paradigm: .discipline),
                 ownerID: "o").id,
         ]
         #expect(destinations.map(\.id) == expected)
@@ -143,7 +143,7 @@ import MaryTotem
     }
 
     @Test func aSessionProjectionDoesNotMintAbilityGroups() {
-        let projection = ResolvedTotemProjection(
+        let projection = ResolvedThreadProjection(
             id: "window-management.receipts",
             purpose: .receipt,
             persistence: .session,
@@ -152,13 +152,13 @@ import MaryTotem
             redactContent: true,
             retentionSeconds: 3600)
         let subject = DepositSubject(app: "finder")
-        let destinations = TotemContextStore.projectionDestinations(
+        let destinations = ThreadContextStore.projectionDestinations(
             projection: projection,
             subject: subject,
             routingSubject: subject,
             applicationID: nil,
             targets: [
-                AbilityTotemTarget(abilityID: "window-management", paradigm: .systemControl)
+                AbilityThreadTarget(abilityID: "window-management", paradigm: .systemControl)
             ],
             ownerID: "o")
         #expect(destinations.isEmpty)
@@ -174,7 +174,7 @@ import MaryTotem
             relativePath: "Sources/Foo.swift",
             contentHash: "abc",
             discipline: .coding)
-        let composition = TotemContextStore.unitComposition(unit)
+        let composition = ThreadContextStore.unitComposition(unit)
         let abilityEntity = composition.entities.first { $0.name == "coding" }
         #expect(abilityEntity?.kind == "ability")
         let practices = composition.relationships.first {
@@ -182,7 +182,7 @@ import MaryTotem
         }
         #expect(practices?.subject == "Mary")
         #expect(practices?.object == "coding")
-        let body = TotemContextStore.unitDocument(unit)
+        let body = ThreadContextStore.unitDocument(unit)
         #expect(body.contains("Discipline: coding"))
     }
 

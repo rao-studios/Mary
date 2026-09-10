@@ -172,10 +172,10 @@ package actor TextTurnRunner {
                     guard !Task.isCancelled, await ownsSpeaker() else { continue }
                     await router.consumeToken(accumulated: accumulated)
                 case .speechSource(let source):
-                    // Mid-turn server→local swap — same notice channel as Seer voice degrade.
+                    // Mid-turn server→local swap — same notice channel as Sewn voice degrade.
                     if lastSpeechSource == .server, source == .local {
                         MaryRuntime.onVoiceDegrade?(
-                            "Seer's realtime voice dropped for this reply — finishing with the standard voice.")
+                            "Sewn's realtime voice dropped for this reply — finishing with the standard voice.")
                     }
                     lastSpeechSource = source
                     router.consumeSpeechSource(source, accumulated: accumulated)

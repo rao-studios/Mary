@@ -63,8 +63,8 @@ extension AbilityPackageValidator {
             package.skills.map { ($0.id.rawValue, package.package.id) }
         }, kind: "skill")
         _ = schemaOwners(packages.flatMap { package in
-            package.totemProjections.map { ($0.id.rawValue, package.package.id) }
-        }, kind: "totem-projection")
+            package.threadProjections.map { ($0.id.rawValue, package.package.id) }
+        }, kind: "thread-projection")
 
         let abilityIDs = Set(packages.map(\.ability.id))
         let abilityOwners = Dictionary(

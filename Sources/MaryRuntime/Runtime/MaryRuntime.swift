@@ -3,7 +3,7 @@
 //  MaryRuntime
 //
 //  WHAT: Composition root. Granite reducers talk to these actors.
-//  OUT:  VoicePipeline / MaryBrain / Totem via the stack below.
+//  OUT:  VoicePipeline / MaryBrain / Thread via the stack below.
 //        Siblings: +TTS, +Focus, +Prompt, +BrainInstall, +Stack.
 //  PIN:  Granite owns durable state; these own compute (models, audio).
 //
@@ -11,7 +11,7 @@
 import MaryAmbient
 import MaryBrain
 import MaryPlugin
-import MaryTotem
+import MaryThread
 import MaryVoice
 import Foundation
 import os
@@ -100,15 +100,15 @@ package enum MaryRuntime {
     }
 
     static let kokoro = KokoroEngine()
-    static let seerTTS = SeerTTSEngine(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        tokenProvider: { await seerSession.validToken() })
+    static let sewnTTS = SewnTTSEngine(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        tokenProvider: { await sewnSession.validToken() })
     package static let speaker = KokoroStreamSpeaker(engine: kokoro)
     /// Process-wide stores → brain. Uninjected (tests) get fresh stores.
-    /// Lane B before any applier runs. Seer-backed from the first instant:
+    /// Lane B before any applier runs. Sewn-backed from the first instant:
     /// Mary loads no model of her own.
     package static let brain = MaryBrain(
-        engine: MarySeerSkillEngine(client: seerSkill),
+        engine: MarySewnSkillEngine(client: sewnSkill),
         wiring: brainWiring)
 
     /// The process-wide stores, named once.
@@ -119,7 +119,7 @@ package enum MaryRuntime {
         readLedger: .shared,
         world: .shared,
         elementIndex: elementIndex,
-        behavior: BehavioralAssembler(recorder: TotemBehavioralRecording()))
+        behavior: BehavioralAssembler(recorder: ThreadBehavioralRecording()))
 
     /// Process-wide element index; installs NLAmbientTextVectorizer when present.
     /// PIN: static-let body so the brain never sees an unwired `.shared`.
@@ -162,48 +162,48 @@ package enum MaryRuntime {
     /// Debugger SCK thumbnails. App-side (TCC/AppKit stay out of MaryBrain).
     package static let captureService = WindowCaptureService()
 
-    // Local Seer/Totem stack. Instances live for the app; appliers reconfigure.
+    // Local Sewn/Thread stack. Instances live for the app; appliers reconfigure.
     package static let localStack = LocalStackManager()
-    package static let seerSession = SeerSession(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        email: ServerSpec.Defaults.seerEmail,
-        password: ServerSpec.Defaults.seerPassword)
-    static let seerChat = SeerChatClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    static let seerRealtime = SeerRealtimeClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    static let seerVision = SeerVisionClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    static let seerComplete = SeerCompleteClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    static let seerSkill = SeerSkillClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    static let seerCode = SeerCodeClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
+    package static let sewnSession = SewnSession(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        email: ServerSpec.Defaults.sewnEmail,
+        password: ServerSpec.Defaults.sewnPassword)
+    static let sewnChat = SewnChatClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    static let sewnRealtime = SewnRealtimeClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    static let sewnVision = SewnVisionClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    static let sewnComplete = SewnCompleteClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    static let sewnSkill = SewnSkillClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    static let sewnCode = SewnCodeClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
     /// Vectors, not generation — the tier under Apple's on-device model.
     /// `MaryEmbeddings` decides whether anything asks it.
-    static let seerEmbedding = SeerEmbeddingClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    /// Which backends Seer can serve, and warming the on-device one.
-    static let seerProviders = SeerProvidersClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
-        session: seerSession)
-    // No session: /v1/totems is open; Totems pane works before sign-in.
-    package static let seerTotems = SeerTotemsClient(
-        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!)
-    static let totemContext = TotemContextStore(session: seerSession)
+    static let sewnEmbedding = SewnEmbeddingClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    /// Which backends Sewn can serve, and warming the on-device one.
+    static let sewnProviders = SewnProvidersClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!,
+        session: sewnSession)
+    // No session: /v1/threads is open; Threads pane works before sign-in.
+    package static let sewnThreads = SewnThreadsClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.sewnPort)")!)
+    static let threadContext = ThreadContextStore(session: sewnSession)
 
     /// Corpus durable half (unit cards + resume manifest).
-    /// Annotator installed in applyEngine → SeerUnitAnnotator.
+    /// Annotator installed in applyEngine → SewnUnitAnnotator.
     static let unitIndexer = AmbientUnitIndexingCoordinator { unit, manifest in
-        await totemContext.depositUnitIndex(unit, manifest: manifest)
+        await threadContext.depositUnitIndex(unit, manifest: manifest)
         // Same settle also moved style tallies; coalesced write.
         requestStyleProfileSave()
     }

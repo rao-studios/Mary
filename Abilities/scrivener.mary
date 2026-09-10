@@ -70,11 +70,11 @@
 
     ],
     "summary" : "Drive Scrivener: read the manuscript, and split or restructure it through its own commands.",
-    "tint" : "#2E7D9A",
-    "title" : "Scrivener",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#2E7D9A",
+    "title" : "Scrivener",
     "triggers" : {
       "intentAliases" : [
 
@@ -132,7 +132,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "d5986ceba5cc01a3484cd49b660981538dead3cc05b97abfe8ca3724bec91d26"
+    "digest" : "3c454b224ee8835a66894e0415b22573072bfa88ae7c9e0c9be9d6d164f259d8"
   },
   "interactions" : [
 
@@ -429,7 +429,7 @@
   "skills" : [
 
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

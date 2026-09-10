@@ -71,9 +71,9 @@ One says what it routes, the other says what it is. Ideally
 `mary-routing-habit-*` and `mary-application-habit-*`.
 
 **Not done because it is a migration, not a rename.** `mary-routing-*`
-documents already exist in real Totems from prior sessions; changing the prefix
-orphans them (`TotemAddressClassifier` would file them as `.unknown` and the
-Totems pane would show them as Unrecognized). Doing it properly means a
+documents already exist in real Threads from prior sessions; changing the prefix
+orphans them (`ThreadAddressClassifier` would file them as `.unknown` and the
+Threads pane would show them as Unrecognized). Doing it properly means a
 read-both/write-new period or a one-off re-address pass.
 
 `ApplicationHabit` has a second wrinkle the routing side does not: its rows are

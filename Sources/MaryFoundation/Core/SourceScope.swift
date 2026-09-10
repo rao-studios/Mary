@@ -96,7 +96,7 @@ public enum PayloadCompleteness: String, Codable, Hashable, Sendable, CaseIterab
     case unavailable
 }
 
-/// Privacy-safe trace pointer. Raw values stay off routes, Totem receipts, packages.
+/// Privacy-safe trace pointer. Raw values stay off routes, Thread receipts, packages.
 public struct InteractionInstanceReference: Codable, Hashable, Sendable, Identifiable {
     public var id: UUID
     public var schemaID: InteractionID

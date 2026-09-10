@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Local single-engine turn loop + shared synthetic nudges.
-//  IN:   runTurnBody when Seer is nil/unready
+//  IN:   runTurnBody when Sewn is nil/unready
 //  OUT:  engine stream + dispatch
 //  PIN:  Prompt-text unchanged; split members private.
 //
@@ -21,7 +21,7 @@ extension MaryBrain {
     func localTurn(
         userText: String,
         systemPrompt: String,
-        /// THE TURN'S ROUTE, WHOLE — same parity as `seerTurn`: the shape of this
+        /// THE TURN'S ROUTE, WHOLE — same parity as `sewnTurn`: the shape of this
         /// turn was decided once, and local mode reads that decision rather than
         /// being handed a re-spelled copy of its parts.
         route: AmbientRoute,
@@ -234,7 +234,7 @@ extension MaryBrain {
                             // model was told what the screen offers and still ran
                             // nothing; if one control answers the goal confidently
                             // enough, press it rather than report a failure. Same rung,
-                            // same floor and the same `act_on_screen` the Seer turn
+                            // same floor and the same `act_on_screen` the Sewn turn
                             // uses — it can do nothing the model could not have done.
                             let offer = affordanceOffer
                                 ?? AffordanceProbe.candidate(for: userText)

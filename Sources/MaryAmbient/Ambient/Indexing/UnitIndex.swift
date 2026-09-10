@@ -3,7 +3,7 @@
 //  MaryAmbient
 //
 //  WHAT: Durable half of ambient code indexing — one card per settled file, plus neighbourhood.
-//  OUT:  Totem. Sibling: AmbientProjectSnapshot (project shape)
+//  OUT:  Thread. Sibling: AmbientProjectSnapshot (project shape)
 //  PIN:  Content hash gates annotation. Per-file address so a neighbourhood accumulates.
 //
 
@@ -195,7 +195,7 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
     }
 
     /// Drop a unit entirely — its hash gate and its manifest row. The caller
-    /// removes the Totem document; this is the local half.
+    /// removes the Thread document; this is the local half.
     public func forget(path: String, projectID: String) {
         manifests[projectID]?.entries[path] = nil
     }
@@ -250,8 +250,8 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         switch attempt {
         case .annotated(let value):
             annotation = value
-        case .seerUnavailable:
-            return (unit, .seerUnavailable, nil)
+        case .sewnUnavailable:
+            return (unit, .sewnUnavailable, nil)
         case .empty:
             return (unit, .empty, nil)
         case .unparsable:

@@ -263,7 +263,7 @@ extension AbilityRuntime {
                     arguments: arguments,
                     snapshot: snapshot,
                     signals: signals)
-                return Self.applyingTotemArchivePolicy(
+                return Self.applyingThreadArchivePolicy(
                     outcome,
                     reference: invokedRuntimeSkill.reference,
                     snapshot: snapshot)
@@ -275,7 +275,7 @@ extension AbilityRuntime {
                     context: executionContext(),
                     routing: routing,
                     signals: signals)
-                return Self.applyingTotemArchivePolicy(
+                return Self.applyingThreadArchivePolicy(
                     outcome,
                     reference: invokedRuntimeSkill.reference,
                     snapshot: snapshot)

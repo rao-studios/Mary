@@ -89,7 +89,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     public var interactions: [InteractionSchema]
     public var perceptions: [PerceptionSchema]
     public var valueTypes: [ValueTypeSchema]
-    public var totemProjections: [TotemProjectionSchema]
+    public var threadProjections: [ThreadProjectionSchema]
     public var dependencies: [AbilityPackageDependency]
     public var fixtures: [AbilityFixture]
     public var plugin: PluginSchema?
@@ -105,7 +105,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         interactions: [InteractionSchema] = [],
         perceptions: [PerceptionSchema] = [],
         valueTypes: [ValueTypeSchema] = [],
-        totemProjections: [TotemProjectionSchema] = [],
+        threadProjections: [ThreadProjectionSchema] = [],
         dependencies: [AbilityPackageDependency] = [],
         fixtures: [AbilityFixture] = [],
         plugin: PluginSchema? = nil,
@@ -121,7 +121,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         self.interactions = interactions
         self.perceptions = perceptions
         self.valueTypes = valueTypes
-        self.totemProjections = totemProjections
+        self.threadProjections = threadProjections
         self.dependencies = dependencies
         self.fixtures = fixtures
         self.plugin = plugin
@@ -139,7 +139,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         case interactions
         case perceptions
         case valueTypes
-        case totemProjections
+        case threadProjections
         case dependencies
         case fixtures
         case plugin
@@ -159,8 +159,8 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         interactions = try values.decode([InteractionSchema].self, forKey: .interactions)
         perceptions = try values.decode([PerceptionSchema].self, forKey: .perceptions)
         valueTypes = try values.decode([ValueTypeSchema].self, forKey: .valueTypes)
-        totemProjections = try values.decode(
-            [TotemProjectionSchema].self, forKey: .totemProjections)
+        threadProjections = try values.decode(
+            [ThreadProjectionSchema].self, forKey: .threadProjections)
         dependencies = try values.decode(
             [AbilityPackageDependency].self, forKey: .dependencies)
         fixtures = try values.decode([AbilityFixture].self, forKey: .fixtures)
@@ -183,7 +183,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         try values.encode(interactions, forKey: .interactions)
         try values.encode(perceptions, forKey: .perceptions)
         try values.encode(valueTypes, forKey: .valueTypes)
-        try values.encode(totemProjections, forKey: .totemProjections)
+        try values.encode(threadProjections, forKey: .threadProjections)
         try values.encode(dependencies, forKey: .dependencies)
         try values.encode(fixtures, forKey: .fixtures)
         try values.encodeIfPresent(plugin, forKey: .plugin)

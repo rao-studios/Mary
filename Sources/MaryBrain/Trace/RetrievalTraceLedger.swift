@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: What retrieval was asked, and what came back — one row per exchange.
-//  IN:   Seer clients (scope + contribution)
+//  IN:   Sewn clients (scope + contribution)
 //  OUT:  debugger / highlight UI
 //  PIN:  Same lock-boxed ring shape as AmbientTraceLog / AbilityExecutionLog.
 //
@@ -13,10 +13,10 @@ import Foundation
 /// Which transport carried the request. Both wrap the identical
 /// `ChatRequest`, so the row must say which one actually went out — a scope
 /// bug that only shows on one transport is otherwise invisible.
-public enum SeerTransportKind: String, Sendable, Equatable {
+public enum SewnTransportKind: String, Sendable, Equatable {
     case sse
     case realtime
-    /// Mary's direct Totem gRPC — Ability lane, not Seer RAG.
+    /// Mary's direct Thread gRPC — Ability lane, not Sewn RAG.
     case grpc
 }
 
@@ -24,22 +24,22 @@ public enum SeerTransportKind: String, Sendable, Equatable {
 public enum PromptLane: String, Sendable, Equatable {
     /// The Skill execution lane's system prompt.
     case system
-    /// The voice lane's Seer instructions.
-    case seerInstructions
+    /// The voice lane's Sewn instructions.
+    case sewnInstructions
 }
 
 /// One request's scope, exactly as it went onto the wire — projected from the
-/// same `SeerWire.SeerScope` value the client encodes, so the row can never
+/// same `SewnWire.SewnScope` value the client encodes, so the row can never
 /// disagree with the bytes it claims to explain.
-public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
-    /// The wire join key: `SeerWire.scope`'s minted `requestID` (a lowercased
+public struct SewnRequestTrace: Sendable, Equatable, Identifiable {
+    /// The wire join key: `SewnWire.scope`'s minted `requestID` (a lowercased
     /// UUID string). The contribution that comes back belongs to exactly one
     /// of a row's requests, and this is how the pane says which.
     public var id: String
     public var sentAt: Date
-    public var transport: SeerTransportKind
+    public var transport: SewnTransportKind
     public var ownerID: String
-    /// Seer's semantics verbatim: true → all of the owner's documents;
+    /// Sewn's semantics verbatim: true → all of the owner's documents;
     /// false → only `groups`.
     public var aggregate: Bool
     /// Ids and labels only — the group filter as sent, minus the redundant
@@ -47,14 +47,14 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
     public var groups: [RetrievalScope.Group]
     /// The `entities` relationship cues, verbatim ids.
     public var relationshipHints: [String]
-    public var personalTotemID: String?
+    public var personalThreadID: String?
 
-    /// THE ONLY WAY IN from a Seer chat request: a trace is a projection of
+    /// THE ONLY WAY IN from a Sewn chat request: a trace is a projection of
     /// the scope value the wire encodes, never a hand-assembled claim about
     /// it.
     init(
-        scope: SeerWire.SeerScope,
-        transport: SeerTransportKind,
+        scope: SewnWire.SewnScope,
+        transport: SewnTransportKind,
         sentAt: Date = Date()
     ) {
         self.id = scope.requestID
@@ -66,11 +66,11 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
             RetrievalScope.Group(id: $0.id, label: $0.label)
         }
         self.relationshipHints = scope.entities ?? []
-        self.personalTotemID = scope.personalTotemID
+        self.personalThreadID = scope.personalThreadID
     }
 
     /// Mary's Ability-lane gRPC search. Ids and labels only — the same
-    /// redaction rule as the Seer projection.
+    /// redaction rule as the Sewn projection.
     public init(
         grpcAbilitySearch ownerID: String,
         groups: [RetrievalScope.Group],
@@ -84,18 +84,18 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
         self.aggregate = false
         self.groups = groups
         self.relationshipHints = relationshipHints
-        self.personalTotemID = nil
+        self.personalThreadID = nil
     }
 }
 
 /// What came back: owners, influence and credit — with every character span PROJECTED TO COUNTS.
-public struct SeerContributionTrace: Sendable, Equatable {
+public struct SewnContributionTrace: Sendable, Equatable {
 
     public struct OwnerTrace: Sendable, Equatable, Identifiable {
-        /// `SeerContribution.Owner.id` verbatim: ownerID when present, else
-        /// the totem id.
+        /// `SewnContribution.Owner.id` verbatim: ownerID when present, else
+        /// the thread id.
         public var id: String
-        public var totemID: String
+        public var threadID: String
         /// Sorted — `Owner.documentIDs` is a Set, and a row that reorders
         /// itself between reads is a diff the pane cannot trust.
         public var documentIDs: [String]
@@ -108,7 +108,7 @@ public struct SeerContributionTrace: Sendable, Equatable {
         public var creditedChars: Int
     }
 
-    /// Royalty-descending; equal royalties tie-break on totem id so the
+    /// Royalty-descending; equal royalties tie-break on thread id so the
     /// order is deterministic (the source is a Set).
     public var owners: [OwnerTrace]
     public var totalPayout: Double
@@ -116,12 +116,12 @@ public struct SeerContributionTrace: Sendable, Equatable {
     public var receivedAt: Date
 
     /// The only init — the projection IS the redaction.
-    public init(_ contribution: SeerContribution, receivedAt: Date = Date()) {
+    public init(_ contribution: SewnContribution, receivedAt: Date = Date()) {
         self.owners = contribution.owners
             .map { owner in
                 OwnerTrace(
                     id: owner.id,
-                    totemID: owner.totemID,
+                    threadID: owner.threadID,
                     documentIDs: owner.documentIDs.sorted(),
                     influence: owner.influence,
                     royalty: owner.royalty,
@@ -133,7 +133,7 @@ public struct SeerContributionTrace: Sendable, Equatable {
             }
             .sorted {
                 $0.royalty == $1.royalty
-                    ? $0.totemID < $1.totemID
+                    ? $0.threadID < $1.threadID
                     : $0.royalty > $1.royalty
             }
         self.totalPayout = contribution.totalPayout
@@ -217,8 +217,8 @@ public struct RetrievalTraceRecord: Sendable, Equatable, Identifiable {
     /// Usually one; TWO is the realtime pre-stream fallback made visible —
     /// the failed realtime request keeps its row entry, then the classic
     /// rerun appends its own.
-    public var requests: [SeerRequestTrace]
-    public var contribution: SeerContributionTrace?
+    public var requests: [SewnRequestTrace]
+    public var contribution: SewnContributionTrace?
     /// Which of `requests` the contribution answered — the row's last-booked
     /// request id at the moment the contribution arrived, derived by
     /// `noteContribution` itself.
@@ -239,7 +239,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
     private var stagedSystemPrompt:
         (spend: PromptSpendTrace, ambient: AmbientInjectionTrace)?
     /// See `stageAbilityRequest`.
-    private var stagedAbilityRequest: SeerRequestTrace?
+    private var stagedAbilityRequest: SewnRequestTrace?
 
     public init(capacity: Int = 50) {
         self.capacity = max(1, capacity)
@@ -269,7 +269,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
     /// Attach a sent request once the lane sees its `.scoped` event. A note
     /// for an evicted (or never-opened) row drops silently — the ring's
     /// contract, verbatim from `AmbientTraceLog`.
-    public func noteSeerRequest(_ request: SeerRequestTrace, forExchange id: UUID) {
+    public func noteSewnRequest(_ request: SewnRequestTrace, forExchange id: UUID) {
         lock.lock()
         defer { lock.unlock() }
         guard let index = records.firstIndex(where: { $0.exchangeID == id }) else { return }
@@ -278,7 +278,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
 
     /// FIRST WINS, mirroring the lane's own `result.contribution` rule: a second contribution on one exchange is a duplicate, not a correction
     public func noteContribution(
-        _ contribution: SeerContributionTrace,
+        _ contribution: SewnContributionTrace,
         forExchange id: UUID
     ) {
         lock.lock()
@@ -328,7 +328,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
     /// Ability-lane gRPC search is asked during turn-context refresh, before
     /// the retrieval row exists. Stage here; the turn loop claims it onto the
     /// row it opens, same handshake as the system prompt.
-    public func stageAbilityRequest(_ request: SeerRequestTrace) {
+    public func stageAbilityRequest(_ request: SewnRequestTrace) {
         lock.lock()
         defer { lock.unlock() }
         stagedAbilityRequest = request

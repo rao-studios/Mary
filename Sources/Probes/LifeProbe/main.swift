@@ -36,13 +36,13 @@ func option(_ name: String) -> String? {
 let watching = arguments.contains("--watch")
 /// One real round through Fleet's Complete RPC, for the ability named.
 let completeAbility = option("--complete")
-let nodeID = option("--node") ?? ProcessInfo.processInfo.environment["MARY_TOTEM_NODE_ID"] ?? ""
+let nodeID = option("--node") ?? ProcessInfo.processInfo.environment["MARY_THREAD_NODE_ID"] ?? ""
 let port = Int(option("--port") ?? "") ?? ServerSpec.Defaults.fleetGRPCPort
 
 MaryRuntime.configureLifeAccess(nodeID: nodeID, fleetGRPCPort: port)
 
 heading("dial")
-row("totem node", nodeID.isEmpty ? "— (pass --node <uuid>)" : nodeID)
+row("thread node", nodeID.isEmpty ? "— (pass --node <uuid>)" : nodeID)
 row("fleet gRPC", "127.0.0.1:\(port)")
 
 heading("the machine")
@@ -136,7 +136,7 @@ if let completeAbility {
     row("adapter", "\(completeAbility) · \(String(slot.cid.prefix(8))) · \(slot.ready ? "ready" : "not ready")")
     let maker = FleetRemoteAdapterSessionMaker(
         modelID: LifeBaseModel.defaultModelID,
-        totemID: { nodeID },
+        threadID: { nodeID },
         fleet: { MaryRuntime.makeFleetClient() })
     do {
         let session = try maker.makeSession(adapter: LifeAdapterRef(slot: slot))

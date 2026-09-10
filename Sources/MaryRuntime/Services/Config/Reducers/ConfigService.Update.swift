@@ -31,7 +31,7 @@ extension ConfigService {
             sttBackend: STTBackend? = nil,
             ttsBackend: TTSBackend? = nil,
             voice: String? = nil,
-            seerVoice: String? = nil,
+            sewnVoice: String? = nil,
             speechStyle: SpeechStyleSelection? = nil,
             vad: VADConfig? = nil,
             projects: [ProjectRef]? = nil,
@@ -40,24 +40,27 @@ extension ConfigService {
             historyMessageLimit: Int? = nil,
             ambientCorpusIndexing: Bool? = nil,
             wakeWordEnabled: Bool? = nil,
-            seerEnabled: Bool? = nil,
+            sewnEnabled: Bool? = nil,
             autoStartServers: Bool? = nil,
-            seerCheckoutPath: String? = nil,
-            totemCheckoutPath: String? = nil,
-            seerPort: Int? = nil,
-            seerGRPCPort: Int? = nil,
-            totemPort: Int? = nil,
-            totemGRPCPort: Int? = nil,
-            totemNodeID: String? = nil,
-            seerEmail: String? = nil,
-            seerPassword: String? = nil,
-            totemGraphBackend: String? = nil,
+            sewnCheckoutPath: String? = nil,
+            threadCheckoutPath: String? = nil,
+            sewnDataDir: String? = nil,
+            threadDataDir: String? = nil,
+            fleetDataDir: String? = nil,
+            sewnPort: Int? = nil,
+            sewnGRPCPort: Int? = nil,
+            threadPort: Int? = nil,
+            threadGRPCPort: Int? = nil,
+            threadNodeID: String? = nil,
+            sewnEmail: String? = nil,
+            sewnPassword: String? = nil,
+            threadGraphBackend: String? = nil,
             fleetCheckoutPath: String? = nil,
             fleetPort: Int? = nil,
             fleetGRPCPort: Int? = nil,
-            totemGraphPolicyManaged: Bool? = nil,
-            seerChatModel: String? = nil,
-            seerTransport: SeerTransportChoice? = nil,
+            threadGraphPolicyManaged: Bool? = nil,
+            sewnChatModel: String? = nil,
+            sewnTransport: SewnTransportChoice? = nil,
             codingAgentEnabled: Bool? = nil,
             codingEngine: LLMEngineChoice? = nil,
             skillRunTimeoutSeconds: Double? = nil,
@@ -70,7 +73,7 @@ extension ConfigService {
             self.sttBackend = sttBackend
             self.ttsBackend = ttsBackend
             self.voice = voice
-            self.seerVoice = seerVoice
+            self.sewnVoice = sewnVoice
             self.speechStyle = speechStyle
             self.vad = vad
             self.projects = projects
@@ -79,24 +82,27 @@ extension ConfigService {
             self.historyMessageLimit = historyMessageLimit
             self.ambientCorpusIndexing = ambientCorpusIndexing
             self.wakeWordEnabled = wakeWordEnabled
-            self.seerEnabled = seerEnabled
+            self.sewnEnabled = sewnEnabled
             self.autoStartServers = autoStartServers
-            self.seerCheckoutPath = seerCheckoutPath
-            self.totemCheckoutPath = totemCheckoutPath
-            self.seerPort = seerPort
-            self.seerGRPCPort = seerGRPCPort
-            self.totemPort = totemPort
-            self.totemGRPCPort = totemGRPCPort
-            self.totemNodeID = totemNodeID
-            self.seerEmail = seerEmail
-            self.seerPassword = seerPassword
-            self.totemGraphBackend = totemGraphBackend
+            self.sewnCheckoutPath = sewnCheckoutPath
+            self.threadCheckoutPath = threadCheckoutPath
+            self.sewnDataDir = sewnDataDir
+            self.threadDataDir = threadDataDir
+            self.fleetDataDir = fleetDataDir
+            self.sewnPort = sewnPort
+            self.sewnGRPCPort = sewnGRPCPort
+            self.threadPort = threadPort
+            self.threadGRPCPort = threadGRPCPort
+            self.threadNodeID = threadNodeID
+            self.sewnEmail = sewnEmail
+            self.sewnPassword = sewnPassword
+            self.threadGraphBackend = threadGraphBackend
             self.fleetCheckoutPath = fleetCheckoutPath
             self.fleetPort = fleetPort
             self.fleetGRPCPort = fleetGRPCPort
-            self.totemGraphPolicyManaged = totemGraphPolicyManaged
-            self.seerChatModel = seerChatModel
-            self.seerTransport = seerTransport
+            self.threadGraphPolicyManaged = threadGraphPolicyManaged
+            self.sewnChatModel = sewnChatModel
+            self.sewnTransport = sewnTransport
             self.codingAgentEnabled = codingAgentEnabled
             self.codingEngine = codingEngine
             self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
@@ -109,7 +115,7 @@ extension ConfigService {
             package var sttBackend: STTBackend? = nil
             package var ttsBackend: TTSBackend? = nil
             package var voice: String? = nil
-            package var seerVoice: String? = nil
+            package var sewnVoice: String? = nil
             package var speechStyle: SpeechStyleSelection? = nil
             package var vad: VADConfig? = nil
             package var projects: [ProjectRef]? = nil
@@ -120,24 +126,27 @@ extension ConfigService {
             package var historyMessageLimit: Int?
         package var ambientCorpusIndexing: Bool? = nil
             package var wakeWordEnabled: Bool? = nil
-            package var seerEnabled: Bool? = nil
+            package var sewnEnabled: Bool? = nil
             package var autoStartServers: Bool? = nil
-            package var seerCheckoutPath: String? = nil
-            package var totemCheckoutPath: String? = nil
-            package var seerPort: Int? = nil
-            package var seerGRPCPort: Int? = nil
-            package var totemPort: Int? = nil
-            package var totemGRPCPort: Int? = nil
-            package var totemNodeID: String? = nil
-            package var seerEmail: String? = nil
-            package var seerPassword: String? = nil
-            package var totemGraphBackend: String? = nil
+            package var sewnCheckoutPath: String? = nil
+            package var threadCheckoutPath: String? = nil
+            package var sewnDataDir: String? = nil
+            package var threadDataDir: String? = nil
+            package var fleetDataDir: String? = nil
+            package var sewnPort: Int? = nil
+            package var sewnGRPCPort: Int? = nil
+            package var threadPort: Int? = nil
+            package var threadGRPCPort: Int? = nil
+            package var threadNodeID: String? = nil
+            package var sewnEmail: String? = nil
+            package var sewnPassword: String? = nil
+            package var threadGraphBackend: String? = nil
             package var fleetCheckoutPath: String? = nil
             package var fleetPort: Int? = nil
             package var fleetGRPCPort: Int? = nil
-            package var totemGraphPolicyManaged: Bool? = nil
-            package var seerChatModel: String? = nil
-            package var seerTransport: SeerTransportChoice? = nil
+            package var threadGraphPolicyManaged: Bool? = nil
+            package var sewnChatModel: String? = nil
+            package var sewnTransport: SewnTransportChoice? = nil
             package var codingAgentEnabled: Bool? = nil
             package var codingEngine: LLMEngineChoice? = nil
             package var skillRunTimeoutSeconds: Double? = nil
@@ -155,7 +164,7 @@ extension ConfigService {
             if let value = meta.sttBackend { state.sttBackend = value }
             if let value = meta.ttsBackend { state.ttsBackend = value }
             if let value = meta.voice, !value.isEmpty { state.voice = value }
-            if let value = meta.seerVoice, !value.isEmpty { state.seerVoice = value }
+            if let value = meta.sewnVoice, !value.isEmpty { state.sewnVoice = value }
             if let value = meta.speechStyle { state.speechStyle = value }
             if let value = meta.vad { state.vad = value }
             if let value = meta.projects { state.projects = value }
@@ -169,26 +178,29 @@ extension ConfigService {
             if let value = meta.historyMessageLimit, value >= 4 { state.historyMessageLimit = value }
             if let value = meta.ambientCorpusIndexing { state.ambientCorpusIndexing = value }
             if let value = meta.wakeWordEnabled { state.wakeWordEnabled = value }
-            if let value = meta.seerEnabled { state.seerEnabled = value }
+            if let value = meta.sewnEnabled { state.sewnEnabled = value }
             if let value = meta.autoStartServers { state.autoStartServers = value }
-            if let value = meta.seerCheckoutPath, !value.isEmpty { state.seerCheckoutPath = value }
-            if let value = meta.totemCheckoutPath, !value.isEmpty { state.totemCheckoutPath = value }
-            if let value = meta.seerPort, value > 0 { state.seerPort = value }
-            if let value = meta.seerGRPCPort, value > 0 { state.seerGRPCPort = value }
-            if let value = meta.totemPort, value > 0 { state.totemPort = value }
-            if let value = meta.totemGRPCPort, value > 0 { state.totemGRPCPort = value }
-            // Empty is meaningful (falls back to Totem's persisted identity).
-            if let value = meta.totemNodeID { state.totemNodeID = value }
-            if let value = meta.seerEmail, !value.isEmpty { state.seerEmail = value }
-            if let value = meta.seerPassword, !value.isEmpty { state.seerPassword = value }
-            if let value = meta.totemGraphBackend, !value.isEmpty { state.totemGraphBackend = value }
+            if let value = meta.sewnCheckoutPath, !value.isEmpty { state.sewnCheckoutPath = value }
+            if let value = meta.threadCheckoutPath, !value.isEmpty { state.threadCheckoutPath = value }
+            if let value = meta.sewnDataDir, !value.isEmpty { state.sewnDataDir = value }
+            if let value = meta.threadDataDir, !value.isEmpty { state.threadDataDir = value }
+            if let value = meta.fleetDataDir, !value.isEmpty { state.fleetDataDir = value }
+            if let value = meta.sewnPort, value > 0 { state.sewnPort = value }
+            if let value = meta.sewnGRPCPort, value > 0 { state.sewnGRPCPort = value }
+            if let value = meta.threadPort, value > 0 { state.threadPort = value }
+            if let value = meta.threadGRPCPort, value > 0 { state.threadGRPCPort = value }
+            // Empty is meaningful (falls back to Thread's persisted identity).
+            if let value = meta.threadNodeID { state.threadNodeID = value }
+            if let value = meta.sewnEmail, !value.isEmpty { state.sewnEmail = value }
+            if let value = meta.sewnPassword, !value.isEmpty { state.sewnPassword = value }
+            if let value = meta.threadGraphBackend, !value.isEmpty { state.threadGraphBackend = value }
             if let value = meta.fleetCheckoutPath, !value.isEmpty { state.fleetCheckoutPath = value }
             if let value = meta.fleetPort, value > 0 { state.fleetPort = value }
             if let value = meta.fleetGRPCPort, value > 0 { state.fleetGRPCPort = value }
-            if let value = meta.totemGraphPolicyManaged { state.totemGraphPolicyManaged = value }
-            // Empty is meaningful (reverts to Seer's default model).
-            if let value = meta.seerChatModel { state.seerChatModel = value }
-            if let value = meta.seerTransport { state.seerTransport = value }
+            if let value = meta.threadGraphPolicyManaged { state.threadGraphPolicyManaged = value }
+            // Empty is meaningful (reverts to Sewn's default model).
+            if let value = meta.sewnChatModel { state.sewnChatModel = value }
+            if let value = meta.sewnTransport { state.sewnTransport = value }
             if let value = meta.codingAgentEnabled { state.codingAgentEnabled = value }
             if let value = meta.codingEngine { state.codingEngine = value }
             if let value = meta.modelCallPriceUSD, value >= 0 {

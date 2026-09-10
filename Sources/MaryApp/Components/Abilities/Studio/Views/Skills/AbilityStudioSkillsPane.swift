@@ -50,7 +50,7 @@ struct AbilityStudioSkillsPane: View {
                         Capsule().fill(Color.maryGold.opacity(0.14)))
                 }
                 .buttonStyle(.plain)
-                .help("Say what this ability should be able to do; Seer drafts the blocks.")
+                .help("Say what this ability should be able to do; Sewn drafts the blocks.")
             }
         } content: {
             ScrollViewReader { proxy in
@@ -93,7 +93,7 @@ struct AbilityStudioSkillsPane: View {
     }
 
     /// Only an expertise with macUI hands can be given more of them. Whether
-    /// Seer can answer right now is a transient network condition, reported by
+    /// Sewn can answer right now is a transient network condition, reported by
     /// the sheet at the moment of use rather than used to hide the door.
     private var canDraft: Bool {
         package.plugin?.adapters.contains { $0.engine == .macUI } == true

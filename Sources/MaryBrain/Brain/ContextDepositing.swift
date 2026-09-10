@@ -4,7 +4,7 @@
 //
 //  WHAT: Fire-and-forget seam for durable Ability execution memory.
 //  IN:   MaryBrain archive path
-//  OUT:  Totem via runtime-injected depositor
+//  OUT:  Thread via runtime-injected depositor
 //
 import Foundation
 
@@ -21,9 +21,9 @@ public protocol ContextDepositing: Sendable {
         policy: ArchivePolicy,
         succeeded: Bool,
         /// `nil` is a machine-local adapter result with no portable package.
-        /// A non-nil value is the package's frozen, already-resolved Totem
+        /// A non-nil value is the package's frozen, already-resolved Thread
         /// plan and must be enforced by the depositor.
-        projectionPlan: AbilityTotemProjectionPlan?
+        projectionPlan: AbilityThreadProjectionPlan?
     ) async
 
     // APPLICATION-USE LEARNING IS NOT IN THIS CUT.

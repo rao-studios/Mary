@@ -389,7 +389,7 @@ public enum CognitivePrimitiveCatalog {
         case .synthesizeProjectMap:
             return [
                 section("Live project evidence", value("ambientContext")),
-                section("Retained project evidence", value("totemContext")),
+                section("Retained project evidence", value("threadContext")),
             ].compactMap { $0 }.joined(separator: "\n")
         case .identifyMaterialUnknowns:
             return "List only unknowns that could change a boundary, data contract, safety decision, or implementation order."
@@ -416,7 +416,7 @@ public enum CognitivePrimitiveCatalog {
             return value("ambientContext")
                 ?? "No source-attributed live project facts are currently held."
         case .searchProjectKnowledge:
-            return value("totemContext")
+            return value("threadContext")
                 ?? "No matching held project knowledge was found."
         }
     }

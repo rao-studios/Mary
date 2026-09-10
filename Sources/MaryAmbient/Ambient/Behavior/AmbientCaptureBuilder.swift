@@ -4,7 +4,7 @@
 //
 //  WHAT: What the model was given, written down — input half of one behavioural episode.
 //  IN:   same inputs the prompt renderer used
-//  OUT:  AmbientCapture. Durable learning → Totem
+//  OUT:  AmbientCapture. Durable learning → Thread
 //  PIN:  Runs beside AmbientRanker.render, never inside it — prompt goldens hold.
 //
 

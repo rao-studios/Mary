@@ -15,7 +15,7 @@ import MaryAmbient
 import MaryBrain
 import MaryComputerUse
 import MaryFoundation
-import MaryTotem
+import MaryThread
 import os
 
 extension MaryRuntime {
@@ -50,7 +50,7 @@ extension MaryRuntime {
                     }
                 },
                 describe: { sight, direction in
-                    try await seerVision.describe(
+                    try await sewnVision.describe(
                         imageData: sight.imageData,
                         mediaType: sight.mediaType,
                         appTitle: sight.appTitle,
@@ -75,20 +75,25 @@ extension MaryRuntime {
                     return true
                 })
         }
+        // THE CANVAS'S FLAGSHIP: shaders composed through Sewn, shown on
+        // Mary's own windows. The composer is the brain's; the plugin is not.
+        let dance = DancePlugin(compose: SewnShaderComposer(
+            complete: sewnComplete,
+            recentLines: { await brain.recentSpokenLines(limit: 6) }))
         // Faculties, not applications — reachable on a turn led by any taught app.
         let adapters = MaryAdapterCatalog.adapters()
-            + [AffordancePlugin(), looking, CodingAgentAdapter()]
+            + [AffordancePlugin(), looking, CodingAgentAdapter(), dance]
         let observers = MaryAdapterCatalog.observers()
 
         // 1. Seams first — inversions so MaryAmbient does not call up.
         ProseSurfaceSupport.shared.installBackingResolver()
         AmbientCapabilityBridge.install()
-        // Routing habits are personal memory. MaryBrain cannot name Totem
-        // (it does not depend on MaryTotem), so the runtime hands it a backend.
-        RoutingHabitMemoryProvider.install { TotemRoutingHabitMemory() }
+        // Routing habits are personal memory. MaryBrain cannot name Thread
+        // (it does not depend on MaryThread), so the runtime hands it a backend.
+        RoutingHabitMemoryProvider.install { ThreadRoutingHabitMemory() }
         // Which application this person reaches for, per discipline — same
         // inversion, same reason.
-        ApplicationHabitMemoryProvider.install { TotemApplicationHabitMemory() }
+        ApplicationHabitMemoryProvider.install { ThreadApplicationHabitMemory() }
 
         // 2. Package graph.
         let load = AbilityLibrary.shared.configureAndLoad(
@@ -158,8 +163,8 @@ extension MaryRuntime {
             // so the bench publishes the same two (see TurnPerceptionPublisher).
             await TurnPerceptionPublisher.publishAll(adapters: adapters)
         }
-        await brain.setSeerInstructionsProvider { pass in
-            seerInstructionsText(pass: pass, deps: deps)
+        await brain.setSewnInstructionsProvider { pass in
+            sewnInstructionsText(pass: pass, deps: deps)
         }
         await brain.setReferentResolver { act in
             // Same lead the prompt described — resolveFocus, not a second guess.

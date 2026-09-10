@@ -3,7 +3,7 @@
 //  MaryBrainTests
 //
 //  WHAT: Lane A inspires a look/read from the turn World; unled offer-to-open stays off.
-//  OUT:  MaryPrompts.seerInstructions
+//  OUT:  MaryPrompts.sewnInstructions
 //
 
 import Foundation
@@ -14,7 +14,7 @@ import Testing
 @Suite struct LaneAWorldHintTests {
 
     @Test func inspiredSightHintsIncomingLookAndDoesNotTakeUnledBranch() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWorkWorld: .unled,
             inspiredSight: true)
         #expect(text.contains("work they have selected on screen"))
@@ -23,13 +23,13 @@ import Testing
     }
 
     @Test func defaultPassStaysFreeOfTheWorldHint() {
-        let text = MaryPrompts.seerInstructions()
+        let text = MaryPrompts.sewnInstructions()
         #expect(!text.contains("work they have selected on screen"))
         #expect(!text.contains("Do not offer to open a file"))
     }
 
     @Test func lookUnderwayOutranksInspiredSight() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             lookUnderway: true,
             inspiredSight: true)
         #expect(text.contains("A look at their screen is being taken RIGHT NOW"))
@@ -37,7 +37,7 @@ import Testing
     }
 
     @Test func unledHeldFactsPlusInspiredSightDoesNotSayNotLooking() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWork: ["held from earlier"],
             liveWorkWorld: .unled,
             inspiredSight: true)
@@ -46,7 +46,7 @@ import Testing
     }
 
     @Test func documentClaimPlusInspiredSightDoesNotSayNotLooking() {
-        let text = MaryPrompts.seerInstructions(
+        let text = MaryPrompts.sewnInstructions(
             liveWork: ["func parameters() {}"],
             liveWorkWorld: .document(name: "Xcode", whole: false),
             inspiredSight: true)

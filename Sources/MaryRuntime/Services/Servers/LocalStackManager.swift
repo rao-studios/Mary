@@ -2,14 +2,14 @@
 //  LocalStackManager.swift
 //  MaryRuntime
 //
-//  WHAT: Owns local Seer + Totem + Fleet: spawn, health, restart, teardown.
+//  WHAT: Owns local Sewn + Thread + Fleet: spawn, health, restart, teardown.
 //  OUT:  Sendable snapshots + change stream. Process handles stay in the actor.
 //  PIN:  Logs to files not pipes (orphan stays adoptable). PID files under
 //        Application Support. Healthy-unclaimed = external — do not kill on quit.
 //        emergencyStopAllSync via static lock (no actor hop at terminate).
 //
 //    boot: alive+ours+healthy → adopt; alive+unhealthy → reap; dead → clear
-//    spawn order: Seer mothership, then Totem (dials it)
+//    spawn order: Sewn mothership, then Thread (dials it)
 //
 
 import Foundation
@@ -123,7 +123,7 @@ package actor LocalStackManager {
             removePidFile(kind)
         }
 
-        // Someone else already serves this port (start-seer-totem.sh)?
+        // Someone else already serves this port (start-sewn-thread.sh)?
         if await checkHealth(spec.healthURL) {
             managed.status = .external
             managed.pid = nil
@@ -216,7 +216,7 @@ package actor LocalStackManager {
         writePidFile(kind, pid: pid)
         publish()
 
-        // Wait for first health (Seer validates env, Totem restores its DB).
+        // Wait for first health (Sewn validates env, Thread restores its DB).
         let deadline = Date().addingTimeInterval(60)
         while Date() < deadline {
             if await checkHealth(spec.healthURL) {
@@ -328,7 +328,7 @@ package actor LocalStackManager {
     /// Runs `swift build -c release` in the checkout, then — for a server that
     /// runs models on the GPU — its `build-metallib.sh`, streaming both.
     ///
-    /// SWIFTPM HAS NO METAL STEP. Seer's on-device backend and Fleet's LoRA
+    /// SWIFTPM HAS NO METAL STEP. Sewn's on-device backend and Fleet's LoRA
     /// decoder both load `mlx.metallib` from beside their binary, and a fresh
     /// `.build/release` has none: the first model load then dies inside MLX
     /// with "Failed to load the default metallib", which is not a Swift error
@@ -405,7 +405,7 @@ package actor LocalStackManager {
     }
 
     /// The checkout's own metallib script, at either place the siblings keep
-    /// it. Nil when the server needs no GPU (Totem).
+    /// it. Nil when the server needs no GPU (Thread).
     static func metallibScript(in checkout: String) -> String? {
         for candidate in ["scripts/build-metallib.sh", "build-metallib.sh"] {
             let path = (checkout as NSString).appendingPathComponent(candidate)

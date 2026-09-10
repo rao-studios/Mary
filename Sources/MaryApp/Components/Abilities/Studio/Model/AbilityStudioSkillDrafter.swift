@@ -2,7 +2,7 @@
 //  AbilityStudioSkillDrafter.swift
 //  Mary
 //
-//  WHAT: Seer drafts the blocks for a new action from a goal and a live AX read.
+//  WHAT: Sewn drafts the blocks for a new action from a goal and a live AX read.
 //  IN:   Draft-a-skill sheet.
 //  OUT:  a proposed PluginOperationSchema, written through mutateAuthoringDocument.
 //  PIN:  Two schema truths shape the whole prompt. A recipe RETURNS NOTHING —
@@ -48,11 +48,11 @@ enum AbilityStudioDraftError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notSignedIn:
-            return "Seer is not signed in, so nothing can be drafted right now."
+            return "Sewn is not signed in, so nothing can be drafted right now."
         case .emptyGoal:
             return "Say what the ability should be able to do."
         case .unreadable(let detail):
-            return "Seer's answer could not be read as blocks — \(detail)"
+            return "Sewn's answer could not be read as blocks — \(detail)"
         }
     }
 }
@@ -64,9 +64,9 @@ struct AbilityStudioSkillDrafter {
     /// sheet the author had already dismissed.
     private static let log = Logger(subsystem: "nyc.rao.mary", category: "abilities")
 
-    private let complete: any SeerCompleteProviding
+    private let complete: any SewnCompleteProviding
 
-    init(complete: any SeerCompleteProviding) {
+    init(complete: any SewnCompleteProviding) {
         self.complete = complete
     }
 
@@ -93,7 +93,7 @@ struct AbilityStudioSkillDrafter {
             // sized for one precis and a few labels; eight blocks plus their
             // anchors do not fit in it, and what comes back is not a short
             // answer but an unparsable one.
-            maxTokens: SeerCompleteBudget.recipe)
+            maxTokens: SewnCompleteBudget.recipe)
         return try Self.decode(answer, frames: frames)
     }
 

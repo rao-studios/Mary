@@ -4,7 +4,7 @@
 //
 //  WHAT: Durable conversation page — paper Mary and the user write on.
 //  IN:   ChatService.Center (persist: conversation only)
-//  OUT:  Utterance, BehavioralActionRecord, SeerContribution
+//  OUT:  Utterance, BehavioralActionRecord, SewnContribution
 //  PIN:  Stream flags excluded from persistence. Deferred writes resolve by
 //        turnID, never position. One BehavioralActionRecord per dispatched act.
 //
@@ -25,8 +25,8 @@ package struct Utterance: GraniteModel, Identifiable {
     /// Frozen Ability/Skill identities this turn invoked. History is not rewritten.
     package var abilityBadges: [AbilitySkillReference] = []
     var createdAt: Date = .init()
-    /// Totem owners/documents that informed this reply (seer-mode assistant).
-    package var contribution: SeerContribution? = nil
+    /// Thread owners/documents that informed this reply (sewn-mode assistant).
+    package var contribution: SewnContribution? = nil
     /// BrainTurn.id of the user turn — every deferred write resolves by this.
     package var turnID: UUID? = nil
     /// Detached-routine narration merged into this bubble. Separate from `text`
@@ -55,7 +55,7 @@ package struct Utterance: GraniteModel, Identifiable {
             [AbilitySkillReference].self, forKey: .abilityBadges)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         contribution = try container.decodeIfPresent(
-            SeerContribution.self, forKey: .contribution)
+            SewnContribution.self, forKey: .contribution)
         turnID = try container.decodeIfPresent(UUID.self, forKey: .turnID)
         followUpText = try container.decodeIfPresent(String.self, forKey: .followUpText)
         // Absent in conversations persisted before runs existed.

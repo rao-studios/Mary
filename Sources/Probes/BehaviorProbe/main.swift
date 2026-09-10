@@ -30,7 +30,7 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
 
 var failures = 0
 
-/// In-memory collector: the probe must never write the user's Ability Totem.
+/// In-memory collector: the probe must never write the user's Ability Thread.
 final class ProbeRecorder: BehavioralRecording, @unchecked Sendable {
     private let lock = NSLock()
     private var _episodes: [BehavioralEpisode] = []

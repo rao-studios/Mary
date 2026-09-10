@@ -34,7 +34,7 @@ public final class BehavioralAssembler: @unchecked Sendable {
     private let recorder: (any BehavioralRecording)?
 
     /// Same shape as `MaryBrain.laneLog`: short info sentences, one Console
-    /// category for the whole episode lifecycle (assembler → Totem → Life).
+    /// category for the whole episode lifecycle (assembler → Thread → Life).
     package static let behavioralLog = Logger(subsystem: "nyc.rao.mary", category: "behavior")
 
     public init(recorder: (any BehavioralRecording)? = nil) {
@@ -80,10 +80,10 @@ public final class BehavioralAssembler: @unchecked Sendable {
         }
     }
 
-    /// Stamp Ability Totem targets once the turn's route exists. Empty
-    /// targets skip Totem Ability — the episode is not kept.
+    /// Stamp Ability Thread targets once the turn's route exists. Empty
+    /// targets skip Thread Ability — the episode is not kept.
     public func noteAbilityTargets(
-        _ targets: [AbilityTotemTarget], forEpisode id: UUID
+        _ targets: [AbilityThreadTarget], forEpisode id: UUID
     ) {
         let applied: Bool = box.withLock { state in
             guard state.open?.episode.id == id else { return false }
@@ -94,7 +94,7 @@ public final class BehavioralAssembler: @unchecked Sendable {
         if !applied {
             line = "targets ignored — episode not open"
         } else if targets.isEmpty {
-            line = "targets none — Totem will skip"
+            line = "targets none — Thread will skip"
         } else {
             let listed = targets.map {
                 "\($0.abilityID.rawValue)/\($0.paradigm.rawValue)"
@@ -272,7 +272,7 @@ public final class BehavioralAssembler: @unchecked Sendable {
     /// What the open episode currently holds — Life and codec acting read this
     /// without taking ownership of the turn.
     public func openSnapshot() -> (
-        id: UUID, input: BehavioralInput, targets: [AbilityTotemTarget]
+        id: UUID, input: BehavioralInput, targets: [AbilityThreadTarget]
     )? {
         box.withLock { state in
             guard let open = state.open else { return nil }

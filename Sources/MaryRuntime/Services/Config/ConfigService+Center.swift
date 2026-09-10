@@ -44,8 +44,8 @@ extension ConfigService {
     package struct Center: GraniteCenter {
         package init() {}
         package struct State: GraniteState {
-            /// Which backend Seer uses for spoken replies (Lane A). Mistral by
-            /// default — every lane rides Seer now, and the hosted vendor is
+            /// Which backend Sewn uses for spoken replies (Lane A). Mistral by
+            /// default — every lane rides Sewn now, and the hosted vendor is
             /// what a fresh install can answer with immediately.
             package var llmEngine: LLMEngineChoice = .mistral
             /// Lane B: which backend synthesizes skill invocations. The skills
@@ -54,11 +54,11 @@ extension ConfigService {
             /// Corpus crawl when a unit settles. On by default. Headers + summaries only.
             package var ambientCorpusIndexing: Bool = true
             package var sttBackend: STTBackend = .apple
-            package var ttsBackend: TTSBackend = .seer
-            /// On-device Kokoro voice (bundle voices/). Never a hosted character — see seerVoice.
+            package var ttsBackend: TTSBackend = .sewn
+            /// On-device Kokoro voice (bundle voices/). Never a hosted character — see sewnVoice.
             package var voice: String = "af_heart"
             /// Hosted VoiceCharacter slug (`fr_marie`). Separate from `voice` — different namespaces.
-            package var seerVoice: String = VoiceCharacter.marie.id
+            package var sewnVoice: String = VoiceCharacter.marie.id
             package var speechStyle: SpeechStyleSelection = .auto
             package var vad: VADConfig = .init()
             package var projects: [ProjectRef] = []
@@ -78,44 +78,49 @@ extension ConfigService {
             /// "Hey Mary" standby. On by default. Mic indicator stays lit while armed.
             package var wakeWordEnabled: Bool = true
 
-            // Seer/Totem local stack. Chat runs in seer mode whenever
-            // seerEnabled and the stack + sign-in are up; otherwise the
+            // Sewn/Thread local stack. Chat runs in sewn mode whenever
+            // sewnEnabled and the stack + sign-in are up; otherwise the
             // engine-only legacy path carries the turn.
-            package var seerEnabled: Bool = true
+            package var sewnEnabled: Bool = true
             package var autoStartServers: Bool = true
-            package var seerCheckoutPath: String = ServerSpec.Defaults.seerCheckoutPath
-            package var totemCheckoutPath: String = ServerSpec.Defaults.totemCheckoutPath
-            package var seerPort: Int = ServerSpec.Defaults.seerPort
-            package var seerGRPCPort: Int = ServerSpec.Defaults.seerGRPCPort
-            package var totemPort: Int = ServerSpec.Defaults.totemPort
-            package var totemGRPCPort: Int = ServerSpec.Defaults.totemGRPCPort
-            /// The totem node UUID = the DB identity. Empty until first boot
-            /// adopts Totem's persisted id (or mints one); after that it's
+            package var sewnCheckoutPath: String = ServerSpec.Defaults.sewnCheckoutPath
+            package var threadCheckoutPath: String = ServerSpec.Defaults.threadCheckoutPath
+            /// Where each server keeps its state (`--data-dir`). Defaults live
+            /// under ~/Documents/maryOS; one directory per server.
+            package var sewnDataDir: String = ServerSpec.Defaults.sewnDataDir
+            package var threadDataDir: String = ServerSpec.Defaults.threadDataDir
+            package var fleetDataDir: String = ServerSpec.Defaults.fleetDataDir
+            package var sewnPort: Int = ServerSpec.Defaults.sewnPort
+            package var sewnGRPCPort: Int = ServerSpec.Defaults.sewnGRPCPort
+            package var threadPort: Int = ServerSpec.Defaults.threadPort
+            package var threadGRPCPort: Int = ServerSpec.Defaults.threadGRPCPort
+            /// The thread node UUID = the DB identity. Empty until first boot
+            /// adopts Thread's persisted id (or mints one); after that it's
             /// pinned so the same DB loads every launch.
-            package var totemNodeID: String = ""
-            package var seerEmail: String = ServerSpec.Defaults.seerEmail
-            package var seerPassword: String = ServerSpec.Defaults.seerPassword
-            /// Graph-extraction backend Totem launches with. "mistral" by
+            package var threadNodeID: String = ""
+            package var sewnEmail: String = ServerSpec.Defaults.sewnEmail
+            package var sewnPassword: String = ServerSpec.Defaults.sewnPassword
+            /// Graph-extraction backend Thread launches with. "mistral" by
             /// default: the mlx default silently degrades to keyword-only
             /// when the build lacks a metallib.
-            package var totemGraphBackend: String = ServerSpec.Defaults.totemGraphBackend
+            package var threadGraphBackend: String = ServerSpec.Defaults.threadGraphBackend
             package var fleetCheckoutPath: String = ServerSpec.Defaults.fleetCheckoutPath
             package var fleetPort: Int = ServerSpec.Defaults.fleetPort
             package var fleetGRPCPort: Int = ServerSpec.Defaults.fleetGRPCPort
             /// Whether Mary pushes its graph policy (custom ontology kinds,
-            /// co-mention edges) to Totem after boot.
-            package var totemGraphPolicyManaged: Bool = true
-            /// Chat model sent to Seer; empty = Seer's default (Mistral).
+            /// co-mention edges) to Thread after boot.
+            package var threadGraphPolicyManaged: Bool = true
+            /// Chat model sent to Sewn; empty = Sewn's default (Mistral).
             /// The user's lever on thinking-model first-token latency.
-            package var seerChatModel: String = ""
-            /// Which route carries Seer-mode turns: classic SSE + /v1/speak,
+            package var sewnChatModel: String = ""
+            /// Which route carries Sewn-mode turns: classic SSE + /v1/speak,
             /// or the realtime WebSocket with server-side interleaved audio.
-            package var seerTransport: SeerTransportChoice = .classic
+            package var sewnTransport: SewnTransportChoice = .classic
             /// On-device coding agent. Off until Settings downloads a model
             /// and selects it — Hub fetch, never vendored weights.
             package var codingAgentEnabled: Bool = false
             /// Which backend synthesizes pair-coding rounds. Always through
-            /// Seer's `/v1/code/complete`; file tools stay on this Mac.
+            /// Sewn's `/v1/code/complete`; file tools stay on this Mac.
             package var codingEngine: LLMEngineChoice = .mistral
             /// How long an ordinary Skill may stay running (1…20 s). Named
             /// build/test bindings keep their own ceilings.
@@ -134,10 +139,11 @@ extension ConfigService {
 
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
-                case llmEngine, skillEngine, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
+                case llmEngine, skillEngine, sttBackend, ttsBackend, voice, sewnVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled
-                case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
+                case sewnEnabled, autoStartServers, sewnCheckoutPath, threadCheckoutPath, sewnPort, sewnGRPCPort, threadPort, threadGRPCPort, threadNodeID, sewnEmail, sewnPassword, threadGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, threadGraphPolicyManaged, sewnChatModel, sewnTransport
+                case sewnDataDir, threadDataDir, fleetDataDir
                 case codingAgentEnabled, codingEngine
                 case skillRunTimeoutSeconds
                 case modelCallPriceUSD
@@ -159,13 +165,13 @@ extension ConfigService {
                 ambientCorpusIndexing = try c.decodeIfPresent(
                     Bool.self, forKey: .ambientCorpusIndexing) ?? true
                 sttBackend = try c.decodeIfPresent(STTBackend.self, forKey: .sttBackend) ?? .apple
-                ttsBackend = try c.decodeIfPresent(TTSBackend.self, forKey: .ttsBackend) ?? .seer
+                ttsBackend = try c.decodeIfPresent(TTSBackend.self, forKey: .ttsBackend) ?? .sewn
                 voice = try c.decodeIfPresent(String.self, forKey: .voice) ?? "af_heart"
-                seerVoice = try c.decodeIfPresent(String.self, forKey: .seerVoice)
+                sewnVoice = try c.decodeIfPresent(String.self, forKey: .sewnVoice)
                     ?? VoiceCharacter.marie.id
                 // Migrate hosted character out of the on-device voice slot.
                 if let hosted = VoiceCharacter.all.first(where: { $0.id == voice }) {
-                    if !c.contains(.seerVoice) { seerVoice = hosted.id }
+                    if !c.contains(.sewnVoice) { sewnVoice = hosted.id }
                     voice = Self().voice
                 }
 
@@ -185,28 +191,27 @@ extension ConfigService {
                 // Decode through String, not the enum — unknown value must not throw (re-seeds all).
 
                 wakeWordEnabled = try c.decodeIfPresent(Bool.self, forKey: .wakeWordEnabled) ?? true
-                seerEnabled = try c.decodeIfPresent(Bool.self, forKey: .seerEnabled) ?? true
+                sewnEnabled = try c.decodeIfPresent(Bool.self, forKey: .sewnEnabled) ?? true
                 autoStartServers = try c.decodeIfPresent(Bool.self, forKey: .autoStartServers) ?? true
-                let storedSeerCheckoutPath = try c.decodeIfPresent(
-                    String.self, forKey: .seerCheckoutPath)
-                    ?? ServerSpec.Defaults.seerCheckoutPath
-                seerCheckoutPath = ServerSpec.Defaults.migratedSeerCheckoutPath(
-                    storedSeerCheckoutPath)
-                totemCheckoutPath = try c.decodeIfPresent(String.self, forKey: .totemCheckoutPath) ?? ServerSpec.Defaults.totemCheckoutPath
-                seerPort = try c.decodeIfPresent(Int.self, forKey: .seerPort) ?? ServerSpec.Defaults.seerPort
-                seerGRPCPort = try c.decodeIfPresent(Int.self, forKey: .seerGRPCPort) ?? ServerSpec.Defaults.seerGRPCPort
-                totemPort = try c.decodeIfPresent(Int.self, forKey: .totemPort) ?? ServerSpec.Defaults.totemPort
-                totemGRPCPort = try c.decodeIfPresent(Int.self, forKey: .totemGRPCPort) ?? ServerSpec.Defaults.totemGRPCPort
-                totemNodeID = try c.decodeIfPresent(String.self, forKey: .totemNodeID) ?? ""
-                seerEmail = try c.decodeIfPresent(String.self, forKey: .seerEmail) ?? ServerSpec.Defaults.seerEmail
-                seerPassword = try c.decodeIfPresent(String.self, forKey: .seerPassword) ?? ServerSpec.Defaults.seerPassword
-                totemGraphBackend = try c.decodeIfPresent(String.self, forKey: .totemGraphBackend) ?? ServerSpec.Defaults.totemGraphBackend
+                sewnCheckoutPath = try c.decodeIfPresent(String.self, forKey: .sewnCheckoutPath) ?? ServerSpec.Defaults.sewnCheckoutPath
+                threadCheckoutPath = try c.decodeIfPresent(String.self, forKey: .threadCheckoutPath) ?? ServerSpec.Defaults.threadCheckoutPath
+                sewnDataDir = try c.decodeIfPresent(String.self, forKey: .sewnDataDir) ?? ServerSpec.Defaults.sewnDataDir
+                threadDataDir = try c.decodeIfPresent(String.self, forKey: .threadDataDir) ?? ServerSpec.Defaults.threadDataDir
+                fleetDataDir = try c.decodeIfPresent(String.self, forKey: .fleetDataDir) ?? ServerSpec.Defaults.fleetDataDir
+                sewnPort = try c.decodeIfPresent(Int.self, forKey: .sewnPort) ?? ServerSpec.Defaults.sewnPort
+                sewnGRPCPort = try c.decodeIfPresent(Int.self, forKey: .sewnGRPCPort) ?? ServerSpec.Defaults.sewnGRPCPort
+                threadPort = try c.decodeIfPresent(Int.self, forKey: .threadPort) ?? ServerSpec.Defaults.threadPort
+                threadGRPCPort = try c.decodeIfPresent(Int.self, forKey: .threadGRPCPort) ?? ServerSpec.Defaults.threadGRPCPort
+                threadNodeID = try c.decodeIfPresent(String.self, forKey: .threadNodeID) ?? ""
+                sewnEmail = try c.decodeIfPresent(String.self, forKey: .sewnEmail) ?? ServerSpec.Defaults.sewnEmail
+                sewnPassword = try c.decodeIfPresent(String.self, forKey: .sewnPassword) ?? ServerSpec.Defaults.sewnPassword
+                threadGraphBackend = try c.decodeIfPresent(String.self, forKey: .threadGraphBackend) ?? ServerSpec.Defaults.threadGraphBackend
                 fleetCheckoutPath = try c.decodeIfPresent(String.self, forKey: .fleetCheckoutPath) ?? ServerSpec.Defaults.fleetCheckoutPath
                 fleetPort = try c.decodeIfPresent(Int.self, forKey: .fleetPort) ?? ServerSpec.Defaults.fleetPort
                 fleetGRPCPort = try c.decodeIfPresent(Int.self, forKey: .fleetGRPCPort) ?? ServerSpec.Defaults.fleetGRPCPort
-                totemGraphPolicyManaged = try c.decodeIfPresent(Bool.self, forKey: .totemGraphPolicyManaged) ?? true
-                seerChatModel = try c.decodeIfPresent(String.self, forKey: .seerChatModel) ?? ""
-                seerTransport = try c.decodeIfPresent(SeerTransportChoice.self, forKey: .seerTransport) ?? .classic
+                threadGraphPolicyManaged = try c.decodeIfPresent(Bool.self, forKey: .threadGraphPolicyManaged) ?? true
+                sewnChatModel = try c.decodeIfPresent(String.self, forKey: .sewnChatModel) ?? ""
+                sewnTransport = try c.decodeIfPresent(SewnTransportChoice.self, forKey: .sewnTransport) ?? .classic
                 codingAgentEnabled = try c.decodeIfPresent(Bool.self, forKey: .codingAgentEnabled) ?? false
                 codingEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .codingEngine) ?? .mistral
                 skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(

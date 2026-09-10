@@ -18,11 +18,11 @@ commands:
         presets: neutral excited calm sad assertive whisper
         --stream feeds the text word-by-word through KokoroStreamSpeaker
         --trace prints the pronunciation table before playback
-  seer-speak <text> [--voice <name>] [--url <base>] [--stream]
-        synthesize and play via Seer, Mary's one cloud voice; emotion is
+  sewn-speak <text> [--voice <name>] [--url <base>] [--stream]
+        synthesize and play via Sewn, Mary's one cloud voice; emotion is
         classified on-device from the first chunk and PINNED for the reply.
-        Needs a Seer server (default http://127.0.0.1:8080) and, if it asks
-        for one, a token in SEER_TOKEN.
+        Needs a Sewn server (default http://127.0.0.1:8080) and, if it asks
+        for one, a token in SEWN_TOKEN.
   pronounce <text>
         trace how every word resolves (no audio)
   g2p-validate [--sample N] [--seed S]
@@ -169,22 +169,22 @@ do {
             }
             print("Done.")
 
-        case "seer-speak":
+        case "sewn-speak":
             let voiceID = flagValue(&arguments, "--voice") ?? VoiceCharacter.marie.id
             let base = flagValue(&arguments, "--url") ?? "http://127.0.0.1:8080"
             let stream = boolFlag(&arguments, "--stream")
             let text = arguments.joined(separator: " ")
-            guard !text.isEmpty else { fail("Nothing to say. Usage: seer-speak <text>") }
+            guard !text.isEmpty else { fail("Nothing to say. Usage: sewn-speak <text>") }
             guard let baseURL = URL(string: base) else { fail("Bad --url: \(base)") }
 
             let character = VoiceCharacter.named(voiceID)
             // Token read fresh per request (sign-in can land mid-reply).
-            let seer = SeerTTSEngine(baseURL: baseURL, character: character) {
-                ProcessInfo.processInfo.environment["SEER_TOKEN"]
+            let sewn = SewnTTSEngine(baseURL: baseURL, character: character) {
+                ProcessInfo.processInfo.environment["SEWN_TOKEN"]
             }
-            // No Kokoro fallback; a Seer drop must throw.
-            await seer.beginUtterance()
-            let speaker = KokoroStreamSpeaker(synthesizer: seer)
+            // No Kokoro fallback; a Sewn drop must throw.
+            await sewn.beginUtterance()
+            let speaker = KokoroStreamSpeaker(synthesizer: sewn)
             let events = await speaker.events()
             let watcher = Task {
                 for await event in events {
@@ -211,7 +211,7 @@ do {
             }
             _ = await speaker.flush()
             watcher.cancel()
-            print("spoke as \(await seer.lastEmotion.rawValue) at \(await seer.sampleRate) Hz")
+            print("spoke as \(await sewn.lastEmotion.rawValue) at \(await sewn.sampleRate) Hz")
 
         case "voices":
             let modelsDir = resolveModelsDir()

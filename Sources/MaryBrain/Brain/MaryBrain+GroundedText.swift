@@ -114,7 +114,7 @@ extension MaryBrain {
         return isWholeSpokenSentence(only.summary)
     }
 
-    /// Seer-offline follow-up: a plain deterministic report
+    /// Sewn-offline follow-up: a plain deterministic report
     static func namesForeignApplication(
         _ composed: String,
         groundedBlock: String,

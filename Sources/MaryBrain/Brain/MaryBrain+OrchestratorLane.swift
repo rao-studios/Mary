@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Silent Skill loop (Lane B) — rounds, dispatch, no voice.
-//  IN:   seerTurn / localTurn
+//  IN:   sewnTurn / localTurn
 //  OUT:  OrchestratorLaneResult
 //
 import MaryVoice
@@ -21,7 +21,7 @@ extension MaryBrain {
         emitter: LaneEmitter,
         target: LocatedPassage? = nil,
         worldVetoArming: WorldVeto.Arming? = nil,
-        /// Stage-0 observation only — see `seerTurn`.
+        /// Stage-0 observation only — see `sewnTurn`.
         traceID: UUID? = nil,
         /// Classifier verdicts, passed rather than re-derived — used only for "did they ask for a change?"
         actionTurn: Bool = false,
@@ -233,7 +233,7 @@ extension MaryBrain {
                         Self.laneLog.info("lane NOOPed while the screen offered a control — naming it once")
                         continue
                     }
-                    // Nothing to execute — keep prose as offline fallback for `seerTurn`.
+                    // Nothing to execute — keep prose as offline fallback for `sewnTurn`.
                     TurnCircuitLog.laneNOOP(
                         offeredNames: Array(roundProjection?.names ?? []))
                     result.text = sanitizedSpoken(

@@ -74,24 +74,24 @@ extension MaryBrain {
         systemPromptProvider = { prompt }
     }
 
-    /// Wire (or unwire) the Seer chat lane. Turns check readiness live, so a
-    /// Seer that dies mid-session degrades to legacy turns automatically.
-    public func setSeerChat(_ provider: (any SeerChatProviding)?) {
-        seerChat = provider
+    /// Wire (or unwire) the Sewn chat lane. Turns check readiness live, so a
+    /// Sewn that dies mid-session degrades to legacy turns automatically.
+    public func setSewnChat(_ provider: (any SewnChatProviding)?) {
+        sewnChat = provider
     }
 
     /// Wire (or unwire) the realtime WebSocket route. When set and ready,
     /// Lane A rides it (interleaved text + server audio); the classic client
     /// stays wired underneath as the always-available fallback.
-    public func setSeerRealtime(_ provider: (any SeerRealtimeProviding)?) {
-        seerRealtime = provider
+    public func setSewnRealtime(_ provider: (any SewnRealtimeProviding)?) {
+        sewnRealtime = provider
     }
 
     /// The provider runs on every spoken pass — turn AND follow-up — so the live focus, the capability line and the injected clock stay fresh for both.
-    public func setSeerInstructionsProvider(
-        _ provider: @escaping @Sendable (SeerPass) -> String
+    public func setSewnInstructionsProvider(
+        _ provider: @escaping @Sendable (SewnPass) -> String
     ) {
-        seerInstructionsProvider = provider
+        sewnInstructionsProvider = provider
     }
 
     public func setDepositor(_ depositor: (any ContextDepositing)?) {

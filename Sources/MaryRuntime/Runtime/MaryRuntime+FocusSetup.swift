@@ -3,14 +3,14 @@
 //  MaryRuntime
 //
 //  WHAT: Shared boxes the split files read — focus, roster, engine choice.
-//  IN:   +BrainInstall writes; +Stack writes totemArchivingEnabledBox
+//  IN:   +BrainInstall writes; +Stack writes threadArchivingEnabledBox
 //  OUT:  resolveFocus / applyEngine / unit indexer / retrievalScope
 //  PIN:  Lock-guarded (cross-actor). internal for file split — treat as private.
 //
 
 import MaryBrain
 import MaryPlugin
-import MaryTotem
+import MaryThread
 import MaryVoice
 import MaryFoundation
 import MaryAmbient
@@ -49,9 +49,9 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<[String]>(initialState: [])
     private static let abilityProfileBridgeStarted =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    static let totemArchivingEnabledBox =
+    static let threadArchivingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    /// Which backend Seer uses per lane, as applyEngine last applied. Service
+    /// Which backend Sewn uses per lane, as applyEngine last applied. Service
     /// layer has no config singleton. `.mistral` initially, matching the
     /// config defaults.
     static let engineChoiceBox =
@@ -62,7 +62,7 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .mistral)
     static let codingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    static let seerStackEnabledBox =
+    static let sewnStackEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: true)
 
     /// Debugger snapshot. Empty until first installBrainConfiguration.
@@ -74,7 +74,7 @@ extension MaryRuntime {
         applicationProfilesBox.withLock { $0 }
     }
 
-    /// Ability import / Studio save → new registry. Keep profile index + Totem in step.
+    /// Ability import / Studio save → new registry. Keep profile index + Thread in step.
     // internal for file split — treat as private
     static func startAbilityProfileBridge() {
         let shouldStart = abilityProfileBridgeStarted.withLock { started in
@@ -100,9 +100,9 @@ extension MaryRuntime {
         }
     }
 
-    /// What Seer may retrieve now — Personal + memory/resonance, plus the
+    /// What Sewn may retrieve now — Personal + memory/resonance, plus the
     /// focused project's own group when one is in view. Ability codec stays off.
     static func retrievalScope(ownerID: String) -> RetrievalScope {
-        TotemMemoryTopology.seerPersonalScope(subject: focusSubject(), ownerID: ownerID)
+        ThreadMemoryTopology.sewnPersonalScope(subject: focusSubject(), ownerID: ownerID)
     }
 }

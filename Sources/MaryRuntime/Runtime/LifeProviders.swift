@@ -13,7 +13,7 @@ import Foundation
 import MaryAmbient
 import MaryBrain
 import MaryFoundation
-import MaryTotem
+import MaryThread
 import os
 
 /// Ready adapters, dialed from Fleet and cached so a monitor can read them
@@ -38,10 +38,10 @@ package actor LifeSlotProvider: LifeSlotProviding {
 
     @discardableResult
     package func refresh() async -> Bool {
-        let totemID = MaryRuntime.totemNodeIDBox.withLock { $0 }
-        guard !totemID.isEmpty else { return reachable }
+        let threadID = MaryRuntime.threadNodeIDBox.withLock { $0 }
+        guard !threadID.isEmpty else { return reachable }
         do {
-            let slots = try await MaryRuntime.makeFleetClient().listAdapters(totemID: totemID)
+            let slots = try await MaryRuntime.makeFleetClient().listAdapters(threadID: threadID)
             // uniquingKeysWith, NOT uniqueKeysWithValues: two rows for one
             // ability is a Fleet-side bug, and trapping the whole app over it
             // is the wrong way to report it.

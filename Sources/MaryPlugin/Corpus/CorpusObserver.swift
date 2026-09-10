@@ -62,7 +62,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         enabledBox.withLock { $0 = isEnabled }
     }
 
-    /// Where a completed crawl goes. Injected so this file knows nothing about Totem.
+    /// Where a completed crawl goes. Injected so this file knows nothing about Thread.
     public func setSink(
         _ sink: @escaping @Sendable ([IndexedUnit], [StyleObservation], CorpusRegistration) async -> Void
     ) {
@@ -248,7 +248,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             return
         }
 
-        // Prompt sees this crawl now, not only Totem after the idle timer.
+        // Prompt sees this crawl now, not only Thread after the idle timer.
         digestBox.withLock {
             $0 = Self.neighborhoodDigest(
                 units: units, focusedPath: focus.relativePath)

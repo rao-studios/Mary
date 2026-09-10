@@ -3,9 +3,9 @@ import AppKit
 if ProbeServers.shouldRun() {
     // Headless local-server stack; never returns.
     ProbeServers.start()
-} else if ProbeSeer.shouldRun() {
-    // Headless full-stack Seer turn; never returns.
-    ProbeSeer.start()
+} else if ProbeSewn.shouldRun() {
+    // Headless full-stack Sewn turn; never returns.
+    ProbeSewn.start()
 } else if ProbeCursorText.shouldRun() {
     // Pastes white "hello world" at the frontmost caret; never returns.
     ProbeCursorText.start()

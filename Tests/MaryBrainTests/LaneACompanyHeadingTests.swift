@@ -3,7 +3,7 @@
 //  MaryBrainTests
 //
 //  WHAT: Lane A is company + heading, not present-tense work from ambient facts.
-//  OUT:  MaryPrompts.seerInstructions, SeerWire.Persona.mary, capabilityLine
+//  OUT:  MaryPrompts.sewnInstructions, SewnWire.Persona.mary, capabilityLine
 //
 import Foundation
 import Testing
@@ -13,7 +13,7 @@ import Testing
 @Suite struct LaneACompanyHeadingTests {
 
     @Test func personaVoiceIsCompanyAndHeadingNotPresentProgress() {
-        let voice = SeerWire.Persona.mary.voice
+        let voice = SewnWire.Persona.mary.voice
         #expect(voice.contains("You are Mary"))
         #expect(voice.contains("good company first"))
         #expect(voice.contains("name the heading"))
@@ -24,7 +24,7 @@ import Testing
 
     @Test func defaultInstructionsPrefillCompanyAndHeadingBeforeFacts() {
         let live = "THE_LIVE_WORK_BLOCK"
-        let text = MaryPrompts.seerInstructions(liveWork: [live])
+        let text = MaryPrompts.sewnInstructions(liveWork: [live])
         let company = "a question back is company"
         let heading = "Your hands are running in parallel this turn"
         let scenery = "never evidence a Skill ran"
@@ -42,14 +42,14 @@ import Testing
     }
 
     @Test func conversationalPassDropsThisTurnHeading() {
-        let text = MaryPrompts.seerInstructions(conversational: true)
+        let text = MaryPrompts.sewnInstructions(conversational: true)
         #expect(text.contains("a question back is company"))
         #expect(!text.contains("Your hands are running in parallel this turn"))
         #expect(text.contains("This turn is CONVERSATION"))
     }
 
     @Test func groundedCloserDropsThisTurnHeadingAndKeepsCompany() {
-        let text = MaryPrompts.seerInstructions(groundedResults: "the event is on Tuesday")
+        let text = MaryPrompts.sewnInstructions(groundedResults: "the event is on Tuesday")
         #expect(text.contains("a question back is company"))
         #expect(!text.contains("Your hands are running in parallel this turn"))
         #expect(text.contains("You just FINISHED actions"))
@@ -58,7 +58,7 @@ import Testing
     }
 
     @Test func readReportDropsThisTurnHeading() {
-        let text = MaryPrompts.seerInstructions(readReport: true)
+        let text = MaryPrompts.sewnInstructions(readReport: true)
         #expect(!text.contains("Your hands are running in parallel this turn"))
         #expect(text.contains("You just READ exactly what the user asked about"))
     }

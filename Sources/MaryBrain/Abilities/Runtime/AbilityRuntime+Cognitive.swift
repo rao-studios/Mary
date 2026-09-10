@@ -16,14 +16,14 @@ extension AbilityRuntime {
     // MARK: - Cognitive and workflow execution
 
     /// Cognitive primitives and schema state machines intentionally keep their internal steps out of memory.
-    static func applyingTotemArchivePolicy(
+    static func applyingThreadArchivePolicy(
         _ input: SkillOutcome,
         reference: AbilitySkillReference,
         snapshot: AbilityRuntime.Snapshot
     ) -> SkillOutcome {
         guard input.archivePolicy == .none,
               input.status == .succeeded || input.status == .failed,
-              snapshot.totemProjectionPlan(for: reference)?.permitsDurableStorage == true
+              snapshot.threadProjectionPlan(for: reference)?.permitsDurableStorage == true
         else { return input }
         var output = input
         output.archivePolicy = .episodic

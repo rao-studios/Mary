@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: Trim + fade seams between independent cloud /v1/speak chunks.
-//  IN:   SeerTTSEngine after decode
+//  IN:   SewnTTSEngine after decode
 //  OUT:  even cadence PCM (never applied to Kokoro or realtime stream)
 //
 //    1. trimSilence — drop edge samples below dBFS, keep a guard pad

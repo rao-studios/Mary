@@ -301,7 +301,7 @@ public actor MaryLifeEngine {
         let performed = await perform(
             completion.output,
             world: world,
-            target: AbilityTotemTarget(abilityID: abilityID, paradigm: .discipline),
+            target: AbilityThreadTarget(abilityID: abilityID, paradigm: .discipline),
             dispatching: mayAct,
             at: now)
         decision.episodeID = performed.episodeID
@@ -380,7 +380,7 @@ public actor MaryLifeEngine {
     private func perform(
         _ output: BehavioralTrainingOutput,
         world: LifeWorld,
-        target: AbilityTotemTarget,
+        target: AbilityThreadTarget,
         dispatching: Bool,
         at now: Date
     ) async -> Performed {
@@ -590,7 +590,7 @@ public actor MaryLifeEngine {
     /// or nil to let the model speak. Recorded like any other decision, so
     /// the monitor shows turns the adapter took over.
     public func turnInvocations(
-        targets: [AbilityTotemTarget],
+        targets: [AbilityThreadTarget],
         input: BehavioralTrainingInput,
         episodeID: UUID
     ) async -> [ModelSkillInvocation]? {

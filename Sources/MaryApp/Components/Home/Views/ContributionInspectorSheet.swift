@@ -2,17 +2,17 @@
 //  ContributionInspectorSheet.swift
 //  Mary
 //
-//  WHAT: Tap a brushstroke → totem contribution for that span.
-//  PIN:  Content preview is a search heuristic (Totem has no content-by-id).
+//  WHAT: Tap a brushstroke → thread contribution for that span.
+//  PIN:  Content preview is a search heuristic (Thread has no content-by-id).
 //
 
 import MaryBrain
-import MaryTotem
+import MaryThread
 import SwiftUI
 import MaryRuntime
 
 struct ContributionInspectorSheet: View {
-    let owner: SeerContribution.Owner
+    let owner: SewnContribution.Owner
     /// The assistant reply this owner contributed to (span-text search seed).
     let responseText: String
 
@@ -43,7 +43,7 @@ struct ContributionInspectorSheet: View {
                             stat("Passages", "\(owner.spans.count)")
                             Spacer()
                         }
-                        Text("Totem \(owner.totemID)")
+                        Text("Thread \(owner.threadID)")
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundStyle(Color.maryInk.opacity(0.4))
                             .lineLimit(1)
@@ -58,7 +58,7 @@ struct ContributionInspectorSheet: View {
                         if viewModel.isLoading {
                             HStack(spacing: .layer2) {
                                 ProgressView().controlSize(.small)
-                                Text("Reading the totem…")
+                                Text("Reading the thread…")
                                     .font(.marySans(11))
                                     .foregroundStyle(Color.maryInk.opacity(0.5))
                             }
@@ -87,7 +87,7 @@ struct ContributionInspectorSheet: View {
     private var header: some View {
         HStack {
             MaryMark(size: 18)
-            Text("From the totem")
+            Text("From the thread")
                 .font(.marySerif(18, weight: .light, italic: true))
                 .foregroundStyle(Color.maryInk)
             Spacer()
@@ -167,18 +167,18 @@ final class ContributionInspectorViewModel: ObservableObject {
     @Published var documents: [String: DocumentDetail] = [:]
     @Published var isLoading = false
 
-    func load(owner: SeerContribution.Owner, responseText: String) async {
+    func load(owner: SewnContribution.Owner, responseText: String) async {
         isLoading = true
         defer { isLoading = false }
-        let reader = MaryRuntime.makeTotemReader()
+        let reader = MaryRuntime.makeThreadReader()
         var ownerID = owner.ownerID ?? ""
         if ownerID.isEmpty {
-            ownerID = await MaryRuntime.seerSession.userID ?? ""
+            ownerID = await MaryRuntime.sewnSession.userID ?? ""
         }
         let documentIDs = Array(owner.documentIDs)
         guard !ownerID.isEmpty, !documentIDs.isEmpty else { return }
 
-        // Primary: real content by id (TotemLibrary.Documents).
+        // Primary: real content by id (ThreadLibrary.Documents).
         if let contents = try? await reader.documents(ids: documentIDs, ownerID: ownerID),
            !contents.isEmpty {
             for document in contents {
@@ -191,7 +191,7 @@ final class ContributionInspectorViewModel: ObservableObject {
             return
         }
 
-        // Fallback (Totem binary predating the Documents RPC): library
+        // Fallback (Thread binary predating the Documents RPC): library
         // metadata + span-text search heuristic.
         if let groups = try? await reader.groups(containing: documentIDs, ownerID: ownerID) {
             for group in groups {

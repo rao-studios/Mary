@@ -2,8 +2,8 @@
 //  MaryBrain+Lanes.swift
 //  MaryBrain
 //
-//  WHAT: Three lane runners — classic Seer, realtime Seer, silent orchestrator.
-//  IN:   seerTurn / localTurn
+//  WHAT: Three lane runners — classic Sewn, realtime Sewn, silent orchestrator.
+//  IN:   sewnTurn / localTurn
 //  OUT:  LaneOutcome + OrchestratorLaneResult
 //
 import MaryVoice
@@ -13,19 +13,19 @@ import os
 extension MaryBrain {
 
     // internal for file split — treat as private
-    func runSeerLane(
-        seerChat: any SeerChatProviding,
-        messages: [SeerChatMessage],
+    func runSewnLane(
+        sewnChat: any SewnChatProviding,
+        messages: [SewnChatMessage],
         instructions: String,
         /// Stage-0 observation only (precedent: `runOrchestratorLane`'s
         /// `traceID`): which `RetrievalTraceLedger` row this lane's scope and
         /// contribution belong to. Nil books nothing.
         exchangeID: UUID? = nil,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation
-    ) async -> SeerLaneResult {
-        var result = SeerLaneResult()
+    ) async -> SewnLaneResult {
+        var result = SewnLaneResult()
         do {
-            let events = seerChat.stream(messages: messages, instructions: instructions)
+            let events = sewnChat.stream(messages: messages, instructions: instructions)
             for try await event in events {
                 if Task.isCancelled { break }
                 switch event {
@@ -34,7 +34,7 @@ extension MaryBrain {
                     continuation.yield(.token(token))
                 case .scoped(let request):
                     if let exchangeID {
-                        wiring.retrieval.noteSeerRequest(
+                        wiring.retrieval.noteSewnRequest(
                             request, forExchange: exchangeID)
                     }
                 case .contribution(let contribution):
@@ -62,17 +62,17 @@ extension MaryBrain {
     /// Lane A over the realtime WebSocket route: tokens become transcript events, PCM chunks feed the speaker directly
     /// Fallback rules (pinned by DualLaneTests): 1.
     // internal for file split — treat as private
-    func runRealtimeSeerLane(
-        realtime: any SeerRealtimeProviding,
-        messages: [SeerChatMessage],
+    func runRealtimeSewnLane(
+        realtime: any SewnRealtimeProviding,
+        messages: [SewnChatMessage],
         instructions: String,
         /// Stage-0 observation only (precedent: `runOrchestratorLane`'s
         /// `traceID`): which `RetrievalTraceLedger` row this lane's scope and
         /// contribution belong to. Nil books nothing.
         exchangeID: UUID? = nil,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation
-    ) async -> (result: SeerLaneResult, serverVoiced: Bool, fellBackPreStream: Bool) {
-        var result = SeerLaneResult()
+    ) async -> (result: SewnLaneResult, serverVoiced: Bool, fellBackPreStream: Bool) {
+        var result = SewnLaneResult()
         var forwardedAny = false
         var serverVoiced = false
 
@@ -87,7 +87,7 @@ extension MaryBrain {
             let events = realtime.streamTurn(messages: messages, instructions: instructions)
             for try await event in events {
                 if Task.isCancelled { break }
-                // Content-vs-bookkeeping is classified ON THE EVENT (`SeerChatEvent.forwardsContent`), never per arm here: `forwardedAny` is rule 2's discriminator
+                // Content-vs-bookkeeping is classified ON THE EVENT (`SewnChatEvent.forwardsContent`), never per arm here: `forwardedAny` is rule 2's discriminator
                 if event.forwardsContent { markForwarding() }
                 switch event {
                 case .token(let token):
@@ -98,7 +98,7 @@ extension MaryBrain {
                 case .scoped(let request):
                     // MUST NOT count as forwarded content — the client yields `.scoped` before it even connects, so counting it would make every pre-stream failure look mid-turn.
                     if let exchangeID {
-                        wiring.retrieval.noteSeerRequest(
+                        wiring.retrieval.noteSewnRequest(
                             request, forExchange: exchangeID)
                     }
                 case .phase:

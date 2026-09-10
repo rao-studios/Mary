@@ -5,7 +5,7 @@
 //  WHAT: Where settled routing habits live — personal memory, not a cache file.
 //  IN:   a granted successful dispatch
 //  OUT:  the nearest past queries to this turn's words
-//  PIN:  INVERSION, NOT A DIRECT CALL. MaryBrain does not depend on MaryTotem;
+//  PIN:  INVERSION, NOT A DIRECT CALL. MaryBrain does not depend on MaryThread;
 //        the runtime installs a backend that does. Same shape as
 //        `AmbientCapabilityIndexProvider`, for the same layering reason.
 //
@@ -16,7 +16,7 @@ import Foundation
 /// A ROUTING HABIT IS PERSONAL MEMORY, which is why this is a memory seam
 /// and not a store: the habit "when I say *the usual mix*, I mean that
 /// playlist" belongs to the person, should follow them to another machine, and
-/// is retrieved by resemblance — all three of which are the totem paradigm and
+/// is retrieved by resemblance — all three of which are the thread paradigm and
 /// none of which a JSON file in Application Support can do.
 public protocol RoutingHabitMemory: Sendable {
 

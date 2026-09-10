@@ -28,8 +28,8 @@ import os
 /// - `SemanticSeedFamilyIndex` — `seedFamilies` → the transform/offer family.
 ///
 /// ## Brain — the learning loop
-/// - `RoutingHabitStore` re-scores text recalled from personal Totem memory
-///   (`RoutingHabitMemory`). Totem ranks in ITS space; the recalled text is
+/// - `RoutingHabitStore` re-scores text recalled from personal Thread memory
+///   (`RoutingHabitMemory`). Thread ranks in ITS space; the recalled text is
 ///   re-vectorized here so it can be compared against the corpora above.
 ///
 /// ## Ambient — what is on screen (installed in `MaryRuntime`)
@@ -40,9 +40,9 @@ import os
 /// - `AffordanceProbe` — "does the screen already offer this".
 ///
 /// ## Not here
-/// - Totem search embeds server-side (`TotemDirectClient.search`), and its
+/// - Thread search embeds server-side (`ThreadDirectClient.search`), and its
 ///   proto accepts a client-side `query_embedding` Mary does not yet send.
-/// - Seer chat/complete/vision are GENERATION, a different seam entirely.
+/// - Sewn chat/complete/vision are GENERATION, a different seam entirely.
 public enum MaryEmbeddings {
 
     // MARK: - Engines
@@ -55,14 +55,14 @@ public enum MaryEmbeddings {
         /// machine without the English asset, which is the whole reason the
         /// tier below exists.
         case appleNL
-        /// Seer's `/v1/embed`. Asynchronous, so it can only fill the turn memo
+        /// Sewn's `/v1/embed`. Asynchronous, so it can only fill the turn memo
         /// ahead of scoring — never satisfy a synchronous read.
-        case seer(model: String)
+        case sewn(model: String)
 
         public var id: String {
             switch self {
             case .appleNL: return "apple-nl"
-            case .seer(let model): return "seer:\(model)"
+            case .sewn(let model): return "sewn:\(model)"
             }
         }
 
@@ -77,26 +77,26 @@ public enum MaryEmbeddings {
     /// THE TUNING SURFACE. One line per decision; nothing else chooses.
     ///
     /// Apple's model is preferred wherever it exists: it is synchronous, free,
-    /// and every index and probe is already calibrated against it. Seer is the
-    /// tier underneath — same vendor as Totem's own embeddings, so a machine
+    /// and every index and probe is already calibrated against it. Sewn is the
+    /// tier underneath — same vendor as Thread's own embeddings, so a machine
     /// with no local asset still routes semantically instead of abstaining.
     public static func engine() -> Engine? {
         if NLAmbientTextVectorizer.shared != nil { return .appleNL }
-        if let model = seerModel.withLock({ $0 }) { return .seer(model: model) }
+        if let model = sewnModel.withLock({ $0 }) { return .sewn(model: model) }
         return nil
     }
 
-    /// Set when a Seer embedding backend is installed and reachable.
-    private static let seerModel = OSAllocatedUnfairLock<String?>(initialState: nil)
-    private static let backend = OSAllocatedUnfairLock<(any SeerEmbeddingProviding)?>(
+    /// Set when a Sewn embedding backend is installed and reachable.
+    private static let sewnModel = OSAllocatedUnfairLock<String?>(initialState: nil)
+    private static let backend = OSAllocatedUnfairLock<(any SewnEmbeddingProviding)?>(
         initialState: nil)
 
     /// Installed by the runtime once the stack is configured.
-    public static func installSeerBackend(
-        _ provider: any SeerEmbeddingProviding, model: String
+    public static func installSewnBackend(
+        _ provider: any SewnEmbeddingProviding, model: String
     ) {
         backend.withLock { $0 = provider }
-        seerModel.withLock { $0 = model.isEmpty ? "mistral-embed" : model }
+        sewnModel.withLock { $0 = model.isEmpty ? "mistral-embed" : model }
     }
 
     // MARK: - The turn memo
@@ -121,7 +121,7 @@ public enum MaryEmbeddings {
         case .appleNL:
             guard let vector = NLAmbientTextVectorizer.shared?.vector(for: line) else { return }
             memo.withLock { $0[line] = vector }
-        case .seer:
+        case .sewn:
             guard let provider = backend.withLock({ $0 }),
                   let batch = try? await provider.embed([line]),
                   let vector = batch.vectors.first
@@ -151,7 +151,7 @@ public enum MaryEmbeddings {
     /// synchronous protocol without blocking a turn or inventing a vector.
     struct ManagedVectorizer: AmbientTextVectorizer {
         let engine: Engine
-        let backend: (any SeerEmbeddingProviding)?
+        let backend: (any SewnEmbeddingProviding)?
 
         func vector(for text: String) -> [Float]? {
             let line = RoutingQuery.firstLine(text)

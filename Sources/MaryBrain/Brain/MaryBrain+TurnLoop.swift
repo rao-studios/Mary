@@ -4,7 +4,7 @@
 //
 //  WHAT: runTurn / runTurnBody — supersede, route, embedding dispatch, gates.
 //  IN:   LanguageResponder.startTurn
-//  OUT:  seerTurn or localTurn
+//  OUT:  sewnTurn or localTurn
 //  PIN:  Both functions moved whole; never split a function.
 //
 import MaryPlugin
@@ -120,7 +120,7 @@ extension MaryBrain {
         // Published before either prompt is built.
         world.store.noteUtterance(userText)
 
-        // After the utterance is published so Ability Totem search can use
+        // After the utterance is published so Ability Thread search can use
         // this turn's words. Observers still refresh here so live facts and
         // the search share one budget.
         //
@@ -134,7 +134,7 @@ extension MaryBrain {
         // scorer below is synchronous, so a vector that needs an await must
         // already exist when they run. Under Apple's model this also collapses
         // the four separate vectorizations of the same sentence a turn used to
-        // pay for; under Seer's it is the only way the tier works at all.
+        // pay for; under Sewn's it is the only way the tier works at all.
         RoutingHabitStore.shared.clearRecall()
         // NOTHING TO DO IS NOT WORK. With no vectorizer and no memory backend
         // there is nothing to warm and nothing to recall, and wrapping that in
@@ -170,7 +170,7 @@ extension MaryBrain {
 
         let userTurn = BrainTurn(role: .user, text: userText)
         // The turn's identity leads every path — deterministic decision,
-        // bare-stop, local, seer — so the app can stamp the exchange before
+        // bare-stop, local, sewn — so the app can stamp the exchange before
         // any token or chip arrives.
         continuation.yield(.turnBegan(id: userTurn.id))
         // A turn arriving on the heels of a remark is that remark being
@@ -243,7 +243,7 @@ extension MaryBrain {
             }
         }
 
-        // Turn shape — once, above the Seer guard.
+        // Turn shape — once, above the Sewn guard.
         let applicationProfiles = dispatcher?.applicationProfiles ?? []
         let applicationAddressAliases = Set(applicationProfiles.flatMap { profile in
             profile.aliases.compactMap { alias -> String? in
@@ -677,10 +677,10 @@ extension MaryBrain {
 
         // Design-cue locate (canvas twin of the passage locate). Arms the design veto.
 
-        var seerReady = false
-        if let seerChat { seerReady = await seerChat.isReady() }
+        var sewnReady = false
+        if let sewnChat { sewnReady = await sewnChat.isReady() }
 
-        guard seerReady, let seerChat else {
+        guard sewnReady, let sewnChat else {
             await localTurn(
                 userText: userText,
                 systemPrompt: systemPrompt,
@@ -693,7 +693,7 @@ extension MaryBrain {
             return
         }
 
-        // Seer mode with a deterministic decision already executed: the
+        // Sewn mode with a deterministic decision already executed: the
         // outcome summary is the grounded reply — zero latency, no model in
         // the loop to re-ask or embellish.
         if let decisionOutcome {
@@ -706,7 +706,7 @@ extension MaryBrain {
             return
         }
 
-        await seerTurn(
+        await sewnTurn(
             userText: userText,
             originUserTurnID: userTurn.id,
             systemPrompt: systemPrompt,
@@ -715,7 +715,7 @@ extension MaryBrain {
             acceptedOffer: acceptedOffer != nil,
             worldVetoArming: worldVetoArming,
             traceID: traceID,
-            seerChat: seerChat,
+            sewnChat: sewnChat,
             continuation: continuation,
             epoch: epoch
         )

@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: Pure emotion pick for a cloud voice chunk.
-//  IN:   SeerTTSEngine (first chunk of an utterance)
+//  IN:   SewnTTSEngine (first chunk of an utterance)
 //  OUT:  MarieEmotion (clamped to the character)
 //  PIN:  Keywords/punctuation before NLTagger sentiment (noisy on short text).
 //

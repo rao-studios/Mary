@@ -4,7 +4,7 @@
 //
 //  WHAT: Which process to sample while they speak to Mary — the ingested-app standard.
 //  IN:   SurfaceClaim / ApplicationRegistration
-//  OUT:  SurfaceRoster.resolve. Durable expertise → AbilityTotemTarget
+//  OUT:  SurfaceRoster.resolve. Durable expertise → AbilityThreadTarget
 //  PIN:  A new .mary app joins the roster; it does not get a code-named cousin of this type.
 //
 

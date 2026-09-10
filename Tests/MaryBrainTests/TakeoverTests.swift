@@ -55,13 +55,13 @@ import Testing
     /// rather than left standing in front of the silence. The transcript and
     /// history keep what was written — the takeover rewinds the EAR.
     @Test func aCompletedFastActionRetractsItsAcknowledgement() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token(acknowledgement)]),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.results["music_play"] = "playing Blue Train"
         let brain = MaryBrain(engine: engineDispatching("music_play"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "some jazz would be good right now")
         #expect(retracted(events), "the stale promise was left to stand")
@@ -74,16 +74,16 @@ import Testing
     /// BOUND 3 — THE LANE REALLY ACTED. A read is not an action: "read me the
     /// part about batteries" runs a tool and gets a GENUINE conversational
     /// answer from Lane A, and silencing that is the reported bug in a new
-    /// costume. `isReadOnly` is the same predicate that keeps reads out of Totem.
+    /// costume. `isReadOnly` is the same predicate that keeps reads out of Thread.
     @Test func aGenuineConversationalAnswerIsNotRetracted() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token("It says the batteries are the weak link. Worth a read.")]),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.readOnlyTools = ["pages_body"]
         dispatcher.results["pages_body"] = "…batteries…"
         let brain = MaryBrain(engine: engineDispatching("pages_body"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "what does it say about batteries")
         #expect(!retracted(events), "a read-only lane silenced a real answer")
@@ -92,12 +92,12 @@ import Testing
     /// …and a turn with NO Skills at all is untouched: pure conversation has
     /// nothing to be stale about.
     @Test func pureConversationIsNotRetracted() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token("I think so. It depends on the day.")]),
         ])
         let engine = BrainFakes.ScriptedEngine(rounds: [.init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: BrainFakes.StubDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "do you think thinking is async")
         #expect(!retracted(events))
@@ -107,14 +107,14 @@ import Testing
     /// the correction; retracting the prose it corrects would leave the user
     /// with a bare complaint and no idea what was attempted.
     @Test func anUnrecoveredFailureIsNotRetracted() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token(acknowledgement)]),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.failingTools = ["music_play"]
         dispatcher.results["music_play"] = "Music isn't running"
         let brain = MaryBrain(engine: engineDispatching("music_play"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "some jazz would be good right now")
         #expect(!retracted(events))
@@ -126,7 +126,7 @@ import Testing
     /// outcome arrives later on another channel, and retracting the only
     /// sentence that said work had begun would leave the start unannounced.
     @Test func aDeferredSpawnIsNotRetracted() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token(acknowledgement)]),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
@@ -134,7 +134,7 @@ import Testing
         dispatcher.results["delegate_coding"] = "Claude's on it"
         let brain = MaryBrain(
             engine: engineDispatching("delegate_coding"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "have claude fix the build")
         #expect(!retracted(events))
@@ -143,13 +143,13 @@ import Testing
     /// BOUND 4c — A SURFACED CONFIRM OUTRANKS IT. A question the user has to
     /// answer beats a report about what already happened, and nothing has run.
     @Test func aSurfacedConfirmIsNotRetracted() async throws {
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token(acknowledgement)]),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.results["delete_file"] = "CONFIRM: Really delete it?"
         let brain = MaryBrain(engine: engineDispatching("delete_file"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "the old draft should probably go")
         #expect(!retracted(events))
@@ -168,11 +168,11 @@ import Testing
         #expect(!KokoroStreamSpeaker.mayAlreadyBeAudible(acknowledgement),
                 "…and the short one must be below it")
 
-        let seer = BrainFakes.ScriptedSeer(scripts: [.init(events: [.token(long)])])
+        let sewn = BrainFakes.ScriptedSewn(scripts: [.init(events: [.token(long)])])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.results["music_play"] = "playing Blue Train"
         let brain = MaryBrain(engine: engineDispatching("music_play"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "tell me about jazz and put some on")
         #expect(!retracted(events))
@@ -180,21 +180,21 @@ import Testing
 
     /// BOUND 1 — A STALLED LANE AND A DROPPED CONNECTION HAVE JUST SPOKEN
     /// HONEST LINES ABOUT THEMSELVES. Silencing an apology for silence is
-    /// absurd, and the Seer-drop notice is the only thing telling the user the
+    /// absurd, and the Sewn-drop notice is the only thing telling the user the
     /// reply is a fragment.
-    @Test func aDroppedSeerConnectionIsNotRetracted() async throws {
+    @Test func aDroppedSewnConnectionIsNotRetracted() async throws {
         struct Dropped: Error {}
-        let seer = BrainFakes.ScriptedSeer(scripts: [
+        let sewn = BrainFakes.ScriptedSewn(scripts: [
             .init(events: [.token("Partial thought")], error: Dropped()),
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.results["music_play"] = "playing Blue Train"
         let brain = MaryBrain(engine: engineDispatching("music_play"), dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain, "some jazz would be good right now")
         #expect(!retracted(events))
-        #expect(fullText(events)?.contains("the Seer connection dropped") == true)
+        #expect(fullText(events)?.contains("the Sewn connection dropped") == true)
     }
 
     // MARK: - 3. The window is one window

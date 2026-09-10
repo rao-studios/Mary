@@ -12,8 +12,8 @@ import Foundation
 package struct ServerSpec: Sendable, Equatable, Identifiable {
 
     package enum Kind: String, Sendable, CaseIterable, Identifiable {
-        case seer = "Seer"
-        case totem = "Totem"
+        case sewn = "Sewn"
+        case thread = "Thread"
         case fleet = "Fleet"
         package var id: String { rawValue }
     }
@@ -22,7 +22,7 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     /// Binary name inside the checkout's .build directory.
     package var executableName: String
     /// Absolute, tilde-expanded checkout root. Children run with this as cwd
-    /// so each server's own `.env` loads (Seer needs Supabase keys from it).
+    /// so each server's own `.env` loads (Sewn needs Supabase keys from it).
     package var checkoutPath: String
     package var arguments: [String]
     package var healthURL: URL
@@ -50,33 +50,40 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
 
     // MARK: - The two servers
 
-    /// Seer: HTTP API on `port`, gRPC mothership (which Totem dials) on
-    /// `grpcPort`. The mothership is always on — `--enable-totems` no longer
+    /// Sewn: HTTP API on `port`, gRPC mothership (which Thread dials) on
+    /// `grpcPort`. The mothership is always on — `--enable-threads` no longer
     /// exists as a flag; don't pass it.
-    package static func seer(checkoutPath: String, port: Int, grpcPort: Int) -> ServerSpec {
+    package static func sewn(
+        checkoutPath: String,
+        port: Int,
+        grpcPort: Int,
+        dataDir: String = Defaults.sewnDataDir
+    ) -> ServerSpec {
         ServerSpec(
-            kind: .seer,
-            executableName: "seer-server",
+            kind: .sewn,
+            executableName: "sewn-server",
             checkoutPath: expand(checkoutPath),
             arguments: [
                 "--host", "127.0.0.1",
                 "--port", String(port),
                 "--grpc-port", String(grpcPort),
+                "--data-dir", expand(dataDir),
             ],
             healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
         )
     }
 
-    /// Totem: HTTP `port`, gRPC `grpcPort`, dials Seer. nodeID pins table-<uuid>.
+    /// Thread: HTTP `port`, gRPC `grpcPort`, dials Sewn. nodeID pins table-<uuid>.
     /// graphBackend pinned — mlx without metallib degrades to keyword-only.
-    package static func totem(
+    package static func thread(
         checkoutPath: String,
         port: Int,
         grpcPort: Int,
         mothershipHost: String = "127.0.0.1",
         mothershipGRPCPort: Int,
         nodeID: String,
-        graphBackend: String
+        graphBackend: String,
+        dataDir: String = Defaults.threadDataDir
     ) -> ServerSpec {
         var arguments = [
             "--host", "127.0.0.1",
@@ -84,6 +91,7 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
             "--grpc-port", String(grpcPort),
             "--mothership-host", mothershipHost,
             "--mothership-grpc-port", String(mothershipGRPCPort),
+            "--data-dir", expand(dataDir),
         ]
         if !nodeID.isEmpty {
             arguments += ["--node-id", nodeID]
@@ -92,8 +100,8 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
             arguments += ["--graph-backend", graphBackend]
         }
         return ServerSpec(
-            kind: .totem,
-            executableName: "totem",
+            kind: .thread,
+            executableName: "thread",
             checkoutPath: expand(checkoutPath),
             arguments: arguments,
             healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
@@ -101,12 +109,13 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     }
 
     /// Fleet: HTTP `/health` on `port`, FleetLoRA gRPC on `grpcPort`. Pulls
-    /// training corpora from Totem's direct gRPC.
+    /// training corpora from Thread's direct gRPC.
     package static func fleet(
         checkoutPath: String,
         port: Int,
         grpcPort: Int,
-        totemGRPCPort: Int
+        threadGRPCPort: Int,
+        dataDir: String = Defaults.fleetDataDir
     ) -> ServerSpec {
         ServerSpec(
             kind: .fleet,
@@ -116,50 +125,59 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
                 "serve",
                 "--port", String(port),
                 "--grpc-port", String(grpcPort),
-                "--totem-host", "127.0.0.1",
-                "--totem-grpc-port", String(totemGRPCPort),
+                "--thread-host", "127.0.0.1",
+                "--thread-grpc-port", String(threadGRPCPort),
+                "--data-dir", expand(dataDir),
             ],
             healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
         )
     }
 
-    static func expand(_ path: String) -> String {
+    package static func expand(_ path: String) -> String {
         (path as NSString).expandingTildeInPath
     }
 
     // MARK: - Defaults (overridden by ConfigService in the app)
 
     package enum Defaults {
-        static let legacySeerCheckoutPath = "~/Documents/projects/seer/Seer"
-        package static let seerCheckoutPath = "~/Documents/rao/repositories/Seer"
-        package static let totemCheckoutPath = "~/Documents/rao/repositories/Totem"
-        package static let seerPort = 8080
-        package static let seerGRPCPort = 9091
-        package static let totemPort = 8081
-        package static let totemGRPCPort = 9090
-        package static let totemGraphBackend = "mistral"
-        /// Vendor model behind Seer's `/v1/embed`.
-        package static let seerEmbeddingModel = "mistral-embed"
+        package static let sewnCheckoutPath = "~/Documents/rao/repositories/Sewn"
+        package static let threadCheckoutPath = "~/Documents/rao/repositories/Thread"
+        /// Where Mary tells each server to keep its state (`--data-dir`).
+        /// One namespace, one directory per server — never share a root:
+        /// Fleet's reconcile sweeps unknown entries out of its own.
+        package static let dataRoot = "~/Documents/maryOS"
+        package static let sewnDataDir = "\(dataRoot)/sewn-db"
+        package static let threadDataDir = "\(dataRoot)/thread-db"
+        package static let fleetDataDir = "\(dataRoot)/fleet-db"
+        package static let sewnPort = 8080
+        package static let sewnGRPCPort = 9091
+        package static let threadPort = 8081
+        package static let threadGRPCPort = 9090
+        package static let threadGraphBackend = "mistral"
+        /// Vendor model behind Sewn's `/v1/embed`.
+        package static let sewnEmbeddingModel = "mistral-embed"
         package static let fleetCheckoutPath = "~/Documents/rao/repositories/Fleet"
         package static let fleetPort = 8083
         package static let fleetGRPCPort = 9093
-        package static let seerEmail = "admin@seer.social"
-        package static let seerPassword = "cogqab-jazhEv-5rudhi"
+        package static let sewnEmail = "admin@seer.social"
+        package static let sewnPassword = "cogqab-jazhEv-5rudhi"
+    }
+}
 
-        /// Retire the former machine-local default without disturbing a
-        /// genuinely custom checkout selected in Settings.
-        package static func migratedSeerCheckoutPath(_ path: String) -> String {
-            let expandedPath = ServerSpec.expand(path)
-            let expandedLegacyPath = ServerSpec.expand(legacySeerCheckoutPath)
-            return expandedPath == expandedLegacyPath ? seerCheckoutPath : path
-        }
+/// Create the servers' data directories before they are spawned. Each server
+/// creates its own as well; this keeps a bad path visible at apply time.
+package func ensureDataDirectories(_ paths: [String]) {
+    for path in paths {
+        try? FileManager.default.createDirectory(
+            atPath: ServerSpec.expand(path), withIntermediateDirectories: true)
     }
 }
 
 /// Node UUID is the DB identity. Config → persisted node-id → mint. Never mint over existing.
-package enum TotemNodeIdentity {
-    static var persistedPath: String {
-        ("~/Documents/totem-db/node-id" as NSString).expandingTildeInPath
+package enum ThreadNodeIdentity {
+    /// `<thread data dir>/node-id` — the file Thread writes on first launch.
+    package static func nodeIDFilePath(dataDir: String = ServerSpec.Defaults.threadDataDir) -> String {
+        ServerSpec.expand(dataDir) + "/node-id"
     }
 
     /// Node identity is a UUID, canonicalized via UUID.uuidString. Anything else is nil.
@@ -171,7 +189,7 @@ package enum TotemNodeIdentity {
     /// Do not fall through to adoptOrMint's fresh UUID.
     package static func persisted(
         configured: String,
-        nodeIDFilePath: String = persistedPath
+        nodeIDFilePath: String = nodeIDFilePath()
     ) -> String? {
         if let configured = canonical(configured) {
             return configured
@@ -186,7 +204,11 @@ package enum TotemNodeIdentity {
     /// `persisted` plus the mint — built ON `persisted` so the launch
     /// argument and the scanner's live/orphan verdict can never disagree
     /// about which DB loads.
-    package static func adoptOrMint(configured: String) -> String {
-        persisted(configured: configured) ?? UUID().uuidString
+    package static func adoptOrMint(
+        configured: String,
+        dataDir: String = ServerSpec.Defaults.threadDataDir
+    ) -> String {
+        persisted(configured: configured, nodeIDFilePath: nodeIDFilePath(dataDir: dataDir))
+            ?? UUID().uuidString
     }
 }

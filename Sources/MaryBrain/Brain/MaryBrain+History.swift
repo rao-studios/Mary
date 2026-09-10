@@ -118,16 +118,16 @@ extension MaryBrain {
             knownSkillNames: knownSkillNames ?? dispatcher?.knownSkillNames ?? [])
     }
 
-    /// The spoken history as Seer wire messages: user turns and non-empty
+    /// The spoken history as Sewn wire messages: user turns and non-empty
     /// assistant turns; Skill plumbing stays local.
     // internal for file split — treat as private
-    func spokenMessages() -> [SeerChatMessage] {
+    func spokenMessages() -> [SewnChatMessage] {
         history.compactMap { turn in
             switch turn.role {
             case .user:
-                return SeerChatMessage(role: "user", content: turn.text)
+                return SewnChatMessage(role: "user", content: turn.text)
             case .assistant:
-                return turn.text.isEmpty ? nil : SeerChatMessage(role: "assistant", content: turn.text)
+                return turn.text.isEmpty ? nil : SewnChatMessage(role: "assistant", content: turn.text)
             case .skillResult:
                 return nil
             }

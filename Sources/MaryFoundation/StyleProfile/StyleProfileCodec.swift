@@ -4,7 +4,7 @@
 //
 //  WHAT: Read/write `.marystyle`. Same digest/bounded-reader discipline as AbilityPackageCodec.
 //  IN:   files / Data.
-//  OUT:  StyleProfile, TotemContextStore.loadStyleProfile.
+//  OUT:  StyleProfile, ThreadContextStore.loadStyleProfile.
 //
 
 import CryptoKit
@@ -60,7 +60,7 @@ public enum StyleProfileCodec {
         guard data.count <= maximumProfileBytes else { throw CodecError.profileTooLarge }
         let profile = try decoder.decode(StyleProfile.self, from: data)
         guard profile.format == StyleProfile.format else { throw CodecError.unsupportedFormat }
-        // Exact formatVersion. TotemContextStore.loadStyleProfile uses try? → empty corpus.
+        // Exact formatVersion. ThreadContextStore.loadStyleProfile uses try? → empty corpus.
         guard profile.formatVersion == StyleProfile.currentFormatVersion else {
             throw CodecError.unsupportedFormatVersion
         }

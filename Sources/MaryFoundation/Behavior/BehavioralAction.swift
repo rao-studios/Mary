@@ -4,7 +4,7 @@
 //
 //  WHAT: One performable action (intent, skill, target, adapters). Record adds outcome.
 //  IN:   AbilityRuntime chokepoint → one record.
-//  OUT:  log, chip, inspector, Totem, BehavioralEpisode.
+//  OUT:  log, chip, inspector, Thread, BehavioralEpisode.
 //  PIN:  Synthesized Codable (observed, not `.mary` digest). One type at one chokepoint.
 //
 

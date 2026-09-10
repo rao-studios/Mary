@@ -4,7 +4,7 @@
 //
 //  WHAT: Session execution ledger — every real dispatch, exactly once.
 //  IN:   dispatch chokepoint (BehavioralAction)
-//  OUT:  in-memory ring; Ability-lane Totem is durable
+//  OUT:  in-memory ring; Ability-lane Thread is durable
 //  PIN:  Stores the behavioral record, not a parallel row type.
 //
 import Foundation

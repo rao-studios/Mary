@@ -3,7 +3,7 @@
 //  MaryAmbient
 //
 //  WHAT: Durable archive identity and the retrieval scope that mirrors it.
-//  OUT:  Totem. ArchivePolicy lives on SkillOutcome in MaryPlugin — not a copy here.
+//  OUT:  Thread. ArchivePolicy lives on SkillOutcome in MaryPlugin — not a copy here.
 //
 
 import Foundation
@@ -16,12 +16,12 @@ public enum ContentIdentityKind: String, Sendable, Equatable {
     case file
 }
 
-/// WHERE retrieval may look this turn. Mirrors the two fields Seer's
-/// `SeerRequest` actually steers on (`groups`, `aggregate`).
+/// WHERE retrieval may look this turn. Mirrors the two fields Sewn's
+/// `SewnRequest` actually steers on (`groups`, `aggregate`).
 public struct RetrievalScope: Sendable, Equatable {
 
-    /// The id is what Seer's fan-out reads (`request.groups?.map(\.id)`); the
-    /// label rides along because the server's `Seer.Group` requires it to
+    /// The id is what Sewn's fan-out reads (`request.groups?.map(\.id)`); the
+    /// label rides along because the server's `Sewn.Group` requires it to
     /// decode at all.
     public struct Group: Sendable, Equatable {
         public var id: String
@@ -35,11 +35,11 @@ public struct RetrievalScope: Sendable, Equatable {
 
     /// Groups the search is restricted to. Empty = unrestricted.
     public var groups: [Group]
-    /// Seer's semantics verbatim: `true` → search all of the owner's
+    /// Sewn's semantics verbatim: `true` → search all of the owner's
     /// documents across every group; `false` → search only the groups given.
     public var aggregate: Bool
     /// Small relationship-family cues sent alongside the user's utterance.
-    /// Totem uses these to form a predicate vector; they never replace the
+    /// Thread uses these to form a predicate vector; they never replace the
     /// primary semantic query or become a separate conversation history.
     public var relationshipHints: [String]
 
@@ -56,7 +56,7 @@ public struct RetrievalScope: Sendable, Equatable {
     /// Nothing specific in view — general memory.
     public static let general = RetrievalScope()
 
-    /// SEER'S OWN long-term memory groups.
+    /// SEWN'S OWN long-term memory groups.
     public static func memoryGroups(ownerID: String) -> [Group] {
         [
             Group(id: "memory-\(ownerID)", label: "Memory"),
@@ -133,7 +133,7 @@ public struct DepositSubject: Sendable, Equatable {
 
     // MARK: - Ids on the wire
 
-    /// The Totem group this deposit lands in. Nil = skip — there is no
+    /// The Thread group this deposit lands in. Nil = skip — there is no
     /// owner-wide bag.
     public func groupID(ownerID: String) -> String? {
         scopeKey(ownerID: ownerID).map { "mary-scope-\(Self.stableHash($0))" }
@@ -147,7 +147,7 @@ public struct DepositSubject: Sendable, Equatable {
     }
 
     /// Human-readable group label — the only part of the scheme a person ever
-    /// reads (Totem library, the inspector's group column).
+    /// reads (Thread library, the inspector's group column).
     public var groupLabel: String {
         let place = projectIdentity ?? documentIdentity
         let leaf = place.map { ($0 as NSString).lastPathComponent } ?? ""
@@ -156,8 +156,8 @@ public struct DepositSubject: Sendable, Equatable {
     }
 
     /// The read half for project-scoped corpus work: this project's group
-    /// plus Seer's own memory/resonance. Spoken turns use
-    /// `TotemMemoryTopology.seerPersonalScope` instead (interactions + memory).
+    /// plus Sewn's own memory/resonance. Spoken turns use
+    /// `ThreadMemoryTopology.sewnPersonalScope` instead (interactions + memory).
     public func retrievalScope(ownerID: String) -> RetrievalScope {
         guard let groupID = groupID(ownerID: ownerID) else { return .general }
         return RetrievalScope(

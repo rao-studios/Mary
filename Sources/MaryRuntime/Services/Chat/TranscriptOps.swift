@@ -77,7 +77,7 @@ package enum TranscriptOps {
         case .contribution(let json, let turnID):
             guard let idx = inTurnAssistantIndex(state, turnID: turnID) else { return }
             state.conversation.utterances[idx].contribution =
-                SeerContribution.fromJSON(json)
+                SewnContribution.fromJSON(json)
 
         case .turnSuperseded:
             // Amend flow: the bubble goes back to thinking; the identity

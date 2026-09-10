@@ -58,11 +58,11 @@
       "calendar.go-today"
     ],
     "summary" : "Teaches Mary Calendar through the generic EventKit adapter.",
-    "tint" : "#C74440",
-    "title" : "Calendar",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#C74440",
+    "title" : "Calendar",
     "triggers" : {
       "intentAliases" : [
 
@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "754b77be8f63b75fe99bbbc66dfbc40b913a926490be1f7e34f3458e35b4dacd"
+    "digest" : "e01afaf43acabf47ea170b035b4c67346ed97d485b3e73a1df759780db840d32"
   },
   "interactions" : [
 
@@ -685,7 +685,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

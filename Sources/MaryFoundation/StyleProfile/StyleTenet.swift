@@ -46,7 +46,7 @@ public enum StyleStatus: String, Codable, Hashable, Sendable {
 
 public struct StyleScope: Codable, Hashable, Sendable {
     public var kind: StyleScopeKind
-    /// Scope identity (`swift`, AbilityID, path). Same ids as packages/Totem.
+    /// Scope identity (`swift`, AbilityID, path). Same ids as packages/Thread.
     public var identity: String?
 
     public init(kind: StyleScopeKind, identity: String? = nil) {
@@ -193,7 +193,7 @@ public struct StyleTenet: Codable, Hashable, Sendable, Identifiable {
 
     public var id: String { tenetKey }
 
-    /// Owner-free key: scope + dimension. TotemMemoryTopology adds owner at place.
+    /// Owner-free key: scope + dimension. ThreadMemoryTopology adds owner at place.
     public var tenetKey: String {
         StyleHashing.canonical("\(scope.keyComponent)|\(dimension.rawValue)")
     }

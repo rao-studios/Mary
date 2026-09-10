@@ -12,13 +12,13 @@ import Foundation
 import Testing
 import MaryBrain
 import MaryFoundation
-import MaryTotem
+import MaryThread
 @testable import MaryRuntime
 
 private actor ScriptedFleet: FleetCompleting {
     let answer: FleetCompletion?
     let failure: Error?
-    private(set) var calls: [(totemID: String, abilityID: String, cid: String)] = []
+    private(set) var calls: [(threadID: String, abilityID: String, cid: String)] = []
 
     init(answer: FleetCompletion? = nil, failure: Error? = nil) {
         self.answer = answer
@@ -26,9 +26,9 @@ private actor ScriptedFleet: FleetCompleting {
     }
 
     func complete(
-        totemID: String, abilityID: String, cid: String, inputJSON: String
+        threadID: String, abilityID: String, cid: String, inputJSON: String
     ) async throws -> FleetCompletion {
-        calls.append((totemID, abilityID, cid))
+        calls.append((threadID, abilityID, cid))
         if let failure { throw failure }
         return answer!
     }
@@ -61,7 +61,7 @@ private struct Unreachable: Error, LocalizedError {
     private func maker(_ fleet: any FleetCompleting) -> FleetRemoteAdapterSessionMaker {
         FleetRemoteAdapterSessionMaker(
             modelID: LifeBaseModel.defaultModelID,
-            totemID: { "totem-1" },
+            threadID: { "thread-1" },
             fleet: { fleet })
     }
 
@@ -109,11 +109,11 @@ private struct Unreachable: Error, LocalizedError {
 
     /// Without a node id there is no slot to ask for; saying so beats a
     /// confusing gRPC error from an empty key.
-    @Test func aMissingTotemNodeIsReportedRatherThanDialled() async throws {
+    @Test func aMissingThreadNodeIsReportedRatherThanDialled() async throws {
         let fleet = ScriptedFleet(answer: nil)
         let maker = FleetRemoteAdapterSessionMaker(
             modelID: LifeBaseModel.defaultModelID,
-            totemID: { "" },
+            threadID: { "" },
             fleet: { fleet })
         let session = try maker.makeSession(adapter: adapter())
         await #expect(throws: LifeEngineError.self) {

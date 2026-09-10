@@ -3,8 +3,8 @@
 //  MaryBrain
 //
 //  WHAT: The prompt a corpus unit is described with, and the strict parse of
-//        the answer. No engine — annotation runs through Seer's /v1/complete.
-//  IN:   SeerUnitAnnotator
+//        the answer. No engine — annotation runs through Sewn's /v1/complete.
+//  IN:   SewnUnitAnnotator
 //  OUT:  UnitAnnotation
 //  PIN:  Was InferenceUnitAnnotator's statics, which also held an on-device
 //        engine that always refused. The prompt outlived the engine.

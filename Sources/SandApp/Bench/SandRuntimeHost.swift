@@ -9,8 +9,8 @@
 //        `AbilityRuntime.dispatch` exactly as the turn loop does, so the route
 //        into MaryComputerUse is the route — a bench that reimplemented the
 //        path would only ever prove itself right.
-//        NO MODEL, NO TOTEM, NO GRANITE: the runtime needs neither. What Sand
-//        skips is the Seer-backed looking faculty and the coding agent, which
+//        NO MODEL, NO THREAD, NO GRANITE: the runtime needs neither. What Sand
+//        skips is the Sewn-backed looking faculty and the coding agent, which
 //        would need a network and a model to answer at all.
 //        NOTHING PERSONAL IS TAUGHT. The habit memory providers are left
 //        UNINSTALLED, so routing and application habits stay in memory and a
@@ -175,7 +175,11 @@ final class SandRuntimeHost: ObservableObject {
         // page by name IS `act_on_screen` on this stack — the browser arm of
         // `AffordanceRecipes` delegates straight to the browsing engine — so a bench
         // without it cannot rehearse the rung the real turn falls back to.
-        let adapters = MaryAdapterCatalog.adapters() + [AffordancePlugin()]
+        // AND THE DANCE, with no composer behind it: the bench rehearses the
+        // routing of "let's dance" and the Skill refuses by name if pressed.
+        let adapters = MaryAdapterCatalog.adapters()
+            + [AffordancePlugin(),
+               DancePlugin(compose: UnavailableDanceComposer(reason: "the bench has no composer."))]
         let observers = MaryAdapterCatalog.observers()
         // Points MaryAmbient at the live registry, the way the composition root does
         // before it loads the graph. Without it ambient routing reads an empty index.

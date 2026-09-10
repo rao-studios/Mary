@@ -2,7 +2,7 @@
 //  StackListener.swift
 //  MaryRuntime
 //
-//  WHAT: Identity of a Seer/Totem Mary did not spawn: pid on the health
+//  WHAT: Identity of a Sewn/Thread Mary did not spawn: pid on the health
 //        port whose path still ends in the expected binary.
 //  IN:   LocalStackManager pid-file adoption / kill targeting
 //  PIN:  Recycled pid or some other binary on 8080 is never a kill target.

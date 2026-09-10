@@ -6,7 +6,7 @@
 //        deterministic press — fire on exactly the turns the orchestrator's do.
 //  OUT:  MaryBrain+LocalTurn
 //  PIN:  LOCAL IS NOT A LESSER TURN, and this is the suite that keeps it honest. These
-//        rungs run for every person who has no Seer, so the CONDITIONS matter more than
+//        rungs run for every person who has no Sewn, so the CONDITIONS matter more than
 //        the behaviour: a turn whose work landed must not be talked over, a turn that is
 //        not an action must not be pressed on, and the words a lane says to itself must
 //        not survive as words the person said.

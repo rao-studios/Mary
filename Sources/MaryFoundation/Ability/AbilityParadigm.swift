@@ -4,7 +4,7 @@
 //
 //  WHAT: Role of an Ability — discipline, application expertise, system, reasoning.
 //  IN:   AbilitySchema.paradigm (optional) → MaryAbilityPackage.paradigm.
-//  OUT:  AbilityPackageValidator+Paradigm, AbilityTotemTarget.
+//  OUT:  AbilityPackageValidator+Paradigm, AbilityThreadTarget.
 //  PIN:  Declared, not derived: `.systemControl` looks like an underspecified
 //        discipline. Validator cross-checks structure.
 //
@@ -98,24 +98,24 @@ extension MaryAbilityPackage {
         }
     }
 
-    /// Totem groups for durable projections: this Ability, plus required discipline deps.
-    public func abilityTotemTargets(
+    /// Thread groups for durable projections: this Ability, plus required discipline deps.
+    public func abilityThreadTargets(
         paradigmOfPackage: (PackageID) -> AbilityParadigm?
-    ) -> [AbilityTotemTarget] {
-        var seen = Set<AbilityTotemTarget>()
-        var targets: [AbilityTotemTarget] = []
-        func add(_ target: AbilityTotemTarget) {
+    ) -> [AbilityThreadTarget] {
+        var seen = Set<AbilityThreadTarget>()
+        var targets: [AbilityThreadTarget] = []
+        func add(_ target: AbilityThreadTarget) {
             if seen.insert(target).inserted {
                 targets.append(target)
             }
         }
-        add(AbilityTotemTarget(abilityID: ability.id, paradigm: paradigm))
+        add(AbilityThreadTarget(abilityID: ability.id, paradigm: paradigm))
         if paradigm == .applicationExpertise {
             for dependency in dependencies where !dependency.optional {
                 guard paradigmOfPackage(dependency.packageID) == .discipline else {
                     continue
                 }
-                add(AbilityTotemTarget(
+                add(AbilityThreadTarget(
                     abilityID: AbilityID(dependency.packageID.rawValue),
                     paradigm: .discipline))
             }

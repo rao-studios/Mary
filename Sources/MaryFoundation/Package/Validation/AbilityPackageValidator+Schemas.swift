@@ -2,7 +2,7 @@
 //  AbilityPackageValidator+Schemas.swift
 //  MaryFoundation
 //
-//  WHAT: Declared Capabilities, Interactions, Perceptions, Value Types, Totem projections.
+//  WHAT: Declared Capabilities, Interactions, Perceptions, Value Types, Thread projections.
 //  IN:   AbilityPackageValidator.validate.
 //  OUT:  PackageIssueSink. Cross-package owners: +Graph.
 //
@@ -19,7 +19,7 @@ extension AbilityPackageValidator {
         validateUnique(package.interactions.map { ($0.id.rawValue, "interactions") }, code: "duplicate-interaction", issues: &sink.issues)
         validateUnique(package.perceptions.map { ($0.id.rawValue, "perceptions") }, code: "duplicate-perception", issues: &sink.issues)
         validateUnique(package.valueTypes.map { ($0.id.rawValue, "valueTypes") }, code: "duplicate-value-type", issues: &sink.issues)
-        validateUnique(package.totemProjections.map { ($0.id.rawValue, "totemProjections") }, code: "duplicate-projection", issues: &sink.issues)
+        validateUnique(package.threadProjections.map { ($0.id.rawValue, "threadProjections") }, code: "duplicate-projection", issues: &sink.issues)
 
         package.capabilities.enumerated().forEach { index, value in
             let path = "capabilities[\(index)]"
@@ -186,8 +186,8 @@ extension AbilityPackageValidator {
                 }
             }
         }
-        package.totemProjections.enumerated().forEach { index, value in
-            let path = "totemProjections[\(index)]"
+        package.threadProjections.enumerated().forEach { index, value in
+            let path = "threadProjections[\(index)]"
             sink.checkID(value.id.rawValue, "\(path).id")
             if !semanticVersionIsValid(value.version.rawValue) {
                 sink.error("invalid-version", "\(path).version", "Use semantic versioning such as 1.0.0.")
@@ -241,7 +241,7 @@ extension AbilityPackageValidator {
         }
     }
 
-    /// Unowned Value Types must come from a dependency. Totem purpose matches selector kind.
+    /// Unowned Value Types must come from a dependency. Thread purpose matches selector kind.
     static func validateSchemaReferences(
         _ package: MaryAbilityPackage,
         _ sink: PackageIssueSink
@@ -281,27 +281,27 @@ extension AbilityPackageValidator {
             }
         }
 
-        let projectionIDs = Set(package.totemProjections.map(\.id))
-        let abilityProjectionIDs = Set(package.ability.totemProjections)
-        let interactionProjectionIDs = Set(package.interactions.compactMap(\.totemProjection))
-        for projection in package.ability.totemProjections where !projectionIDs.contains(projection) {
-            sink.error("missing-projection-schema", "ability.totemProjections", "No Totem projection schema was supplied for \(projection.rawValue).")
+        let projectionIDs = Set(package.threadProjections.map(\.id))
+        let abilityProjectionIDs = Set(package.ability.threadProjections)
+        let interactionProjectionIDs = Set(package.interactions.compactMap(\.threadProjection))
+        for projection in package.ability.threadProjections where !projectionIDs.contains(projection) {
+            sink.error("missing-projection-schema", "ability.threadProjections", "No Thread projection schema was supplied for \(projection.rawValue).")
         }
         for (index, interaction) in package.interactions.enumerated() {
-            if let projection = interaction.totemProjection,
+            if let projection = interaction.threadProjection,
                !projectionIDs.contains(projection) {
-                sink.error("missing-projection-schema", "interactions[\(index)].totemProjection", "No Totem projection schema was supplied for \(projection.rawValue).")
+                sink.error("missing-projection-schema", "interactions[\(index)].threadProjection", "No Thread projection schema was supplied for \(projection.rawValue).")
             }
         }
-        for (index, projection) in package.totemProjections.enumerated() {
-            let path = "totemProjections[\(index)]"
+        for (index, projection) in package.threadProjections.enumerated() {
+            let path = "threadProjections[\(index)]"
             switch projection.purpose {
             case .receipt, .content:
                 if !abilityProjectionIDs.contains(projection.id) {
                     sink.error(
                         "unselected-skill-projection",
                         path,
-                        "Receipt and content projections must be selected by ability.totemProjections.")
+                        "Receipt and content projections must be selected by ability.threadProjections.")
                 }
                 if interactionProjectionIDs.contains(projection.id) {
                     sink.error(

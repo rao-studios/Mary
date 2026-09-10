@@ -3,14 +3,14 @@
 //  MaryRuntime
 //
 //  WHAT: Prompt-assembly bodies hoisted from installBrainConfiguration.
-//  OUT:  heldContext, systemPromptText, seerInstructionsText
+//  OUT:  heldContext, systemPromptText, sewnInstructionsText
 //  PIN:  Prompt, roster, archive, retrieval all derive from the same
 //        resolveFocus. Spend waterfall → RetrievalTraceLedger.
 //
 
 import MaryBrain
 import MaryPlugin
-import MaryTotem
+import MaryThread
 import MaryVoice
 import Foundation
 import os
@@ -189,10 +189,10 @@ extension MaryRuntime {
             return text
     }
 
-    /// The setSeerInstructionsProvider body — the voice lane's per-turn
+    /// The setSewnInstructionsProvider body — the voice lane's per-turn
     /// instructions.
-    static func seerInstructionsText(
-        pass: SeerPass,
+    static func sewnInstructionsText(
+        pass: SewnPass,
         deps: FocusResolutionContext
     ) -> String {
             let resolved = resolveFocus(assertedFocus: pass.assertedFocus, deps: deps)
@@ -219,10 +219,10 @@ extension MaryRuntime {
             let held = heldContext(
                 resolved, budget: AmbientRanker.voiceBudget,
                 suppressing: pass.readPassages + pass.awareness)
-            // `seerRender` is `.seerInstructions`'s own body (the wrapper
-            // returns `seerRender(...).text`), so the returned text is
+            // `sewnRender` is `.sewnInstructions`'s own body (the wrapper
+            // returns `sewnRender(...).text`), so the returned text is
             // byte-identical; the render form keeps the spend waterfall.
-            let render = MaryPrompts.seerRender(
+            let render = MaryPrompts.sewnRender(
                 capability: capability,
                 groundedResults: pass.groundedResults,
                 liveWork: liveWork,
@@ -243,12 +243,12 @@ extension MaryRuntime {
                 perceiving: pass.perceiving,
                 awareness: pass.awareness)
             let assembled = promptWithTails(
-                render: render, lane: .seerInstructions, held: held,
+                render: render, lane: .sewnInstructions, held: held,
                 budget: AmbientRanker.voiceBudget,
                 route: AmbientContextStore.shared.route())
             // Booked directly — unlike the system provider, the pass names
             // its exchange. A nil exchange (ambient remark, detached routine
-            // follow-up) books nothing, by `SeerPass.exchangeID`'s contract.
+            // follow-up) books nothing, by `SewnPass.exchangeID`'s contract.
             if let exchange = pass.exchangeID {
                 RetrievalTraceLedger.shared.notePromptSpend(
                     assembled.spend, forExchange: exchange)

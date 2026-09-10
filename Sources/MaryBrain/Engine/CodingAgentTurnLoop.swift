@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Shared jailed pair-coding loop.
-//  IN:   MarySeerCodingEngine
+//  IN:   MarySewnCodingEngine
 //  OUT:  CodingAgentWorkspace dispatch
 //  PIN:  Engines only swap synthesis; dispatch stays on device.
 //
@@ -99,7 +99,7 @@ enum CodingAgentTurnLoop {
         return result
     }
 
-    static func messages(from history: [(role: String, text: String)]) -> [SeerChatMessage] {
-        history.map { SeerChatMessage(role: $0.role, content: $0.text) }
+    static func messages(from history: [(role: String, text: String)]) -> [SewnChatMessage] {
+        history.map { SewnChatMessage(role: $0.role, content: $0.text) }
     }
 }

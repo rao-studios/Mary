@@ -55,7 +55,7 @@ enum AbilityStudioIssueDestination {
             || path.contains("valueTypes")
             || path.contains("interactions")
             || path.contains("perceptions")
-            || path.contains("totemProjections")
+            || path.contains("threadProjections")
             || path.contains("dependencies")
             || path.contains("fixtures")
             || path.contains("corpus") {

@@ -43,7 +43,7 @@ enum AnnotationProbe {
         // THIS machine is set to.
         let stored = PersistedConfig.load()
         var engine = stored?.engine ?? .mistral
-        let seerEnabled = stored?.seerEnabled ?? true
+        let sewnEnabled = stored?.sewnEnabled ?? true
         if let override = value("--engine") {
             guard let parsed = LLMEngineChoice(rawValue: override) else {
                 print("Unknown engine '\(override)' — use mistral, local, or tinker.")
@@ -54,10 +54,10 @@ enum AnnotationProbe {
         }
         check(stored != nil, "read the persisted config",
               stored == nil ? "none on disk — assuming defaults" : PersistedConfig.path)
-        print("      llmEngine: \(engine.rawValue)   seerEnabled: \(seerEnabled)")
+        print("      llmEngine: \(engine.rawValue)   sewnEnabled: \(sewnEnabled)")
 
-        let hosted = MaryRuntime.seerCarriesTurns(engine: engine, seerEnabled: seerEnabled)
-        print("      → annotation always rides Seer's /v1/complete; the backend "
+        let hosted = MaryRuntime.sewnCarriesTurns(engine: engine, sewnEnabled: sewnEnabled)
+        print("      → annotation always rides Sewn's /v1/complete; the backend "
             + "behind it is \(engine.displayName)")
 
         // MARK: - The annotator
@@ -66,26 +66,26 @@ enum AnnotationProbe {
 
         var defaults = ConfigService.Center.State()
         if let stored {
-            defaults.seerPort = stored.seerPort
-            defaults.seerEmail = stored.seerEmail
-            defaults.seerPassword = stored.seerPassword
+            defaults.sewnPort = stored.sewnPort
+            defaults.sewnEmail = stored.sewnEmail
+            defaults.sewnPassword = stored.sewnPassword
         }
         let annotator: any UnitAnnotating
         if true {
-            // SIGN IN FIRST. `SeerUnitAnnotator` answers nil when the session
+            // SIGN IN FIRST. `SewnUnitAnnotator` answers nil when the session
             // is not authenticated, and a probe that skipped this would report
             // the boot race as if it were the steady state.
-            if let error = await MaryRuntime.applySeerAccount(
-                email: defaults.seerEmail,
-                password: defaults.seerPassword,
-                seerPort: defaults.seerPort) {
-                check(false, "signed in to Seer", error)
+            if let error = await MaryRuntime.applySewnAccount(
+                email: defaults.sewnEmail,
+                password: defaults.sewnPassword,
+                sewnPort: defaults.sewnPort) {
+                check(false, "signed in to Sewn", error)
                 return 1
             }
-            let owner = await MaryRuntime.seerSession.userID ?? "?"
-            check(true, "signed in to Seer", owner)
+            let owner = await MaryRuntime.sewnSession.userID ?? "?"
+            check(true, "signed in to Sewn", owner)
             await MaryRuntime.setAnnotationProvider(engine)
-            annotator = MaryRuntime.makeSeerUnitAnnotator()
+            annotator = MaryRuntime.makeSewnUnitAnnotator()
         }
         let refuses = annotator.refusesToAnnotate
         print("      refusesToAnnotate: \(refuses)")
@@ -203,7 +203,7 @@ enum AnnotationProbe {
         case .refusedExclusiveEngine:
             return "structure only — the on-device engine is reserved for your turns"
         case .failed: return "structure only — the summariser returned nothing"
-        case .seerUnavailable: return "structure only — Seer is not signed in"
+        case .sewnUnavailable: return "structure only — Sewn is not signed in"
         case .empty: return "structure only — the summariser returned an empty reply"
         case .unparsable: return "structure only — the summariser did not return a précis"
         case .unknown: return "in a state this version doesn't recognise"
@@ -218,10 +218,10 @@ enum PersistedConfig {
 
     struct Values {
         var engine: LLMEngineChoice
-        var seerEnabled: Bool
-        var seerPort: Int
-        var seerEmail: String
-        var seerPassword: String
+        var sewnEnabled: Bool
+        var sewnPort: Int
+        var sewnEmail: String
+        var sewnPassword: String
     }
 
     static var path: String {
@@ -239,9 +239,9 @@ enum PersistedConfig {
         return Values(
             engine: (state["llmEngine"] as? String).flatMap(LLMEngineChoice.init(rawValue:))
                 ?? defaults.llmEngine,
-            seerEnabled: state["seerEnabled"] as? Bool ?? defaults.seerEnabled,
-            seerPort: state["seerPort"] as? Int ?? defaults.seerPort,
-            seerEmail: state["seerEmail"] as? String ?? defaults.seerEmail,
-            seerPassword: state["seerPassword"] as? String ?? defaults.seerPassword)
+            sewnEnabled: state["sewnEnabled"] as? Bool ?? defaults.sewnEnabled,
+            sewnPort: state["sewnPort"] as? Int ?? defaults.sewnPort,
+            sewnEmail: state["sewnEmail"] as? String ?? defaults.sewnEmail,
+            sewnPassword: state["sewnPassword"] as? String ?? defaults.sewnPassword)
     }
 }

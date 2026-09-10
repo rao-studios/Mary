@@ -2,7 +2,7 @@
 //  MaryBrain+Deposit.swift
 //  MaryBrain
 //
-//  WHAT: Archive a dispatched Skill outcome into Totem.
+//  WHAT: Archive a dispatched Skill outcome into Thread.
 //  IN:   depositor + depositSubjectProvider + ambient
 //  OUT:  ContextDepositing
 //
@@ -24,9 +24,9 @@ extension MaryBrain {
         guard let depositor else { return }
         // A local binding's archive policy remains a hard floor.
         if deferred || policy == .none { return }
-        let projectionPlan: AbilityTotemProjectionPlan?
+        let projectionPlan: AbilityThreadProjectionPlan?
         if reference.source == .package {
-            projectionPlan = dispatcher?.abilitySnapshot.totemProjectionPlan(for: reference)
+            projectionPlan = dispatcher?.abilitySnapshot.threadProjectionPlan(for: reference)
                 ?? .denied(for: reference)
             guard projectionPlan?.permitsDurableStorage == true else { return }
         } else {

@@ -2,7 +2,7 @@
 //  AbilityStudioDraftSkillSheet.swift
 //  Mary
 //
-//  WHAT: Say what an ability should do; Seer drafts the blocks; you confirm them.
+//  WHAT: Say what an ability should do; Sewn drafts the blocks; you confirm them.
 //  IN:   Skills pane.
 //  OUT:  mutateAuthoringDocument { addRemoteHandsAction } — the same gate a
 //        hand-built action goes through.
@@ -27,7 +27,7 @@ struct AbilityStudioDraftSkillSheet: View {
     @State private var outcome: AbilityStudioDraftOutcome?
     @State private var failure: String?
     @State private var isDrafting = false
-    @State private var seerIsReady: Bool?
+    @State private var sewnIsReady: Bool?
 
     private var drafter: AbilityStudioSkillDrafter {
         AbilityStudioSkillDrafter(complete: MaryRuntime.studioComplete)
@@ -60,7 +60,7 @@ struct AbilityStudioDraftSkillSheet: View {
         .background(Color.maryBG)
         .preferredColorScheme(.light)
         .onAppear { capture = AbilityStudioSurfaceCapture.read(package: package) }
-        .task { seerIsReady = await drafter.isReady() }
+        .task { sewnIsReady = await drafter.isReady() }
     }
 
     private var header: some View {
@@ -119,7 +119,7 @@ struct AbilityStudioDraftSkillSheet: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
-                    StudioNote("A live read of \(applicationTitle). Tick the frames the action has to reach — these are the only anchors Seer may name.")
+                    StudioNote("A live read of \(applicationTitle). Tick the frames the action has to reach — these are the only anchors Sewn may name.")
                     ScrollView {
                         VStack(alignment: .leading, spacing: 1) {
                             ForEach(capture?.frames ?? []) { frame in
@@ -186,7 +186,7 @@ struct AbilityStudioDraftSkillSheet: View {
         MaryCard(padding: .layer4) {
             VStack(alignment: .leading, spacing: .layer3) {
                 HStack(spacing: .layer2) {
-                    stepTitle(3, "Seer's proposal")
+                    stepTitle(3, "Sewn's proposal")
                     Spacer()
                     if case .drafted = outcome {
                         MaryBadge(text: "draft", color: .maryGold)
@@ -204,12 +204,12 @@ struct AbilityStudioDraftSkillSheet: View {
                             .font(.marySans(11))
                             .foregroundStyle(Color.maryError)
                             .fixedSize(horizontal: false, vertical: true)
-                    } else if seerIsReady == false {
+                    } else if sewnIsReady == false {
                         HStack(alignment: .top, spacing: .layer2) {
                             Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 10))
                                 .foregroundStyle(Color.maryGold)
-                            Text("Seer is not signed in, so nothing can be drafted right now. Check the Servers panel.")
+                            Text("Sewn is not signed in, so nothing can be drafted right now. Check the Servers panel.")
                                 .font(.marySans(10.5))
                                 .foregroundStyle(Color.maryInk.opacity(0.6))
                                 .fixedSize(horizontal: false, vertical: true)
@@ -270,7 +270,7 @@ struct AbilityStudioDraftSkillSheet: View {
             .frame(maxHeight: 210)
 
             if !action.unverifiedStepIDs.isEmpty {
-                StudioNote("The flagged blocks name something Seer was not shown — a menu that only opens on click. Run them once against the real window before you keep them.")
+                StudioNote("The flagged blocks name something Sewn was not shown — a menu that only opens on click. Run them once against the real window before you keep them.")
             }
         }
     }
@@ -353,7 +353,7 @@ struct AbilityStudioDraftSkillSheet: View {
                 .font(.marySans(11))
                 .foregroundStyle(Color.maryInk.opacity(0.7))
                 .fixedSize(horizontal: false, vertical: true)
-            StudioNote("Hands click, type, scroll and wait — they never hand a value back. Reading something out of an application needs a faculty compiled into Mary, and the Studio cannot write one. Seer says so rather than inventing blocks that would silently do nothing.")
+            StudioNote("Hands click, type, scroll and wait — they never hand a value back. Reading something out of an application needs a faculty compiled into Mary, and the Studio cannot write one. Sewn says so rather than inventing blocks that would silently do nothing.")
             MaryBadge(text: "needs a Mary faculty", color: .maryError)
         }
     }
@@ -382,7 +382,7 @@ struct AbilityStudioDraftSkillSheet: View {
 
     private var canDraft: Bool {
         !isDrafting
-            && seerIsReady != false
+            && sewnIsReady != false
             && !goal.trimmingCharacters(in: .whitespaces).isEmpty
     }
 

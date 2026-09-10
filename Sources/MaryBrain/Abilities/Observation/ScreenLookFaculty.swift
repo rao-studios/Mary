@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: One ephemeral look at what the user sees.
-//  IN:   ScreenRegionCapture + Seer vision (both injected)
+//  IN:   ScreenRegionCapture + Sewn vision (both injected)
 //  OUT:  description on the outcome summary; image bytes die with the call
 //  PIN:  Never archived, never logged.
 //
@@ -72,7 +72,7 @@ public enum ScreenLookFaculty {
                 summary: "Looked at \(place) (\(sight.provenanceLabel)): \(description)",
                 archivePolicy: .none,
                 ambientDeposited: deposited)
-        } catch let error as SeerVisionError {
+        } catch let error as SewnVisionError {
             return visionFailure(for: error)
         } catch {
             return SkillOutcome(
@@ -108,7 +108,7 @@ public enum ScreenLookFaculty {
         }
     }
 
-    private static func visionFailure(for error: SeerVisionError) -> SkillOutcome {
+    private static func visionFailure(for error: SewnVisionError) -> SkillOutcome {
         switch error {
         case .notAuthenticated:
             return SkillOutcome(

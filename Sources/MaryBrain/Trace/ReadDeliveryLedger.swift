@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Did the last READ reach the lane that speaks?
-//  IN:   finishRoutine / seerTurn join
+//  IN:   finishRoutine / sewnTurn join
 //  OUT:  last-value debugger row
 //  PIN:  Last-value box, not a log — action log already keeps history.
 //

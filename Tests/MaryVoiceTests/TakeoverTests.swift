@@ -290,7 +290,7 @@ import Testing
 
     /// `request.timeoutInterval` is URLSession's IDLE timer and it resets on
     /// every byte; the wall clock lives on the session CONFIGURATION, and
-    /// `URLSession.shared`'s is SEVEN DAYS. `ttsBackend` defaults to `.seer`,
+    /// `URLSession.shared`'s is SEVEN DAYS. `ttsBackend` defaults to `.sewn`,
     /// so this is the path EVERY spoken sentence takes — Mary has one cloud
     /// voice, which makes this the only file that can get it wrong and also
     /// the only one that has to get it right.
@@ -301,7 +301,7 @@ import Testing
         // One sentence, retry included, stays inside the sixty seconds both
         // engines already believed a chunk was capped at.
         #expect(SpeechStreamingHTTP.resourceTimeout * 2 <= SpeechStreamingHTTP.idleTimeout)
-        let file = "TTS/Seer/SeerTTSEngine.swift"
+        let file = "TTS/Sewn/SewnTTSEngine.swift"
         let text = try Self.source(file)
         #expect(text.contains("SpeechStreamingHTTP.session"), "\(file)")
         #expect(!text.contains("URLSession.shared.bytes"),

@@ -2,7 +2,7 @@
 
 A macOS ambient-intelligence assistant. Mary perceives your screen through the
 accessibility tree, carries out declarative **Plugins** by voice, speaks through
-Seer, and remembers through Totem.
+Sewn, and remembers through Thread.
 
 Mary is a re-architecture of [Bonnie](../Bonnie) — the same ideas, cut down to
 their load-bearing shape. Three commitments define it:
@@ -81,8 +81,8 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 | `MaryComputerUse` | The machine layer: the accessibility tree engine (tier 0), derived sight, hands (keyboard, pointer, elements, windows, menus, media keys), stage arbitration, subprocess, and one monitor. The only target that posts an input event, performs an accessibility action, or captures pixels — and a test reads every source file to keep that true. |
 | `MaryPlugin` | The adapter contract and the generic adapters (surface, typer, prose-surface, window management, media, corpus). Adapters translate what a Skill needs into hands and sight; they do not reach the machine themselves. |
 | `MaryVoice` | Mic → VAD → transcription → a `LanguageResponder` seam → speech, every stage observable. |
-| `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients. Every generation rides Seer — Mistral, Thinking Machines, or Seer's own on-device model — so no model is ever loaded in this process. |
-| `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |
+| `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Sewn clients. Every generation rides Sewn — Mistral, Thinking Machines, or Sewn's own on-device model — so no model is ever loaded in this process. |
+| `MaryThread` | The gRPC facade onto the local Thread node. Consumed only by the runtime and the app. |
 | `MaryRuntime` | The composition root, long-lived actors, and Granite services. |
 | `Mary` | The SwiftUI app. |
 | `Sand` | The bench: a live accessibility wireframe of any running app, and one taught ability — its own recipes, or any skill it realizes for a discipline it extends — dispatched through the real `AbilityRuntime` so the route it takes into `MaryComputerUse` is watchable act by act. Its own bundle id, so its Accessibility grant is independent of Mary's. `./scripts/sand.sh` to run it. |

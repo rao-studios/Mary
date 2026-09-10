@@ -149,7 +149,7 @@ struct AbilityRunInspectorSheet: View {
             }
         } else {
             emptyNote(
-                "This turn is not in Ability Totem. Sign in to Seer first, "
+                "This turn is not in Ability Thread. Sign in to Sewn first, "
                 + "or the turn had no Ability target — those are not kept.")
         }
     }
@@ -205,7 +205,7 @@ struct AbilityRunInspectorSheet: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Off MainActor: Totem `documents` is a gRPC hop; sheet must open immediately.
+    /// Off MainActor: Thread `documents` is a gRPC hop; sheet must open immediately.
     private func loadEpisode() async {
         guard let turnID = inspected.turnID else {
             episodeLoaded = true

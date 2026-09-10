@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Palette (ported from Fleet/Client's warm Seer system)
+// MARK: - Palette (ported from Fleet/Client's warm Sewn system)
 
 extension Color {
     static let maryBG = Color(red: 250 / 255, green: 249 / 255, blue: 246 / 255)
@@ -34,7 +34,7 @@ extension Font {
 // MARK: - Mary mark
 
 /// The Mary brand glyph — a gold waveform mark (a voice, held gently), on the
-/// warm Seer-derived design system.
+/// warm Sewn-derived design system.
 struct MaryMark: View {
     var size: CGFloat = 28
     var color: Color = .maryGold

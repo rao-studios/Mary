@@ -76,7 +76,7 @@ public struct ValueTypeSchema: Codable, Hashable, Sendable, Identifiable {
 public enum DataPrivacyClass: String, Codable, Hashable, Sendable, CaseIterable {
     /// Package definition / public schema fixture.
     case publicDefinition
-    /// This machine only; not durable Totem memory.
+    /// This machine only; not durable Thread memory.
     case `private`
     /// User content — redact diagnostics, never export.
     case sensitive
