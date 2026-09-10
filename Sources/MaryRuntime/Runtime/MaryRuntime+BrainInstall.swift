@@ -20,6 +20,11 @@ import os
 
 extension MaryRuntime {
 
+    /// The turn's context preparer, timed. Same channel as the turn clock, which
+    /// cannot see inside the preparer: nothing is marked before the turn's first
+    /// `roster`, so every Accessibility walk it performs lands in one number.
+    static let preparerLog = Logger(subsystem: "nyc.rao.mary", category: "turns")
+
     package static func installBrainConfiguration(
         projects: [String: String] = [:]
     ) async {
@@ -156,12 +161,35 @@ extension MaryRuntime {
             systemPromptText(plugins: adapters, projects: projects, deps: deps)
         }
         await brain.setTurnContextPreparer {
+            // TIMED, BECAUSE THE TURN CLOCK CANNOT SEE IN HERE. Nothing is
+            // marked before the turn's first `roster`, so this whole block —
+            // every observer's Accessibility walk — lands in one cumulative
+            // number. Measured: 22.9s of a 27.3s turn, with no way to say which
+            // reader owned it.
+            let observersStarted = DispatchTime.now()
             for observer in observers where !observer.ambientSenses.isEmpty {
+                let started = DispatchTime.now()
                 await observer.refreshAmbientContext()
+                let ms = (DispatchTime.now().uptimeNanoseconds
+                    &- started.uptimeNanoseconds) / 1_000_000
+                if ms >= 50 {
+                    preparerLog.info(
+                        "preparer — observer \(observer.id, privacy: .public) \(ms, privacy: .public)ms")
+                }
             }
+            let observersMs = (DispatchTime.now().uptimeNanoseconds
+                &- observersStarted.uptimeNanoseconds) / 1_000_000
             // Declared perceptions — dispatch asks what Mary observes now. In MaryBrain
             // so the bench publishes the same two (see TurnPerceptionPublisher).
+            let perceptionsStarted = DispatchTime.now()
             await TurnPerceptionPublisher.publishAll(adapters: adapters)
+            let perceptionsMs = (DispatchTime.now().uptimeNanoseconds
+                &- perceptionsStarted.uptimeNanoseconds) / 1_000_000
+            preparerLog.info(
+                """
+                preparer — observers \(observersMs, privacy: .public)ms · \
+                perceptions \(perceptionsMs, privacy: .public)ms
+                """)
         }
         await brain.setSewnInstructionsProvider { pass in
             sewnInstructionsText(pass: pass, deps: deps)

@@ -41,8 +41,22 @@ public enum TurnPerceptionPublisher {
     public static func publishAll(
         adapters: [any MaryAdapter] = MaryAdapterCatalog.adapters()
     ) async {
+        // WHICH ADAPTER SPENT THE TURN. Every reader here is an Accessibility
+        // walk, they run sequentially, and a slow one is invisible in the turn
+        // clock because nothing is marked before its first `roster`. Measured:
+        // one adapter held a turn for 22.9s of 27.3s.
+        let started = DispatchTime.now()
+        var slowest: (name: String, ms: UInt64) = ("", 0)
         for adapter in adapters {
+            let adapterStart = DispatchTime.now()
             let declared = await adapter.turnPerceptions()
+            let ms = (DispatchTime.now().uptimeNanoseconds
+                &- adapterStart.uptimeNanoseconds) / 1_000_000
+            if ms > slowest.ms { slowest = (adapter.name, ms) }
+            if ms >= slowReaderMilliseconds {
+                log.info(
+                    "perception — \(adapter.name, privacy: .public) took \(ms, privacy: .public)ms")
+            }
             guard !declared.isEmpty else { continue }
             let adapterID = AdapterID.normalized(adapter.name)
             for perception in declared {
@@ -51,7 +65,18 @@ public enum TurnPerceptionPublisher {
                     adapterID: adapterID, what: perception.schemaID.rawValue)
             }
         }
+        let total = (DispatchTime.now().uptimeNanoseconds
+            &- started.uptimeNanoseconds) / 1_000_000
+        log.info(
+            """
+            perception — total \(total, privacy: .public)ms over \
+            \(adapters.count, privacy: .public) adapters · slowest \
+            \(slowest.name, privacy: .public) \(slowest.ms, privacy: .public)ms
+            """)
     }
+
+    /// A reader slower than this gets its own line. Below it, the total says enough.
+    private static let slowReaderMilliseconds: UInt64 = 50
 
     /// One publish, one refusal shape.
     ///

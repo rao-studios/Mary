@@ -11,6 +11,7 @@ import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
+import os
 
 public enum AXSnapshotBuilder {
 
@@ -90,6 +91,12 @@ public enum AXSnapshotBuilder {
         build(pid: pid, options: options)?.snapshot
     }
 
+    /// A walk this slow held whoever asked for it. Same channel as the turn
+    /// clock, because that is the number it explains.
+    static let walkLog = Logger(subsystem: "nyc.rao.mary", category: "turns")
+    /// Below this a walk is ambient noise; at or above it, it is the turn.
+    static let slowWalkSeconds: TimeInterval = 1.0
+
     /// The pure snapshot, the live-element side table the streamer's frame-only fast path
     /// needs (re-reading a known node's frame without a fresh structural walk), and the web
     /// lane's tally.
@@ -164,11 +171,26 @@ public enum AXSnapshotBuilder {
         // COUNTED, NOT ANNOUNCED. The ambient poll lands here roughly every
         // 1.5 seconds; an event per walk would bury the acts a watcher came
         // for, so the monitor keeps a tally and stays quiet.
+        let seconds = TimeInterval(duration.components.seconds)
+            + TimeInterval(duration.components.attoseconds) / 1e18
         ComputerUseMonitor.shared.noteSense(
             nodes: nodeCount,
-            duration: TimeInterval(duration.components.seconds)
-                + TimeInterval(duration.components.attoseconds) / 1e18,
+            duration: seconds,
             truncated: windows.contains(where: \.isTruncated))
+        // ...BUT A WALK THAT HELD A TURN SAYS SO. The tally above is the right
+        // default for a 1.5s poll; a walk measured in SECONDS is not ambient
+        // noise, it is the turn, and it was invisible until it was timed from
+        // the caller's side. Threshold, not every walk — the poll stays quiet.
+        if seconds >= slowWalkSeconds {
+            walkLog.info(
+                """
+                slow walk — \(appName, privacy: .public) \
+                \(Int(seconds * 1000), privacy: .public)ms · \
+                \(nodeCount, privacy: .public) nodes · \
+                \(Int(seconds * 1000) / max(nodeCount, 1), privacy: .public)ms/node\
+                \(windows.contains(where: \.isTruncated) ? " · truncated" : "", privacy: .public)
+                """)
+        }
         return (snapshot, recorder.table, web)
     }
 

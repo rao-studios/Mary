@@ -28,6 +28,7 @@
 //
 
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 import MaryVoice
 import Foundation
@@ -217,20 +218,25 @@ public actor MaryBrain: LanguageResponder {
     }
 
     /// Run `work` or give up after `budget`. Abandoned work is always a READ.
+    ///
+    /// PIN: UNSTRUCTURED ON PURPOSE. This was a `withTaskGroup` racing `work`
+    /// against a sleeper, which does not bound anything: a task group
+    /// implicitly awaits EVERY child before it returns, and `cancelAll()` only
+    /// sets a flag that a synchronous `AXUIElementCopyAttributeValue` loop
+    /// never checks. So the group could not return until the work finished, and
+    /// every budget on the turn's read path was advisory.
+    /// MEASURED: a 1s "budget" on the turn-context preparer held a turn for
+    /// 25s, because one adapter walked 820 Accessibility nodes at ~31ms each.
+    /// `bounded` is the same shape MaryComputerUse already uses for the lane
+    /// join — the loser is asked to stop and, when it cannot, dies on its own
+    /// time with nobody waiting on it. That is the whole point.
     // internal for file split — treat as private
     func withNanosecondBudget<T: Sendable>(
         _ budget: UInt64, _ work: @escaping @Sendable () async -> T?
     ) async -> T? {
-        await withTaskGroup(of: T?.self) { group in
-            group.addTask { await work() }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: budget)
-                return nil
-            }
-            let first = await group.next() ?? nil
-            group.cancelAll()
-            return first
-        }
+        // Double optional: `nil` from the deadline and `nil` from the work both
+        // mean "nothing came back", which is what every caller already handles.
+        await bounded(Double(budget) / 1_000_000_000, work) ?? nil
     }
 
     /// Test seams: Sewn-wire view and history roles (alternation invariant).
