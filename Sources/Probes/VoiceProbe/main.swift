@@ -6,6 +6,7 @@
 //  OUT:  speak / mic-levels / vad / stt / loop
 //
 
+import AVFoundation
 import MaryVoice
 import Foundation
 
@@ -31,7 +32,11 @@ commands:
         list bundled Kokoro voices
   mic-levels                      print live RMS levels from the mic
   vad                             print VAD speechStart/speechEnd events
-  stt                             transcribe one utterance
+  stt [--backend apple|analyzer]  transcribe one utterance
+  stt-file <wav>... [--backend apple|analyzer] [--fast]
+        replay recorded audio (e.g. an app utterance dump — run the app
+        with MARY_STT_DUMP=1, files land in ~/Documents/maryOS/voice-dumps)
+        through a transcriber in tap-sized chunks, paced at real time
   loop                            echo mode: repeat what you say (no LLM)
   wake                            standby wake-word listener: prints every
                                   WakeEvent ("Hey Mary[, request]") until
@@ -72,23 +77,79 @@ func loadedEngine(voice: String) async throws -> KokoroEngine {
     return engine
 }
 
-/// Mic → VAD → STT for exactly one utterance; returns the transcript.
+/// `--backend apple|analyzer` → the transcriber the app would use.
+func makeTranscriber(_ arguments: inout [String]) -> any VoiceTranscriber {
+    let name = flagValue(&arguments, "--backend") ?? STTBackend.apple.rawValue
+    guard let backend = STTBackend(rawValue: name) else {
+        fail("Unknown backend '\(name)'. Options: \(STTBackend.allCases.map(\.rawValue).joined(separator: " "))")
+    }
+    switch backend {
+    case .apple: return AppleSpeechTranscriber()
+    case .analyzer: return AnalyzerSpeechTranscriber()
+    }
+}
+
+/// WAV → transcriber in tap-sized chunks, paced at real time unless `fast`.
+func transcribeFile(_ url: URL, transcriber: any VoiceTranscriber, fast: Bool) async throws -> String {
+    let file = try AVAudioFile(forReading: url)
+    let format = file.processingFormat
+    await transcriber.prewarm(format: format)
+    let beginStarted = Date()
+    try await transcriber.begin(format: format)
+    let beginSeconds = Date().timeIntervalSince(beginStarted)
+    let partials = await transcriber.partials()
+    let printer = Task {
+        for await partial in partials {
+            print("  … \(partial)")
+            fflush(stdout)
+        }
+    }
+    let chunk: AVAudioFrameCount = 1024
+    while file.framePosition < file.length {
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: chunk) else { break }
+        try file.read(into: buffer, frameCount: chunk)
+        guard buffer.frameLength > 0 else { break }
+        await transcriber.append(buffer)
+        if !fast {
+            try await Task.sleep(for: .seconds(Double(buffer.frameLength) / format.sampleRate))
+        }
+    }
+    let finishStarted = Date()
+    let text = try await transcriber.finish()
+    printer.cancel()
+    print(String(format: "  begin %.2fs · finish %.2fs",
+                 beginSeconds, Date().timeIntervalSince(finishStarted)))
+    return text
+}
+
+/// Mic → VAD → STT for exactly one utterance, with the app's pre-roll; returns the transcript.
 func captureOneUtterance(transcriber: any VoiceTranscriber) async throws -> String {
     let mic = MicCapture()
-    let vad = EnergyVAD(config: VADConfig())
+    let config = VADConfig()
+    let vad = EnergyVAD(config: config)
     let frames = try mic.start()
     defer { mic.stop() }
+    if let format = mic.format { await transcriber.prewarm(format: format) }
 
+    // Same ring as the pipeline: the last preRollMs, current frame included.
+    var preRoll: [(buffer: AVAudioPCMBuffer, duration: TimeInterval)] = []
+    let preRollLimit = Double(config.preRollMs) / 1000
     var utteranceOpen = false
     for await frame in frames {
         if utteranceOpen {
             await transcriber.append(frame.buffer)
+        } else {
+            preRoll.append((frame.buffer, frame.duration))
+            while preRoll.reduce(0, { $0 + $1.duration }) > preRollLimit, preRoll.count > 1 {
+                preRoll.removeFirst()
+            }
         }
         switch vad.process(rms: frame.rms, frameDuration: frame.duration) {
         case .speechStart:
             guard let format = mic.format else { continue }
             try await transcriber.begin(format: format)
-            await transcriber.append(frame.buffer)
+            for entry in preRoll { await transcriber.append(entry.buffer) }
+            preRoll = []
             utteranceOpen = true
             print("  (hearing you…)")
         case .speechEnd:
@@ -258,14 +319,37 @@ do {
             }
 
         case "stt":
-            let transcriber: any VoiceTranscriber = AppleSpeechTranscriber()
+            let transcriber = makeTranscriber(&arguments)
             print("Speak one utterance; silence ends it.")
             let text = try await captureOneUtterance(transcriber: transcriber)
             print("transcript: \(text)")
 
+        case "stt-file":
+            let fast = boolFlag(&arguments, "--fast")
+            let transcriber = makeTranscriber(&arguments)
+            guard !arguments.isEmpty else { fail("Nothing to replay. Usage: stt-file <wav>...") }
+            for path in arguments {
+                let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+                print("▶ \(url.lastPathComponent)")
+                // A dump's sidecar says what the app heard — the A/B baseline.
+                let sidecar = url.deletingPathExtension().appendingPathExtension("json")
+                if let data = try? Data(contentsOf: sidecar),
+                   let record = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    let heard = record["transcript"] as? String ?? "(nothing)"
+                    print("  app heard [\(record["backend"] as? String ?? "?")]: \(heard)")
+                }
+                do {
+                    let text = try await transcribeFile(url, transcriber: transcriber, fast: fast)
+                    print("transcript: \(text)")
+                } catch {
+                    print("  error: \(error.localizedDescription)")
+                }
+                fflush(stdout)
+            }
+
         case "loop":
             let voice = flagValue(&arguments, "--voice") ?? "af_heart"
-            let transcriber: any VoiceTranscriber = AppleSpeechTranscriber()
+            let transcriber = makeTranscriber(&arguments)
             let engine = try await loadedEngine(voice: voice)
             print("Echo mode — Mary repeats what you say. Ctrl-C to stop.")
             while true {

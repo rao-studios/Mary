@@ -44,10 +44,23 @@ extension VoiceService {
             // consume a wake request that a later, successful Start can honor.
             let handoff = MaryRuntime.takeWakeHandoff()
 
+            // Her name and project names — words a general model underweights.
+            let hints = WakePlanner.Tuning.standard.wakeNames.sorted().map(\.capitalized)
+                + config.state.projects.map(\.name).filter { !$0.isEmpty }
             let transcriber: any VoiceTranscriber
             switch config.state.sttBackend {
-            case .apple: transcriber = AppleSpeechTranscriber()
+            case .apple: transcriber = AppleSpeechTranscriber(contextualStrings: hints)
+            case .analyzer: transcriber = AnalyzerSpeechTranscriber(contextualStrings: hints)
             }
+
+            // `MARY_STT_DUMP=1` (or the `MaryVoiceDump` default) records every
+            // utterance for `mary-voice-probe stt-file` replay.
+            let dumpRequested = ProcessInfo.processInfo.environment["MARY_STT_DUMP"] == "1"
+                || UserDefaults.standard.bool(forKey: "MaryVoiceDump")
+            let dumpDirectory = dumpRequested
+                ? URL(fileURLWithPath: (ServerSpec.Defaults.dataRoot as NSString).expandingTildeInPath)
+                    .appendingPathComponent("voice-dumps")
+                : nil
 
             let pipeline = VoicePipeline(
                 config: VoicePipelineConfig(
@@ -56,7 +69,8 @@ extension VoiceService {
                     vad: config.state.vad,
                     stopListeningAck: config.state.wakeWordEnabled
                         ? "Okay — say \u{201C}Hey Mary\u{201D} when you need me."
-                        : "Okay, going quiet."
+                        : "Okay, going quiet.",
+                    utteranceDumpDirectory: dumpDirectory
                 ),
                 transcriber: transcriber,
                 speaker: MaryRuntime.speaker,

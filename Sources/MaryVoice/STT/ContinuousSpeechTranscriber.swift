@@ -42,18 +42,12 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
 
     public enum Failure: LocalizedError {
         case notAuthorized
-        case localeUnsupported(String)
-        case modelDownloading(String)
         case noCompatibleFormat
 
         public var errorDescription: String? {
             switch self {
             case .notAuthorized:
                 return "Speech recognition is not authorized."
-            case .localeUnsupported(let identifier):
-                return "Continuous transcription is unavailable for \(identifier)."
-            case .modelDownloading(let identifier):
-                return "The on-device speech model for \(identifier) is still downloading."
             case .noCompatibleFormat:
                 return "No audio format the on-device recognizer accepts is available."
             }
@@ -110,32 +104,8 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
         let transcriber = SpeechTranscriber(
             locale: locale, preset: .progressiveTranscription)
 
-        // Model must be on the machine. `status` is the question that asks that.
-        switch await AssetInventory.status(forModules: [transcriber]) {
-        case .unsupported:
-            throw Failure.localeUnsupported(locale.identifier)
-        case .supported:
-            // Supported but absent — fetch. Nil request at this status is an OS decline.
-            if let request = try await AssetInventory.assetInstallationRequest(
-                supporting: [transcriber]) {
-                Self.log.info("continuous STT: downloading the on-device model")
-                try await request.downloadAndInstall()
-            }
-            guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
-                throw Failure.modelDownloading(locale.identifier)
-            }
-        case .downloading:
-            // Someone else already started the download. Refuse rather than hang.
-            throw Failure.modelDownloading(locale.identifier)
-        case .installed:
-            break
-        @unknown default:
-            break
-        }
-
-        // Reserve is best-effort. `false` means "this call did not take a slot",
-        // not "unusable" — reservation outlives the process. Do not release on endSession.
-        _ = try? await AssetInventory.reserve(locale: locale)
+        // Model must be on the machine (and reserved) before the analyzer can use it.
+        try await SpeechModelAssets.ensureInstalled([transcriber], locale: locale)
 
         // Analyzer picks the format, not the mic. See AnalyzerFeed.
         guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(

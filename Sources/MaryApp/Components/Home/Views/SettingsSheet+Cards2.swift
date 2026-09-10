@@ -16,10 +16,14 @@ extension SettingsSheet {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
                 SectionLabel("Listening")
-                // ONE TRANSCRIBER, and the picker stays because the seam
-                // does — see `STTBackend`. A control with one option reads as
-                // a promise of a second; this states the fact instead.
-                Text("Hearing you through Apple's on-device Speech framework.")
+                Picker("Transcriber", selection: sttBinding) {
+                    ForEach(STTBackend.allCases, id: \.self) { backend in
+                        Text(backend.displayName).tag(backend)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .labelsHidden()
+                Text("Both transcribe on this Mac; nothing you say leaves it.")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
                 Toggle("Wake word — \u{201C}Hey Mary\u{201D}", isOn: wakeWordBinding)

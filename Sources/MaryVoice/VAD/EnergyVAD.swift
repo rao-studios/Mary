@@ -32,6 +32,9 @@ public final class EnergyVAD: VoiceActivityDetector {
     private let config: VADConfig
     /// Multiplies the start threshold (barge-in guard while TTS plays).
     public var thresholdBoost: Float = 1.0
+    /// Extra trailing silence while the phrase looks unfinished (EndpointHold).
+    /// Cleared whenever an utterance closes.
+    public var hangoverExtension: TimeInterval = 0
 
     public private(set) var isSpeechActive = false
     private var voicedDuration: TimeInterval = 0
@@ -50,6 +53,8 @@ public final class EnergyVAD: VoiceActivityDetector {
                 isSpeechActive = true
                 voicedDuration = frameDuration
                 silenceDuration = 0
+                // A late partial from the last utterance must not hold this one.
+                hangoverExtension = 0
                 return .speechStart
             }
             return .none
@@ -63,7 +68,7 @@ public final class EnergyVAD: VoiceActivityDetector {
         }
 
         silenceDuration += frameDuration
-        guard silenceDuration >= Double(config.hangoverMs) / 1000 else {
+        guard silenceDuration >= Double(config.hangoverMs) / 1000 + hangoverExtension else {
             return .none
         }
 
@@ -71,6 +76,7 @@ public final class EnergyVAD: VoiceActivityDetector {
         isSpeechActive = false
         voicedDuration = 0
         silenceDuration = 0
+        hangoverExtension = 0
 
         if duration < Double(config.minUtteranceMs) / 1000 {
             return .discardedNoise
@@ -82,5 +88,6 @@ public final class EnergyVAD: VoiceActivityDetector {
         isSpeechActive = false
         voicedDuration = 0
         silenceDuration = 0
+        hangoverExtension = 0
     }
 }

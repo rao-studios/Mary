@@ -275,6 +275,9 @@ extension VoicePipeline {
 
     func performBargeIn() async {
         guard !terminated, let lease = voiceFloor.currentLease else { return }
+        // The interruption's own audio (onset → commit). nil for a manual interrupt.
+        let captured = bargeCapture
+        bargeCapture = nil
         // A remark is not a turn — do not cancel the responder or emit
         // `.turnCancelled`. `ambientCandidateID` is the engine's negative signal.
         let interruptedAmbient = proactive.ambientCandidateID
@@ -307,7 +310,9 @@ extension VoicePipeline {
               mic != nil
         else { return }
 
-        // Pre-roll holds the interrupting speech — open a fresh utterance from it.
+        // Open a fresh utterance from the interrupting speech — the capture
+        // from its onset, or pre-roll for a manual interrupt.
+        let replay = captured ?? preRoll.map(\.0)
         vad.reset()
         _ = vad.process(rms: config.vad.speechStartRMS * 2, frameDuration: 0.001)  // arm as active
         emit(.vad(.speechStart))
@@ -316,7 +321,7 @@ extension VoicePipeline {
             return
         }
         do {
-            try await transcriber.begin(format: format)
+            try await beginTranscriberUtterance(format: format)
         } catch {
             guard !stopExitInProgress, state != .idle else { return }
             emit(.error(error.localizedDescription))
@@ -343,7 +348,7 @@ extension VoicePipeline {
                 await self.emitPartial(partial)
             }
         }
-        for (buffer, _) in preRoll {
+        for buffer in replay {
             guard !Task.isCancelled, !stopExitInProgress, mic != nil,
                   state == .listening(utteranceActive: true)
             else {
@@ -352,7 +357,7 @@ extension VoicePipeline {
                 partialTask = nil
                 return
             }
-            await transcriber.append(buffer)
+            await feedTranscriber(buffer)
         }
     }
 }
