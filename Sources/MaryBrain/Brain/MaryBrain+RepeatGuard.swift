@@ -4,7 +4,7 @@
 //
 //  WHAT: The two repeats a lane refuses — the same call that just failed, and
 //        the same act run again before anything has looked.
-//  IN:   MaryBrain+OrchestratorLane, MaryBrain+LocalTurn — before every dispatch
+//  IN:   MaryBrain+Turn (Lane B and the engine seat) — before every dispatch
 //  OUT:  a skillResult line in the lane's history; the lane ends (failed) or
 //        continues (unproven)
 //  PIN:  THE ROUND LOOP ASKS THE MODEL AGAIN AFTER EVERY DISPATCH, and nothing

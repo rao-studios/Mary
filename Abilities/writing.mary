@@ -164,12 +164,15 @@
           "create a new document",
           "insert a line",
           "let me dictate this",
+          "put a poem in the {application} window",
           "start dictating",
           "take dictation",
           "take this down",
+          "type this into the {application} window",
           "type this sentence",
           "write a paragraph",
-          "write down everything i say"
+          "write down everything i say",
+          "write this in {application}"
         ],
         "perceive" : [
           "what do you think about this paragraph",
@@ -620,6 +623,66 @@
   "fixtures" : [
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-application-plainly",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Put a few lines in {application}."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-application-window",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Write a poem in the {application} window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-application-window-typed",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Type this into the {application} window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-application-window-written-up",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Write that up in the {application} window."
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-that-textedit-window",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Put a short poem in that TextEdit window."
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "compose-into-the-window-just-opened",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Write a poem in the window you just opened."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "writing.compose-draft",
       "id" : "compose-poem",
       "interactions" : [
@@ -979,7 +1042,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8f48ccf50efc3ddd74746e8831068bb73df17970b22e99748fd2fb7206331c3d"
+    "digest" : "7a0b26518c6dfd71f12c2caf20fe8efe39afc81df278ab9ea7b96089e926e487"
   },
   "interactions" : [
     {
@@ -4046,6 +4109,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
           "window-management"
         ]

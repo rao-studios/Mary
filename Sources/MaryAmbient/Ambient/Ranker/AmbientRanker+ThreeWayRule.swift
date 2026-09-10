@@ -167,8 +167,17 @@ extension AmbientRanker {
         // Sketch” to “Where is it?”.
         if tokens.first == "where", tokens.contains("it") { return true }
 
+        // AGREEING IS NOT A VERB. The strip was joiners only, so "yeah can you
+        // write a poem in that window" — the plainest continuation there is —
+        // never reached the request frame below: `tokens[0]` was "yeah", the
+        // frame test failed on ["yeah", "can"], and the verb test then read
+        // "yeah" and returned false. A leading acknowledgement is the shape a
+        // person uses when they are CONTINUING, which is exactly the case this
+        // function is for.
         while let first = tokens.first,
-              ["and", "then", "please", "just"].contains(first) {
+              ["and", "then", "now", "please", "just",
+               "yeah", "yes", "yep", "ok", "okay", "sure", "so", "also"]
+                  .contains(first) {
             tokens.removeFirst()
         }
         if tokens.count >= 2,
@@ -178,8 +187,17 @@ extension AmbientRanker {
                 tokens.removeFirst()
             }
         }
-        // TWO VOCABULARIES FOR ONE IDEA, and the gap between them was a bug. These were the
-        // CREATION verbs only.
+        // THREE VOCABULARIES FOR ONE IDEA, and the gap between them was a bug
+        // twice over. These were the CREATION verbs only; the transform family
+        // closed the first gap. The COMPOSITION family is the third, and its
+        // absence was the same fault in the same place: "open a TextEdit
+        // window" then "write a poem in that window" is the continuation shape
+        // this function exists to catch, and `write` was not a word it knew, so
+        // the referent Mary had just resolved was discarded and the turn aimed
+        // at whatever was frontmost.
+        //
+        // Composing prose INTO something is not a different relationship from
+        // putting a shape into it or rewriting the words already there.
         let continuationVerbs: Set<String> = [
             "add", "create", "do", "draw", "make", "move", "place", "put",
             "resize", "rename", "show",
@@ -188,6 +206,9 @@ extension AmbientRanker {
             "shorten", "expand", "polish", "reword", "rephrase", "proofread",
             "correct", "refactor", "replace", "delete", "remove", "insert",
             "append", "translate", "reformat", "format", "tidy", "update",
+            // The composition family — `writing`'s own compose vocabulary.
+            "write", "type", "compose", "draft", "jot", "note", "dictate",
+            "title", "caption", "describe", "summarize", "summarise",
         ]
         guard let verb = tokens.first, continuationVerbs.contains(verb) else {
             return false

@@ -154,6 +154,52 @@ import Testing
             utterance: "Bring all my windows forward.") == nil)
     }
 
+    // MARK: - One set, read by both halves of the pragma
+
+    /// THE ASYMMETRY THAT MADE `{application}` HALF A FEATURE.
+    ///
+    /// Expansion took BOTH backwards edges; resolution took only the support
+    /// one. So `writing` — a discipline, reached by the REQUIRED edge from its
+    /// editors — expanded over three of them and resolved over none. A Skill of
+    /// its could declare `resolvesApplication`, pass the validator, and be
+    /// handed an empty candidate set on every single turn.
+    @Test func aDisciplineSkillCanBePointedAtItsEditors() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        let typer = try #require(
+            snapshot.skill(id: SkillID("writing.type-at-cursor")))
+        let candidates = Set(snapshot.applicationCandidates(for: typer))
+        #expect(candidates.contains(AbilityID("textedit")))
+        #expect(candidates.contains(AbilityID("pages")))
+        // The host itself is not one of its own candidates.
+        #expect(!candidates.contains(AbilityID("writing")))
+    }
+
+    /// THE TWO HALVES NOW AGREE BY CONSTRUCTION, and this is what says so: the
+    /// set a Skill resolves over is exactly the set `{application}` expands to
+    /// for its Ability. They were allowed to differ, and did.
+    @Test func candidatesAreExactlyWhatTheSlotExpandsTo() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        for id in ["writing.type-at-cursor", "window-management.open-new-window"] {
+            let skill = try #require(snapshot.skill(id: SkillID(id)))
+            let resolved = snapshot.applicationCandidates(for: skill)
+                .compactMap { snapshot.applicationID(ofAbility: $0) }
+            let expanded = snapshot
+                .pointableApplications(of: skill.ability.id).map(\.id)
+            #expect(resolved == expanded, "\(id) resolves over a different set than it expands over")
+        }
+    }
+
+    /// WIDENING THE SET MUST NOT HAVE MOVED THE ONE CASE THAT ALREADY WORKED.
+    /// `window-management` is `.systemControl`, and `buildExpertiseIndex` admits
+    /// only `.discipline` dependencies — so its expertise half is empty and the
+    /// union is the support edge it always was.
+    @Test func theSystemControlHostIsUnchangedByTheUnion() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        let host = AbilityID("window-management")
+        #expect(snapshot.pointableAbilities(of: host)
+            == snapshot.applicationsSupporting(host))
+    }
+
     /// The candidate tier is drawn even when nothing is chosen — a bench that
     /// could only say "no match" could not tell 0.61 from 0.20.
     @Test func everyCandidateIsReportedEvenWithoutAWinner() throws {
@@ -164,5 +210,62 @@ import Testing
             for: skill, snapshot: snapshot, utterance: "Open a new window."))
         #expect(verdict.candidates.count
             == snapshot.applicationCandidates(for: skill).count)
+    }
+
+    // MARK: - A staged surface is an assertion
+
+    /// THE DEFAULT THAT OUTRANKED A FACT.
+    ///
+    /// `type_at_cursor` documents "omit `app` to type into the just-opened
+    /// document". It could not once be honoured: an omitted `app` on a
+    /// discipline's Skill reaches `ExpertiseResolution`, which always chooses
+    /// while the discipline has any dependent — so the omission came back
+    /// filled with whichever editor declared the highest preference, at
+    /// standing `staticPreference`. The typer resolves a NAMED application
+    /// before it looks at the stage, so a window Mary had just opened and
+    /// proved lost to a number in a package.
+    @Test func aColdRosterStillAnswersWithADeclaredPreference() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        let typer = try #require(
+            snapshot.skill(id: SkillID("writing.type-at-cursor")))
+        let verdict = try #require(ExpertiseResolution.resolve(
+            for: typer, snapshot: snapshot,
+            utterance: "write a poem in it",
+            ledger: ApplicationHabitLedger()))
+        // The fact under test: it answers, and only from declared preference.
+        #expect(verdict.chosen?.standing == .staticPreference)
+    }
+
+    /// AND THE FACT NOW WINS. The staged surface is asserted at dispatch, so
+    /// the same cold roster resolves the window that was actually opened.
+    @Test func aStagedSurfaceBeatsTheDeclaredPreference() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        let typer = try #require(
+            snapshot.skill(id: SkillID("writing.type-at-cursor")))
+        let staged = try #require(
+            snapshot.applicationID(forBundleIdentifier: "com.apple.TextEdit"))
+        let verdict = try #require(ExpertiseResolution.resolve(
+            for: typer, snapshot: snapshot,
+            assertedApplicationIDs: [staged],
+            utterance: "write a poem in it",
+            ledger: ApplicationHabitLedger()))
+        #expect(verdict.chosen?.applicationID == "textedit")
+        #expect(verdict.chosen?.standing == .asserted)
+    }
+
+    /// A STAGED EDITOR CANNOT SPEAK FOR A MUSIC TURN. An asserted id outside
+    /// the discipline's own candidates is ignored, which is what keeps the
+    /// staging read at dispatch from leaking across disciplines.
+    @Test func theBundleJoinIsBoundedByThePackages() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        #expect(snapshot.applicationID(
+            forBundleIdentifier: "com.apple.TextEdit") == "textedit")
+        // Case-insensitive, because a bundle id observed off a process is not
+        // guaranteed to match the package's spelling.
+        #expect(snapshot.applicationID(
+            forBundleIdentifier: "COM.APPLE.TEXTEDIT") == "textedit")
+        #expect(snapshot.applicationID(forBundleIdentifier: "") == nil)
+        #expect(snapshot.applicationID(
+            forBundleIdentifier: "com.example.nothing") == nil)
     }
 }

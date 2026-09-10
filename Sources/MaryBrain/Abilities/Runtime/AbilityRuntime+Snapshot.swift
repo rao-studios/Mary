@@ -674,8 +674,7 @@ extension AbilityRuntime.Snapshot {
     public func pointableApplications(of ability: AbilityID) -> [ApplicationAffinity] {
         var seen = Set<String>()
         var found: [ApplicationAffinity] = []
-        for abilityID in expertiseAbilities(extending: ability)
-            + applicationsSupporting(ability) {
+        for abilityID in pointableAbilities(of: ability) {
             guard let affinity = records.first(where: {
                 $0.package.ability.id == abilityID
             })?.package.applicationAffinities.first,
@@ -686,15 +685,56 @@ extension AbilityRuntime.Snapshot {
         return found
     }
 
+    /// THE SAME SET, AS ABILITY IDS — the one definition both halves read.
+    ///
+    /// The union above and `applicationCandidates` below are the AUTHOR-TIME and
+    /// RUN-TIME halves of one pragma, and they read different edges: expansion
+    /// took both, resolution took only the support edge. So `writing` — a
+    /// discipline, reached by the REQUIRED edge from textedit, scrivener and
+    /// pages — expanded `{application}` over three editors and then resolved
+    /// over none of them. A Skill of its could declare `resolvesApplication`,
+    /// pass the validator, and be handed an empty candidate set on every turn.
+    ///
+    /// Stated once so the two cannot disagree again, which is what the doc above
+    /// already claims when it says `{application}` MEANS this set.
+    public func pointableAbilities(of ability: AbilityID) -> [AbilityID] {
+        var seen = Set<AbilityID>()
+        return (expertiseAbilities(extending: ability)
+            + applicationsSupporting(ability))
+            .filter { seen.insert($0).inserted }
+    }
+
     /// The applications a Skill may be pointed at, or empty when it did not ask.
     ///
     /// OPT-IN, NEVER AMBIENT. A Skill that did not declare
     /// `resolvesApplication` gets nothing here even though its Ability may have
     /// dependents — "bring all my windows forward" names no application and
-    /// must not be handed one.
+    /// must not be handed one. Widening the SET does not widen the gate: this
+    /// guard is untouched, and it is the whole opt-in.
     public func applicationCandidates(for skill: AbilityRuntimeSkill) -> [AbilityID] {
         guard skill.skill.requirements.resolvesApplication else { return [] }
-        return applicationsSupporting(skill.ability.id)
+        return pointableAbilities(of: skill.ability.id)
+    }
+
+    /// The application a RUNNING PROCESS is, by its bundle identifier.
+    ///
+    /// The one direction the roster could not be read. Everything that observes
+    /// the Mac — a staged writing surface, a frontmost process — holds a bundle
+    /// id, while everything that routes holds a logical application id, and
+    /// nothing joined the two. The packages already carry the join; this is it,
+    /// stated once rather than re-derived per caller.
+    public func applicationID(forBundleIdentifier bundleID: String) -> String? {
+        let wanted = bundleID.lowercased()
+        guard !wanted.isEmpty else { return nil }
+        for record in records {
+            for affinity in record.package.applicationAffinities
+            where affinity.bundleIdentifiers.contains(where: {
+                $0.lowercased() == wanted
+            }) {
+                return affinity.id
+            }
+        }
+        return nil
     }
 
     /// The logical application an Ability drives, whatever declares it.

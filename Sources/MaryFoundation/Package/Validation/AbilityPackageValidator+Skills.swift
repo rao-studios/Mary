@@ -431,9 +431,17 @@ extension AbilityPackageValidator {
             }
             checkPlaceholders(fixture.utterance, "\(path).utterance", sink)
         }
-        // The same pragma, in the two trigger fields that also become corpus.
+        // The same pragma, in the three trigger fields that also become corpus.
         for (index, phrase) in package.ability.triggers.phrases.enumerated() {
             checkPlaceholders(phrase, "ability.triggers.phrases[\(index)]", sink)
+        }
+        // TOKENS ARE EXPANDED TOO, and were the one expanded field nothing
+        // checked. `EmbeddingRouting.expandedTriggers` fills a slot in BOTH
+        // phrases and tokens before handing them to the peeler, so a misspelled
+        // brace here survives into a literal phrase match and reaches nobody —
+        // the exact silence the phrase check exists to break.
+        for (index, token) in package.ability.triggers.tokens.enumerated() {
+            checkPlaceholders(token, "ability.triggers.tokens[\(index)]", sink)
         }
         for (key, seeds) in package.ability.triggers.intentSeeds.sorted(by: {
             $0.key < $1.key

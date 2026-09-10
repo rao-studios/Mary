@@ -6,20 +6,19 @@
 //        drive this actor (serializes overlap). InferenceEngine is transport.
 //  OUT:  BrainEvent → SpeechRouter / ChatService.MirrorVoice
 //        Sewn mode: Sewn speaks; engine runs skills silently.
-//        Local mode: single-engine loop.
+//        Engine mode: no Lane A — the engine seat acts AND speaks.
 //
 //  This file: actor, stored state, init, LanguageResponder.
 //    AbilityDispatching.swift        dispatcher seam + SewnPass
 //    BrainConcurrency.swift          ProactiveMulticast, LaneEmitter, TurnBox, AsyncGate
 //    MaryBrain+Configuration.swift  set* wiring
 //    MaryBrain+History.swift          epoch-guarded history
-//    MaryBrain+TurnLoop.swift         runTurn / runTurnBody
+//    MaryBrain+Turn.swift             THE TURN, WHOLE — runTurn / runTurnBody,
+//                                     sewnTurn, both lanes, engineTurn,
+//                                     performSkillTurn
 //    MaryBrain+TurnLog.swift          turnLog circuit (Xcode / pair-coding)
 //    MaryBrain+Route.swift            revision spine
-//    MaryBrain+SewnTurn.swift         sewnTurn
-//    MaryBrain+Lanes.swift           Sewn / realtime / orchestrator lanes
 //    MaryBrain+Routines.swift         detached routines + follow-ups
-//    MaryBrain+LocalTurn.swift        single-engine loop
 //    MaryBrain+Deposit.swift           archive
 //    MaryBrain+Vocabulary.swift       spoken sentences
 //    MaryBrain+GroundedText.swift     grounded-text statics

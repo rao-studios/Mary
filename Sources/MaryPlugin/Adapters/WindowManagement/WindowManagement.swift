@@ -78,6 +78,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
 
         // Launching may have made the window by itself.
         if !wasRunning, (try? await windowCount(application: query)) ?? 0 > 0 {
+            stageNewWindow(resolved)
             return WindowManagementResult(
                 ok: true, summary: "Opened \(resolved.displayName) with a new window.")
         }
@@ -121,6 +122,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         let deadline = Date().addingTimeInterval(2.0)
         while Date() < deadline {
             if (try? await windowCount(application: query)) ?? 0 > before {
+                stageNewWindow(resolved)
                 let verb = wasRunning ? "" : "Opened \(resolved.displayName) and made "
                 return WindowManagementResult(
                     ok: true,
@@ -138,6 +140,28 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         // rather than reporting a window nobody can see.
         return .failure(.operationFailed(
             refusal ?? "\(resolved.displayName) never opened a new window."))
+    }
+
+    /// THE TYPER'S HANDSHAKE, FROM THE SKILL THAT MAKES THE PLACE TO WRITE IN.
+    ///
+    /// `type_at_cursor` documents its `app` parameter as "omit to type into the
+    /// just-opened document", and `create_document` has always honoured that by
+    /// recording here once it proved the document appeared. `open_new_window`
+    /// never did — so "open a TextEdit window" followed by "write a poem in it"
+    /// fell all the way down `TypingSurface.resolve` to frontmost, which during
+    /// a conversation is Mary. The one Skill whose whole job is making somewhere
+    /// to write was the one Skill that did not say where.
+    ///
+    /// PROVEN, NEVER PRESUMED: both callers have already counted a window into
+    /// existence, which is the contract `StagedWritingSurface.record` states and
+    /// `raiseWindow` above already keeps. The prose guard is the same one, too —
+    /// a new Terminal window is not somewhere prose belongs.
+    private func stageNewWindow(_ application: ManagedApplication) {
+        guard SelectionSurfacePolicy.permitsProseApplication(
+            application.bundleIdentifier) else { return }
+        StagedWritingSurface.shared.record(
+            bundleID: application.bundleIdentifier,
+            spokenName: application.displayName)
     }
 
     /// Windows the adapter can see right now, or a throw. Zero is a real answer.

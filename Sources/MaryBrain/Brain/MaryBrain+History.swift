@@ -169,10 +169,10 @@ extension MaryBrain {
     /// Every synthetic `.user` turn a lane appended to steer itself, removed before the
     /// turn is remembered.
     ///
-    /// PIN: THE ORCHESTRATOR LANE KEEPS ITS NUDGES IN A PRIVATE `laneHistory`; the local
-    /// lane has no such thing and appends to the shared one, so anything it adds must be
-    /// named here or it persists into the next turn as words the person never said.
-    /// `groundedRetryNudge` was already leaking that way before the local lane grew the
+    /// PIN: THE ORCHESTRATOR LANE KEEPS ITS NUDGES IN A PRIVATE `laneHistory`;
+    /// `engineTurn` has no such thing and appends to the shared one, so anything it adds
+    /// must be named here or it persists into the next turn as words the person never said.
+    /// `groundedRetryNudge` was already leaking that way before the engine seat grew the
     /// two rungs below it.
     // internal for file split — treat as private
     func pruneSyntheticTurns() {
