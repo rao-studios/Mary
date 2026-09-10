@@ -1,0 +1,433 @@
+//
+//  AmbientSurfaceObserverTests.swift
+//  MaryPluginTests
+//
+//  WHAT: Tier-0 observer wiring — target ladder, one-slate retraction, skip-when-unchanged.
+//  OUT:  AmbientSurfaceObserver
+//
+
+import CoreGraphics
+import Foundation
+import MaryAmbient
+import XCTest
+@testable import MaryPlugin
+import MaryComputerUse
+import MaryComputerUseTestSupport
+
+final class AmbientSurfaceObserverTests: XCTestCase {
+
+    private let epoch = Date(timeIntervalSince1970: 1_700_000_000)
+
+    private func context(
+        pid: pid_t = 7, bundleID: String, appName: String = "Example",
+        buttonLabel: String = "Save", capturedAt: Date? = nil
+    ) -> AXAmbientContext {
+        let ids = AXIDVendor()
+        let button = AXSnapshotTestSupport.node(
+            ids, role: "AXButton", label: buttonLabel,
+            frame: CGRect(x: 10, y: 10, width: 80, height: 24),
+            category: .interactive)
+        let root = AXSnapshotTestSupport.node(
+            ids, role: "AXGroup", category: .container, children: [button])
+        let window = AXSnapshotTestSupport.window(
+            ids, title: "Document",
+            frame: CGRect(x: 0, y: 0, width: 800, height: 600), root: root)
+        var snapshot = AXSnapshotTestSupport.app(
+            [window], pid: pid, bundleID: bundleID, appName: appName)
+        snapshot.capturedAt = capturedAt ?? epoch
+        return AXAmbientContext(
+            snapshot: snapshot,
+            scope: .all, limit: AXElementRoster.publishedLimit,
+            observersCovered: nil, observersTotal: nil)
+    }
+
+    private func observer(
+        store: AmbientContextStore,
+        index: AmbientElementIndexStore,
+        front: (pid: pid_t, bundleID: String)?,
+        trusted: Bool = true,
+        capture: (@Sendable (pid_t) -> AXAmbientContext?)? = nil
+    ) -> AmbientSurfaceObserver {
+        let bundleID = front?.bundleID ?? "com.example.app"
+        let resolved = capture ?? { pid in
+            self.context(pid: pid, bundleID: bundleID)
+        }
+        return AmbientSurfaceObserver(
+            store: store, elementIndex: index,
+            capture: resolved,
+            frontmost: { front },
+            trusted: { trusted })
+    }
+
+    private func slate(
+        _ index: AmbientElementIndexStore, _ place: AmbientPlace
+    ) -> [String] {
+        index.index(for: .affordances(in: place))?
+            .records.map { $0.name ?? "" } ?? []
+    }
+
+    /// A frontmost signal a test can move, so ONE observer instance sees an
+    /// application switch — which is what the retraction rule is about.
+    private final class FrontmostBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value: (pid: pid_t, bundleID: String)?
+        init(_ value: (pid: pid_t, bundleID: String)?) { self.value = value }
+        func set(_ next: (pid: pid_t, bundleID: String)?) {
+            lock.lock(); defer { lock.unlock() }
+            value = next
+        }
+        func get() -> (pid: pid_t, bundleID: String)? {
+            lock.lock(); defer { lock.unlock() }
+            return value
+        }
+    }
+
+    // MARK: - The target ladder
+
+    func testUntrustedAccessibilityReadsNothing() {
+        let observer = observer(
+            store: AmbientContextStore(), index: AmbientElementIndexStore(),
+            front: (7, "com.example.app"), trusted: false)
+        XCTAssertNil(observer.target())
+    }
+
+    func testHostProcessIsNeverTheTarget() throws {
+        let own = try XCTUnwrap(
+            Bundle.main.bundleIdentifier, "no host bundle id in this test runner")
+        let observer = observer(
+            store: AmbientContextStore(), index: AmbientElementIndexStore(),
+            front: (7, own))
+        XCTAssertNil(observer.target())
+    }
+
+    func testSystemChromeIsExcluded() {
+        for prefix in WorkspaceFocusTracker.leadExcludedBundlePrefixes {
+            let observer = observer(
+                store: AmbientContextStore(), index: AmbientElementIndexStore(),
+                front: (7, prefix))
+            XCTAssertNil(observer.target(), "\(prefix) must not be read")
+        }
+    }
+
+    /// MARY'S OVERLAY IS TRANSPARENT. An injected standing lead is the hit;
+    /// Mary's own bundle is never walked. Empty seams keep the test above
+    /// nil so a live Xcode on the machine cannot leak in.
+    func testMaryFrontmostWithAnInjectedStandingLeadTargetsThatApplication() {
+        let xcode = ApplicationRegistration(
+            id: "xcode",
+            profile: ApplicationProfile(
+                id: "xcode", title: "Xcode", summary: "One code editor.",
+                abilities: ["coding"]),
+            bundleIdentifiers: ["com.apple.dt.Xcode"],
+            placeClass: .workspace)
+        let observer = AmbientSurfaceObserver(
+            store: AmbientContextStore(),
+            elementIndex: AmbientElementIndexStore(),
+            capture: { _ in nil },
+            frontmost: { (1, "nyc.rao.mary") },
+            trusted: { true },
+            standingClaims: { [xcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { ["xcode"] },
+            maryBundleID: "nyc.rao.mary")
+        let target = observer.target()
+        XCTAssertEqual(target?.pid, 42)
+        XCTAssertEqual(target?.bundleID, "com.apple.dt.Xcode")
+        XCTAssertNotEqual(target?.bundleID, "nyc.rao.mary")
+    }
+
+    /// A BROWSER IS A BROWSER BECAUSE A PACKAGE SAYS SO. No bundle id is
+    /// compiled in, so this installs the registration that makes one — which
+    /// is also what makes the test honest: it exercises the road a real
+    /// browser travels rather than a shortcut only one product had.
+    func testBrowsersAreValidSurfaceTargets() {
+        Self.withBrowserRoster {
+            let observer = observer(
+                store: AmbientContextStore(), index: AmbientElementIndexStore(),
+                front: (7, Self.browserBundleID))
+            let target = observer.target()
+            XCTAssertNotNil(target)
+            XCTAssertTrue(AmbientPlaceResolver.isBrowser(bundleID: target?.bundleID ?? ""))
+        }
+    }
+
+    static let browserBundleID = "com.example.browser"
+
+    /// One registration that realizes `browsing`, scoped to this task tree.
+    static func withBrowserRoster(_ body: () -> Void) {
+        let registration = ApplicationRegistration(
+            id: "browser",
+            profile: ApplicationProfile(
+                id: "browser", title: "Browser", summary: "A fixture that browses.",
+                abilities: [.browsing],
+                applicationIdentifiers: [browserBundleID]),
+            bundleIdentifiers: [browserBundleID],
+            placeClass: .perceptionOnly,
+            displayName: "Browser")
+        AmbientApplicationIndexProvider.$scoped.withValue(
+            AmbientApplicationRoster([registration]), operation: body)
+    }
+
+    // MARK: - The two publications
+
+    func testOnePollPublishesSurfaceAndSlate() {
+        let store = AmbientContextStore()
+        let index = AmbientElementIndexStore()
+        let observer = observer(
+            store: store, index: index, front: (7, "com.example.app"))
+        observer.pollOnce(at: epoch)
+
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        let surface = store.surface(place: place, at: epoch)
+        XCTAssertEqual(surface?.application.name, "Example")
+        XCTAssertEqual(surface?.activeWindow?.title, "Document")
+        XCTAssertEqual(surface?.elements.first?.label, "Save")
+        XCTAssertEqual(slate(index, place), ["Save"])
+    }
+
+    func testABrowserPublishesItsSurfaceButNeverAffordances() {
+        Self.withBrowserRoster {
+            let store = AmbientContextStore()
+            let index = AmbientElementIndexStore()
+            let observer = observer(
+                store: store, index: index, front: (7, Self.browserBundleID))
+            observer.pollOnce(at: epoch)
+
+            let place = AmbientPlaceResolver.applicationPlace(
+                forBundleID: Self.browserBundleID)
+            XCTAssertNotNil(store.surface(place: place, at: epoch))
+            XCTAssertTrue(slate(index, place).isEmpty)
+        }
+    }
+
+    func testSwitchingApplicationsRetractsThePreviousSlate() {
+        let store = AmbientContextStore()
+        let index = AmbientElementIndexStore()
+        let front = FrontmostBox((7, "com.example.first"))
+        let observer = AmbientSurfaceObserver(
+            store: store, elementIndex: index,
+            capture: { pid in
+                let bundleID = front.get()?.bundleID ?? "com.example.first"
+                return self.context(
+                    pid: pid, bundleID: bundleID,
+                    buttonLabel: bundleID == "com.example.first" ? "Save" : "Publish")
+            },
+            frontmost: { front.get() },
+            trusted: { true })
+
+        observer.pollOnce(at: epoch)
+        let firstPlace = AmbientPlaceResolver
+            .applicationPlace(forBundleID: "com.example.first")
+        XCTAssertEqual(slate(index, firstPlace), ["Save"])
+
+        front.set((9, "com.example.second"))
+        observer.pollOnce(at: epoch.addingTimeInterval(10))
+        let secondPlace = AmbientPlaceResolver
+            .applicationPlace(forBundleID: "com.example.second")
+        XCTAssertEqual(slate(index, secondPlace), ["Publish"])
+        XCTAssertTrue(
+            slate(index, firstPlace).isEmpty,
+            "the previous application's slate must be retracted, not left live")
+    }
+
+    func testNoTargetRetractsTheSlateAndLeavesSurfacesToExpire() {
+        let store = AmbientContextStore()
+        let index = AmbientElementIndexStore()
+        let front = FrontmostBox((7, "com.example.app"))
+        let observer = AmbientSurfaceObserver(
+            store: store, elementIndex: index,
+            capture: { pid in self.context(pid: pid, bundleID: "com.example.app") },
+            frontmost: { front.get() },
+            trusted: { true })
+        observer.pollOnce(at: epoch)
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        XCTAssertEqual(slate(index, place), ["Save"])
+
+        front.set(nil)
+        observer.pollOnce(at: epoch.addingTimeInterval(1))
+        XCTAssertTrue(slate(index, place).isEmpty)
+        // The surface is NOT retracted — drop-at-expiry is the tier's honesty.
+        XCTAssertNotNil(store.surface(place: place, at: epoch.addingTimeInterval(1)))
+    }
+
+    // MARK: - Skip when unchanged
+
+    func testUnchangedScreenStillRefreshesTheSurfaceStamp() {
+        let store = AmbientContextStore()
+        let index = AmbientElementIndexStore()
+        var captureDate = epoch
+        let observer = AmbientSurfaceObserver(
+            store: store, elementIndex: index,
+            capture: { pid in
+                self.context(
+                    pid: pid, bundleID: "com.example.app", capturedAt: captureDate)
+            },
+            frontmost: { (7, "com.example.app") },
+            trusted: { true })
+        observer.pollOnce(at: epoch)
+        captureDate = epoch.addingTimeInterval(10)
+        observer.pollOnce(at: captureDate)
+
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        XCTAssertEqual(
+            store.surface(place: place, at: captureDate)?.capturedAt, captureDate,
+            "an unchanged screen must still re-stamp its surface, or it expires")
+        XCTAssertEqual(slate(index, place), ["Save"])
+    }
+
+    func testChangedScreenRepublishesTheSlate() {
+        let store = AmbientContextStore()
+        let index = AmbientElementIndexStore()
+        var label = "Save"
+        let observer = AmbientSurfaceObserver(
+            store: store, elementIndex: index,
+            capture: { pid in
+                self.context(pid: pid, bundleID: "com.example.app", buttonLabel: label)
+            },
+            frontmost: { (7, "com.example.app") },
+            trusted: { true })
+        observer.pollOnce(at: epoch)
+        label = "Publish"
+        observer.pollOnce(at: epoch.addingTimeInterval(10))
+
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        XCTAssertEqual(slate(index, place), ["Publish"])
+    }
+
+    // MARK: - The standing sweep
+
+    /// A REGISTRATION WITH EYES, RUNNING BEHIND THE FRONT WINDOW, HOLDS A
+    /// SURFACE. The store has always been plural — one per place — and only ever
+    /// held one, because the only thing walked was whatever was frontmost.
+    func testTheSweepGivesABackgroundTaughtApplicationASurface() {
+        let store = AmbientContextStore()
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                self.context(
+                    pid: pid,
+                    bundleID: pid == 42 ? "com.apple.dt.Xcode" : "com.example.front",
+                    appName: pid == 42 ? "Xcode" : "Front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+
+        let xcodePlace = AmbientPlaceResolver.applicationPlace(
+            forBundleID: "com.apple.dt.Xcode")
+        XCTAssertNotNil(
+            store.surface(place: xcodePlace, at: epoch),
+            "a taught application running behind the front window has no surface")
+        // AND THE FRONT WINDOW STILL HAS ITS OWN — the sweep adds, never replaces.
+        XCTAssertNotNil(
+            store.surface(
+                place: AmbientPlaceResolver.applicationPlace(
+                    forBundleID: "com.example.front"),
+                at: epoch))
+    }
+
+    /// ONLY SIGHTED REGISTRATIONS, and that is the blast radius. A running
+    /// process nothing declared is never walked.
+    func testTheSweepWalksNothingUndeclared() {
+        let store = AmbientContextStore()
+        var walked: [pid_t] = []
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                walked.append(pid)
+                return self.context(pid: pid, bundleID: "com.example.front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.random.app", pid: 99)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        XCTAssertFalse(walked.contains(99), "an undeclared process was walked")
+    }
+
+    /// THE SWEEP KEEPS ITS OWN CLOCK. The poll is coalesced and re-entrant, so a
+    /// sweep riding every poke would pay an exhaustive AX walk per poke.
+    func testTheSweepDoesNotRunOnEveryPoll() {
+        let store = AmbientContextStore()
+        var xcodeWalks = 0
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                if pid == 42 { xcodeWalks += 1 }
+                return self.context(
+                    pid: pid,
+                    bundleID: pid == 42 ? "com.apple.dt.Xcode" : "com.example.front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        observer.pollOnce(at: epoch.addingTimeInterval(1))
+        observer.pollOnce(at: epoch.addingTimeInterval(5))
+        XCTAssertEqual(xcodeWalks, 1, "the sweep ran more than once inside its window")
+
+        observer.pollOnce(
+            at: epoch.addingTimeInterval(AmbientSurfaceObserver.sweepInterval + 1))
+        XCTAssertEqual(xcodeWalks, 2, "the sweep never ran again")
+    }
+
+    /// THE FRONT WINDOW IS NOT SWEPT — it is already polled every 10s, and
+    /// walking it twice in one tick is the cost this bound exists to avoid.
+    func testTheSweepSkipsTheFrontmostApplication() {
+        var walks: [pid_t] = []
+        let observer = AmbientSurfaceObserver(
+            store: AmbientContextStore(),
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                walks.append(pid)
+                return self.context(pid: pid, bundleID: "com.apple.dt.Xcode")
+            },
+            frontmost: { (42, "com.apple.dt.Xcode") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        XCTAssertEqual(walks, [42], "the frontmost application was walked twice")
+    }
+
+    /// A registration that declared how it may be observed — `hasEyes`.
+    private static var sightedXcode: ApplicationRegistration {
+        ApplicationRegistration(
+            id: "xcode",
+            profile: ApplicationProfile(
+                id: "xcode", title: "Xcode", summary: "One code editor.",
+                abilities: ["coding"]),
+            bundleIdentifiers: ["com.apple.dt.Xcode"],
+            placeClass: .workspace,
+            perception: ApplicationPerception(
+                documentOperation: "xcode_current_file", pollSeconds: 30))
+    }
+}

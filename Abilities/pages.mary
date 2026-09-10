@@ -1,0 +1,249 @@
+{
+  "ability" : {
+    "aliases" : [
+      "pages",
+      "apple pages"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.iWork.Pages"
+        ],
+        "id" : "pages",
+        "title" : "Pages"
+      }
+    ],
+    "id" : "pages",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "Never type into a window the user did not ask for.",
+        "A document is identified by its own key, never by window position."
+      ],
+      "phases" : [
+        "resolve-document",
+        "revalidate-identity",
+        "mutate-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "document mismatch",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the named document changed",
+        "the change reads back"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Apple Pages: page-layout documents with styles, sections, headings and templates.",
+    "threadProjections" : [
+
+    ],
+    "tint" : "#8ECAE6",
+    "title" : "Pages",
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "compose" : [
+          "lay this out with headings and a title page"
+        ],
+        "perceive" : [
+          "what template and styles is this document using"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in pages",
+        "my pages document"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "pages",
+        "document"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "writing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "5795f8224061ad52a33e40426bf0536ee3779e8f45337da7966fe8459074d22e"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "pages",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary Pages as a TextEdit-shaped prose surface — copy this package to teach another window-of-prose editor.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "pages.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Pages Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "pages"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.iWork.Pages"
+      ],
+      "bundleNames" : [
+        "Pages.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "pages",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "document-window",
+        "document-workspace",
+        "editable-prose-surface"
+      ],
+      "title" : "Pages"
+    },
+    "id" : "pages",
+    "operations" : [
+      {
+        "adapterID" : "pages.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "pages_save_document",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "save",
+            "key" : "s",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-S while Pages owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Save the Document"
+      }
+    ],
+    "proseSurface" : {
+      "budgets" : {
+        "ambientExcerptCharacters" : 600,
+        "regionCharacters" : 4000,
+        "wholeDocumentCharacters" : 12000
+      },
+      "chords" : {
+        "newDocument" : {
+          "key" : "n",
+          "modifiers" : [
+            "command"
+          ]
+        }
+      },
+      "documentKey" : "documentPathThenWindow",
+      "documentNoun" : {
+        "plural" : "documents",
+        "singular" : "document"
+      },
+      "editorRoles" : [
+        "textArea"
+      ],
+      "grammar" : "prose",
+      "handlePrefix" : "P",
+      "watch" : {
+        "activeSeconds" : 2.5,
+        "idleSeconds" : 10
+      }
+    },
+    "realizations" : [
+      {
+        "operation" : "pages_save_document",
+        "preference" : 260,
+        "skillID" : "writing.save-document",
+        "targetClasses" : [
+          "document-workspace",
+          "document-window"
+        ]
+      }
+    ],
+    "title" : "Pages",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "threadProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

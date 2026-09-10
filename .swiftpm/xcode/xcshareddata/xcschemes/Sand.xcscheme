@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1600"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "Sand"
+               BuildableName = "Sand"
+               BlueprintName = "Sand"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldAutocreateTestPlan = "YES">
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Stable-sign for TCC"
+               scriptText = "# Stable-sign the DerivedData binary right before Run, so the&#10;# terminal build and the Xcode build match the SAME TCC grant&#10;# (same certificate =&gt; same designated requirement).&#10;# Inlined, not a repo script: SRCROOT/PROJECT_DIR do NOT resolve in&#10;# scheme actions for a pure SwiftPM package; only BUILT_PRODUCTS_DIR&#10;# does. Rides the LAUNCH pre-action, not a Build post-action &#x2014;&#10;# post-actions also fire on Clean and can race the launch.&#10;BIN=&quot;$BUILT_PRODUCTS_DIR/Sand&quot;&#10;[ -f &quot;$BIN&quot; ] || exit 0&#10;IDENTITY=&quot;$(security find-identity -v -p codesigning 2&gt;/dev/null | awk -F&apos;&quot;&apos; &apos;/Apple Development|Mary Dev Signing/ {print $2; exit}&apos;)&quot;&#10;[ -z &quot;$IDENTITY&quot; ] &amp;&amp; exit 0&#10;codesign --force --sign &quot;$IDENTITY&quot; --preserve-metadata=entitlements &quot;$BIN&quot;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "Sand"
+                     BuildableName = "Sand"
+                     BlueprintName = "Sand"
+                     ReferencedContainer = "container:">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "Sand"
+            BuildableName = "Sand"
+            BlueprintName = "Sand"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "Sand"
+            BuildableName = "Sand"
+            BlueprintName = "Sand"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

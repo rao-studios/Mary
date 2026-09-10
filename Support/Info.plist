@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>Mary</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Mary Plugin Package</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>nyc.rao.mary.ability-package</string>
+			</array>
+		</dict>
+	</array>
+	<!-- WHICH BINARY LAUNCHES. Absent, Launch Services guesses from the
+	     bundle name and happens to be right — but Contents/MacOS also holds
+	     resources (Kokoro voices and Abilities), so the directory
+	     is not a single-candidate fallback and the guess is luck rather than
+	     contract. -->
+	<key>CFBundleExecutable</key>
+	<string>Mary</string>
+	<key>CFBundleIdentifier</key>
+	<string>nyc.rao.mary</string>
+	<key>CFBundleName</key>
+	<string>Mary</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>26.0</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Mary drives the applications you taught her — opening documents, clicking menus, and reading back what changed.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mary listens to your voice to hear commands and hold a conversation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Mary transcribes your speech on-device to understand what you asked.</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Mary Plugin Package</string>
+			<key>UTTypeIdentifier</key>
+			<string>nyc.rao.mary.ability-package</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mary</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>

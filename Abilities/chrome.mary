@@ -1,0 +1,276 @@
+{
+  "ability" : {
+    "aliases" : [
+      "chrome",
+      "google chrome"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.google.Chrome"
+        ],
+        "id" : "chrome",
+        "title" : "Chrome"
+      }
+    ],
+    "id" : "chrome",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "Never type into a window the user did not ask for."
+      ],
+      "phases" : [
+        "resolve-document",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the named window changed"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Google Chrome: web pages, tabs, articles and site content in the browser.",
+    "threadProjections" : [
+
+    ],
+    "tint" : "#1A73E8",
+    "title" : "Chrome",
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "ask" : [
+          "what does the article on this tab argue"
+        ],
+        "perceive" : [
+          "summarise the page I am browsing"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in chrome",
+        "this page",
+        "this tab"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "chrome",
+        "browser",
+        "tab"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "awareness"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "browsing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "56025a165cd4afb61593dbc2e23ad4b71e704cffcdf75657ef644b65432ddc2d"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "chrome",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary Chrome. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "chrome.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Chrome Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "chrome",
+        "google chrome"
+      ],
+      "bundleIdentifierPrefix" : "com.google.Chrome",
+      "bundleIdentifiers" : [
+        "com.google.Chrome"
+      ],
+      "bundleNames" : [
+        "Google Chrome.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "chrome",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "document-window",
+        "web-page"
+      ],
+      "title" : "Chrome"
+    },
+    "id" : "chrome",
+    "operations" : [
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_new_tab",
+        "postconditions" : [
+          "applicationFrontmost"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "t",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-T while Chrome owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "New Tab"
+      },
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_close_tab",
+        "postconditions" : [
+          "applicationFrontmost"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "w",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-W while Chrome owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Close Tab"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "chrome_new_tab",
+        "preference" : 260,
+        "skillID" : "browsing.new-tab",
+        "targetClasses" : [
+          "web-page"
+        ]
+      },
+      {
+        "operation" : "chrome_close_tab",
+        "preference" : 260,
+        "skillID" : "browsing.close-tab",
+        "targetClasses" : [
+          "web-page"
+        ]
+      }
+    ],
+    "title" : "Chrome",
+    "version" : "1.0.0",
+    "webSurface" : {
+      "addressFieldLabel" : "Address and search bar",
+      "addressFocusKey" : "l",
+      "addressFocusModifiers" : [
+        "command"
+      ],
+      "backLabel" : "Back",
+      "findKey" : "f",
+      "findModifiers" : [
+        "command"
+      ],
+      "forwardLabel" : "Forward",
+      "pageFrameSource" : "windowBelowToolbar",
+      "reloadLabel" : "Reload",
+      "tabLabelSuffixSeparator" : " - Memory usage - ",
+      "tabRole" : "AXRadioButton",
+      "urlSource" : "addressField",
+      "watch" : {
+        "activeSeconds" : 3,
+        "idleSeconds" : 15
+      },
+      "windowTitleSuffix" : " - Google Chrome"
+    }
+  },
+  "skills" : [
+
+  ],
+  "threadProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

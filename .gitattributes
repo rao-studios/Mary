@@ -1,0 +1,4 @@
+# Kokoro CoreML models, voices, and lexicons are large binaries (~665 MB) —
+# track with git-lfs. This rule must exist BEFORE the first model lands, or the
+# blobs go into git history proper and cannot be pulled back out cheaply.
+Sources/MaryVoice/Resources/KokoroModels/** filter=lfs diff=lfs merge=lfs -text

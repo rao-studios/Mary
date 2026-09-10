@@ -1,0 +1,786 @@
+{
+  "ability" : {
+    "aliases" : [
+      "xcode",
+      "the ide"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.dt.Xcode"
+        ],
+        "id" : "xcode",
+        "title" : "Xcode"
+      }
+    ],
+    "id" : "xcode",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrailCategories" : [
+        "domainMismatch",
+        "nativeCommandOnly"
+      ],
+      "guardrails" : [
+        "Never type prose into a code surface.",
+        "Build, run and test are the editor's own commands, never synthesized edits.",
+        "A scheme is whatever the editor has selected; never change it to make a command succeed."
+      ],
+      "phases" : [
+        "resolve-workspace",
+        "revalidate-identity",
+        "invoke-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "workspace mismatch",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the editor accepted the command",
+        "the workspace that ran is the one in front"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Xcode: the IDE where Swift projects are built, run, debugged and edited.",
+    "threadProjections" : [
+
+    ],
+    "tint" : "#7EA6E0",
+    "title" : "Xcode",
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "operate" : [
+          "build and run the current scheme"
+        ],
+        "perceive" : [
+          "show me the failing test output",
+          "what is the compiler complaining about"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in xcode",
+        "my project",
+        "the workspace"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "xcode",
+        "project",
+        "workspace",
+        "scheme"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "awareness"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "coding"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "a368bdb78945eac94d7577f743b50c4fc3867e25daefb95d4a7042f6fedaf905"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "xcode",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary one code editor: which application it is, which of its own commands build, run, test and save, the shape of its project on disk, and where its live code buffer lives. NO PROSE SURFACE, deliberately — a code editor is not a prose surface, and the selection policy already refuses to type prose into one. The codeSurface block below is its read-only sibling: it lets Mary read the live buffer and selection, never write one.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "xcode.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Xcode Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "xcode",
+        "the ide"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.dt.Xcode"
+      ],
+      "bundleNames" : [
+        "Xcode.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "xcode",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "code-workspace",
+        "document-window",
+        "writing-project"
+      ],
+      "title" : "Xcode"
+    },
+    "codeSurface" : {
+      "budgets" : {
+        "ambientExcerptCharacters" : 1500,
+        "regionCharacters" : 4000,
+        "wholeDocumentCharacters" : 20000
+      },
+      "documentKey" : "documentPathThenWindow",
+      "editorRoles" : [
+        "textArea"
+      ],
+      "handlePrefix" : "C"
+    },
+    "corpus" : {
+      "build" : {
+        "checkCommand" : [
+          "swift",
+          "build"
+        ],
+        "testCommand" : [
+          "swift",
+          "test"
+        ],
+        "testFilterFlag" : "--filter"
+      },
+      "exclude" : [
+        ".build",
+        "DerivedData",
+        "Pods",
+        "Carthage",
+        ".git",
+        "node_modules",
+        "Frigate"
+      ],
+      "include" : [
+        "swift"
+      ],
+      "notation" : "swift",
+      "projectMarkers" : [
+        "Package.swift",
+        ".xcodeproj",
+        ".xcworkspace",
+        ".git"
+      ],
+      "relations" : {
+        "ancestry" : [
+          "\\b(?:class|struct|enum|actor|protocol|extension)\\s+[A-Za-z_]\\w*\\s*:\\s*([A-Za-z_][A-Za-z0-9_,<>\\.\\s]*)"
+        ],
+        "declarations" : [
+          "\\b(?:struct|class|enum|actor|protocol|typealias)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "\\bfunc\\s+([A-Za-z_][A-Za-z0-9_]*)"
+        ],
+        "references" : [
+          ":\\s*\\[?([A-Z][A-Za-z0-9_]*)",
+          "\\b([A-Z][A-Za-z0-9_]*)\\s*\\("
+        ]
+      },
+      "structure" : {
+        "discovery" : "manifestPresence",
+        "manifest" : {
+          "kind" : "fileSystemTree"
+        },
+        "parts" : [
+          {
+            "format" : "plainText",
+            "name" : "text",
+            "pathTemplate" : "{id}"
+          }
+        ]
+      },
+      "style" : [
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "OSAllocatedUnfairLock",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "NSLock\\(",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "os_unfair_lock",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "lockBox"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bactor\\s+[A-Z]",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "actor"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "DispatchQueue\\(label:",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "serialQueue"
+            }
+          ],
+          "dimension" : "concurrencyPrimitive",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "private\\s+(?:let|var)\\s+\\w+\\s*[=:]\\s*OSAllocatedUnfairLock",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "private\\s+var\\s+\\w+\\s*:",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "privateBoxedState"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "@Published",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "@Observable",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "publishedProperties"
+            }
+          ],
+          "dimension" : "stateExposure",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bguard\\s+(?:let|var|!|\\w)",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "guardEarlyReturn"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bif\\s+let\\b",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "nestedConditional"
+            }
+          ],
+          "dimension" : "bindingStyle",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\belse\\s*\\{\\s*return\\s+(?:nil|\\[\\]|false|\\\"\\\"|\\.\\w)",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "\\breturn\\s+nil\\b",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "degradeHonestly"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bthrows\\b",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "\\bthrow\\s+",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "throwToCaller"
+            }
+          ],
+          "dimension" : "errorPosture",
+          "kind" : "vote"
+        },
+        {
+          "above" : "publicByDefault",
+          "below" : "internalUnlessNeeded",
+          "denominator" : {
+            "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
+            "source" : "pattern"
+          },
+          "dimension" : "accessDefault",
+          "guard" : {
+            "atLeast" : 4,
+            "numerator" : {
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "ratio",
+          "numerator" : {
+            "pattern" : "\\b(?:public|open)\\s+(?:(?:final|static|class|lazy|weak|unowned|override|mutating|nonisolated|indirect|dynamic|required|convenience|private\\(set\\)|internal\\(set\\))\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b",
+            "source" : "pattern"
+          },
+          "threshold" : 0.5
+        },
+        {
+          "below" : "sparse",
+          "denominator" : {
+            "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
+            "source" : "pattern"
+          },
+          "dimension" : "commentPosture",
+          "guard" : {
+            "atLeast" : 3,
+            "numerator" : {
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "ratio",
+          "numerator" : {
+            "pattern" : "(?m)^[ \\t]*//(?!\\s*MARK)",
+            "region" : "source",
+            "source" : "pattern"
+          },
+          "threshold" : 0.25
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "(?i)the bug|the failure|live-verified|regression|why:|the reason|cost a|the trap|deliberately|on purpose|must not|would have",
+                  "region" : "comments",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "incidentAnchored"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "(?i)- parameter|- returns|- throws",
+                  "region" : "comments",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "apiDescriptive"
+            }
+          ],
+          "dimension" : "commentPosture",
+          "guard" : {
+            "atLeast" : 0.25,
+            "denominator" : {
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
+              "source" : "pattern"
+            },
+            "numerator" : {
+              "pattern" : "(?m)^[ \\t]*//(?!\\s*MARK)",
+              "region" : "source",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\+",
+                  "region" : "filename",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "extensionPerConcern"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bextension\\s+([A-Za-z_]\\w*)",
+                  "source" : "selfReference"
+                }
+              ],
+              "minimum" : 2,
+              "value" : "singleFileType"
+            }
+          ],
+          "dimension" : "fileOrganization",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "import Testing",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "@Test",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "#expect\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "swiftTesting"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "import XCTest",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "XCTestCase",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "XCTAssert",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "xctest"
+            }
+          ],
+          "dimension" : "testFramework",
+          "guard" : {
+            "atLeast" : 1,
+            "numerator" : {
+              "pattern" : "Tests",
+              "region" : "filename",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bfunc\\s+(?:test)?[a-z][A-Za-z0-9]*(?:[A-Z][a-z0-9]+){3,}\\s*\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "sentence"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bfunc\\s+test[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]+){0,2}\\s*\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "camelCaseUnit"
+            }
+          ],
+          "dimension" : "testNaming",
+          "guard" : {
+            "atLeast" : 1,
+            "numerator" : {
+              "pattern" : "Tests",
+              "region" : "filename",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "dimension" : "roleVocabulary",
+          "kind" : "vocabulary",
+          "vocabulary" : {
+            "source" : "declaredTypeSuffix",
+            "tokens" : [
+              "Manager",
+              "Provider",
+              "Sink",
+              "Box",
+              "Log",
+              "Probe",
+              "Router",
+              "Planner",
+              "Composer",
+              "Extractor",
+              "Index",
+              "Queue",
+              "Buffer",
+              "Client",
+              "Service",
+              "Adapter",
+              "Bridge",
+              "Factory",
+              "Validator",
+              "Store",
+              "Coordinator",
+              "Observer",
+              "Ledger",
+              "Registry",
+              "Resolver"
+            ]
+          }
+        }
+      ]
+    },
+    "id" : "xcode",
+    "operations" : [
+      {
+        "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_build_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "build",
+            "key" : "b",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-B while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Build the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_run_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "run",
+            "key" : "r",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-R while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Run the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_stop_execution",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "stop",
+            "key" : "period",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-Period while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Stop Execution"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_test_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "test",
+            "key" : "u",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-U while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Test the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_save_all",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "save-all",
+            "key" : "s",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command",
+              "option"
+            ]
+          }
+        ],
+        "summary" : "Press Command-Option-S while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Save Every File"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "xcode_build_project",
+        "preference" : 260,
+        "skillID" : "coding.build-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_run_project",
+        "preference" : 260,
+        "skillID" : "coding.run-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_stop_execution",
+        "preference" : 260,
+        "skillID" : "coding.stop-execution",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_test_project",
+        "preference" : 260,
+        "skillID" : "coding.test-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_save_all",
+        "preference" : 260,
+        "skillID" : "coding.save-all",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      }
+    ],
+    "title" : "Xcode",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "threadProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

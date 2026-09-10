@@ -1,0 +1,76 @@
+{
+  "configurations": [
+    {
+      "id": "064CDC03-2DC8-4165-A48D-46DDCB280BED",
+      "name": "Test Scheme Action",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "performanceAntipatternCheckerEnabled": true,
+    "targetForVariableExpansion": {
+      "containerPath": "container:",
+      "identifier": "Mary",
+      "name": "Mary"
+    }
+  },
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryComputerUseTests",
+        "name": "MaryComputerUseTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryPluginTests",
+        "name": "MaryPluginTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryAmbientTests",
+        "name": "MaryAmbientTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryBrainTests",
+        "name": "MaryBrainTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryFoundationTests",
+        "name": "MaryFoundationTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryRuntimeTests",
+        "name": "MaryRuntimeTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryThreadTests",
+        "name": "MaryThreadTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryVoiceTests",
+        "name": "MaryVoiceTests"
+      }
+    }
+  ],
+  "version": 1
+}

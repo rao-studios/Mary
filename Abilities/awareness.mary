@@ -1,0 +1,691 @@
+{
+  "ability" : {
+    "aliases" : [
+      "awareness"
+    ],
+    "id" : "awareness",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+
+      ],
+      "guardrailCategories" : [
+        "staleState"
+      ],
+      "guardrails" : [
+        "Never report a caller, a callee or a line number from memory; a trace is only as true as the read that produced it.",
+        "Unseen is not absent: a name this grammar cannot capture is untraced, never uncalled.",
+        "Follow the work; never bring a file forward to look at it."
+      ],
+      "phases" : [
+        "locate-unit",
+        "read-unit",
+        "trace-neighbourhood",
+        "report-with-bearings"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "no unit in front",
+        "no project to walk",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the unit reported is the one the cursor is in",
+        "every reference named was read this turn"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictPolicy" : "highestEvidence",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "code-workspace"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "writing-project"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 150
+    },
+    "skills" : [
+      "awareness.read-enclosing-unit",
+      "awareness.trace-surroundings",
+      "awareness.trace-callers",
+      "awareness.trace-callees",
+      "awareness.search-neighbourhood"
+    ],
+    "summary" : "The awareness discipline: already knowing what the work in front of you IS. It reads the whole declaration or passage the cursor sits inside rather than the window on screen, and traces what reaches that unit and what it reaches, through the project grammar the application in front declared. A WORLD WITH NO PROJECT ON DISK STILL HAS SOMETHING IN FRONT OF IT: where a browser depends on this package, the page it is showing — its site, its title and what it is currently offering — is the standing brief instead, held from what a read already found rather than from any index. Nothing on the web is crawled or indexed here. An application joins by depending on this package; it names no application, and this package names none. DELIBERATELY NOT A CRAFT THE USER ASKS FOR: it carries no intent exemplars, because the sentences that need it are the ones already spoken to coding or writing.",
+    "threadProjections" : [
+
+    ],
+    "tint" : "#5B8FA8",
+    "title" : "Awareness",
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "call sites"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "callers",
+        "callees"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "writing-project"
+        }
+      ],
+      "effect" : "read",
+      "id" : "awareness.read",
+      "outputType" : "awareness.evidence",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live buffer the user is working in."
+        },
+        {
+          "kind" : "files",
+          "reason" : "Read the project's own files to trace what reaches this unit."
+        }
+      ],
+      "summary" : "Read the unit in front of the user and the project around it.",
+      "title" : "Read the Surroundings",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callers",
+      "id" : "trace-the-callers",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Trace who calls this function."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callees",
+      "id" : "trace-the-callees",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Show me what this function calls."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.search-neighbourhood",
+      "id" : "search-the-neighbourhood",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Search the project for the retry logic."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.read-enclosing-unit",
+      "id" : "read-the-enclosing-unit",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Read the whole function around the cursor."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "139362fbc798ca2fe9358183ed2c1d4ea514201816cc98e9c9a532edca0b8508"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "awareness",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Read the unit the user is inside, and trace what reaches it.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "skills" : [
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "awareness",
+            "operation" : "read_enclosing_unit",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace",
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "awareness.read-enclosing-unit",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_enclosing_unit",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "A named declaration instead of the one at the cursor.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which application. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "awareness.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Read the whole declaration or passage the cursor or highlight sits inside.",
+      "title" : "Read the Enclosing Unit",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "awareness",
+            "operation" : "trace_surroundings",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace",
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "awareness.trace-surroundings",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "trace_surroundings",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "What they asked, in their own words.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which application. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "awareness.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Trace what reaches the unit in front of the user and what it reaches.",
+      "title" : "Trace the Surroundings",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "awareness",
+            "operation" : "trace_callers",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace",
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "awareness.trace-callers",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "trace_callers",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "The name to trace.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which project. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "awareness.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Find where a named declaration is used across the live project, with file and line.",
+      "title" : "Trace the Callers",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "awareness",
+            "operation" : "trace_callees",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace",
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "awareness.trace-callees",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "trace_callees",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "The name to trace.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which project. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "awareness.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Find the declarations a named declaration's own body reaches.",
+      "title" : "Trace the Callees",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "awareness",
+            "operation" : "search_neighbourhood",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace",
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "awareness.search-neighbourhood",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "search_neighbourhood",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "The word or phrase to look for.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which project. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "awareness.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Search the live project for a word or phrase and return the matching lines.",
+      "title" : "Search the Neighbourhood",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    }
+  ],
+  "threadProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "awareness.evidence",
+      "shape" : "string",
+      "summary" : "What was read, with the file and line each part came from.",
+      "title" : "Awareness Evidence",
+      "version" : "1.0.0"
+    }
+  ]
+}
