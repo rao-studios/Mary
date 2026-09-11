@@ -54,6 +54,16 @@ extension AbilityRuntime {
         }
     }
 
+    /// Whether an application argument names the Skill's own host Ability —
+    /// "window-management", "Window Management" — which is never its target.
+    static func namesOwnHost(_ value: String, ability: AbilityID) -> Bool {
+        func folded(_ text: String) -> String {
+            text.lowercased().filter { $0.isLetter || $0.isNumber }
+        }
+        let key = folded(value)
+        return !key.isEmpty && key == folded(ability.rawValue)
+    }
+
     // MARK: - Argument tolerance (ported verbatim)
 
     /// Adopt a drifted param name ("project_name" for "project") under the declared name.

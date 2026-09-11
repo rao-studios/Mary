@@ -178,8 +178,8 @@ public struct WindowManagementPlugin: MaryAdapter {
     private var bringWindowForward: SkillBinding {
         SkillBinding(
             name: "bring_window_forward",
-            description: "Restore and bring one window of a running application forward. Identify it by stable id or an unambiguous exact title.",
-            parameters: [appParameter, windowParameter],
+            description: "Restore and bring one window of a running application forward. Identify it by stable id or an unambiguous exact title; omit the window to bring the application's front window forward.",
+            parameters: [appParameter, optionalWindowParameter],
             access: .tweak,
             backing: .native { [service] arguments, _ in
                 await service.raiseWindow(

@@ -206,6 +206,7 @@ import Testing
             "writing.type-at-cursor",
             "window-management.open-new-window",
             "window-management.bring-application-forward",
+            "window-management.bring-window-forward",
         ] {
             let skill = try #require(snapshot.skill(id: SkillID(id)))
             let resolved = snapshot.applicationCandidates(for: skill)
@@ -313,5 +314,43 @@ import Testing
             ofApplication: "com.google.chrome") == "com.google.Chrome")
         #expect(snapshot.bundleIdentifier(ofApplication: "calculator") == nil)
         #expect(snapshot.bundleIdentifier(ofApplication: "") == nil)
+    }
+
+    // MARK: - "Can you bring a text at window forward"
+
+    /// A SKILL IS NEVER POINTED AT ITS OWN HOST. `window-management` answers
+    /// to "window" as an application alias, so the reported sentence arrived
+    /// with `app: window-management` and the adapter looked for that process.
+    @Test func aSkillsOwnHostIsNeverItsApplication() {
+        let host = AbilityID("window-management")
+        #expect(AbilityRuntime.namesOwnHost("window-management", ability: host))
+        #expect(AbilityRuntime.namesOwnHost("Window Management", ability: host))
+        #expect(AbilityRuntime.namesOwnHost("WINDOW MANAGEMENT", ability: host))
+        #expect(!AbilityRuntime.namesOwnHost("textedit", ability: host))
+        #expect(!AbilityRuntime.namesOwnHost("calculator", ability: host))
+        #expect(!AbilityRuntime.namesOwnHost("", ability: host))
+    }
+
+    /// AN INDEFINITE WINDOW IS THE FRONT ONE. With TextEdit resolved, what is
+    /// left of the sentence is grammar, window vocabulary and TextEdit's own
+    /// name — no title — so `window` is omitted rather than sent as the whole
+    /// sentence. A real title still goes through.
+    @Test func anIndefiniteWindowLeavesTheWindowOut() throws {
+        guard let snapshot = try shippedSnapshot() else { return }
+        let raiser = try #require(
+            snapshot.skill(id: SkillID("window-management.bring-window-forward")))
+        let profiles = snapshot.plugins.applicationProfiles
+        func arguments(_ utterance: String, _ application: String?) throws -> [String: String] {
+            let filled = EmbeddingRouting.filledArguments(
+                for: raiser, utterance: utterance, applicationID: application,
+                applicationProfiles: profiles, templates: snapshot.templates)
+            return try #require(
+                try JSONSerialization.jsonObject(with: Data(filled.json.utf8)) as? [String: String])
+        }
+        let indefinite = try arguments("Can you bring a text at window forward", "textedit")
+        #expect(indefinite["app"] == "textedit")
+        #expect(indefinite["window"] == nil)
+        let titled = try arguments("Bring the Drafts window forward.", nil)
+        #expect(titled["window"]?.contains("Drafts") == true)
     }
 }

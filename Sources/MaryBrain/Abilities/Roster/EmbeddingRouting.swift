@@ -206,6 +206,18 @@ public enum EmbeddingRouting {
             && parameter.enumValues.isEmpty && args[parameter.name] == nil {
             let peeled = span()
             guard !peeled.value.isEmpty else { continue }
+            // A SPAN OF ONLY THE COMMAND'S OWN WORDS NAMES NOTHING. "Bring a
+            // TextEdit window forward" leaves "bring a text at window forward":
+            // grammar, the verb's vocabulary and the application's name, with
+            // no title in it. Sent as `window` it matched no window; omitted,
+            // the binding does what an optional span means — the front one.
+            guard Self.carriesContent(
+                peeled.value, triggers: triggers,
+                abilityAliases: skill.ability.aliases, applicationAliases: aliases)
+            else {
+                stages.append("span \(parameter.name): only command words — omitted")
+                continue
+            }
             args[parameter.name] = peeled.value
             stages.append("span \(parameter.name): \"\(peeled.value)\"")
         }
@@ -235,6 +247,24 @@ public enum EmbeddingRouting {
         let data = (try? JSONSerialization.data(
             withJSONObject: args, options: [.sortedKeys])) ?? Data("{}".utf8)
         return (String(data: data, encoding: .utf8) ?? "{}", stages)
+    }
+
+    /// Whether a peeled span says anything beyond grammar, the Skill's own
+    /// command vocabulary (its ability's tokens, phrases and aliases), and the
+    /// resolved application's own name.
+    static func carriesContent(
+        _ span: String,
+        triggers: AbilityTriggerSchema,
+        abilityAliases: [String],
+        applicationAliases: Set<String>
+    ) -> Bool {
+        func words(_ text: String) -> [String] {
+            text.lowercased().split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        }
+        let known = SemanticApplicationIndex.functionWords
+            .union((triggers.tokens + triggers.phrases + abilityAliases).flatMap(words))
+            .union(applicationAliases.flatMap(words))
+        return words(span).contains { !known.contains($0) }
     }
 
     /// The ability's phrases and tokens with every `{application}` filled in.

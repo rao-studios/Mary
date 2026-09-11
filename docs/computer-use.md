@@ -58,14 +58,15 @@ names ambiguous at the use site rather than at the import.
 `Tests/MaryComputerUseTests/VisionAXSealTests.swift` holds the line inside the module;
 `PackageLayeringTests` holds it in the manifest.
 
-It arrives **through Frigate**, as the `FrigateVision` product — Frigate hosts the ML
-surfaces this repository takes, and pixel perception is one of them. That changes nothing
-about the layer: the vision product re-exports VisionAX and depends on no MLX target, so
-there is still no model runtime behind a keystroke, and `frigateInferenceOnlyThroughBrain`
-polices the split per product. It does mean the seal watches **two spellings** — `import
-FrigateVision` and `import VisionAX` both carry the colliding names, because a re-export
-carries everything and SwiftPM puts every module in the graph on the search path whether
-or not a target declared the edge.
+It arrives **through Frigate**, as the `FrigateVisionAX` product — Frigate hosts the ML
+surfaces this repository takes, and pixel perception is one of them. The vision product
+carries the perception engine and, since the classifier's backbone moved to Metal
+(2026-09), MLX's core with it — none of Frigate's transformer names — and
+`frigateInferenceOnlyThroughBrain` polices the split per product. The seal watches **every
+spelling**: `import FrigateVisionAX` and `import VisionAXCore` both carry the colliding
+names, because a re-export carries everything and SwiftPM puts every module in the graph
+on the search path whether or not a target declared the edge; `import FrigateVision` and
+`import VisionAX`, the module's former names, stay forbidden too.
 
 **No target above MaryComputerUse posts an input event, performs an
 accessibility action, or captures pixels.** Reads are fine: asking

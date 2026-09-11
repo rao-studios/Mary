@@ -10,12 +10,15 @@
 //        modules declaring the same names means any file importing both makes every use
 //        of them ambiguous, and the error appears at the USE, far from the import that
 //        caused it. One importing directory is what keeps that from ever happening.
-//        TWO SPELLINGS, ONE DOOR. The engine arrives as Frigate's `FrigateVision`
-//        product, which `@_exported import`s VisionAX — so `import FrigateVision` and
-//        `import VisionAX` BOTH carry the colliding names. SwiftPM also puts every
-//        module in the graph on the search path whether or not a target declared the
-//        edge (measured: a fixture imported VisionAX with no such dependency), so
-//        forbidding one spelling would leave the other as an open window.
+//        EVERY SPELLING, ONE DOOR. The engine arrives as Frigate's `FrigateVisionAX`
+//        product and module, which `@_exported import`s `VisionAXCore`, where the
+//        colliding names are declared — so `import FrigateVisionAX` and `import
+//        VisionAXCore` BOTH carry them. `import FrigateVision` and `import VisionAX` —
+//        the module's former names; the second also matches `import VisionAXCore` —
+//        stay on the list. SwiftPM also puts every module in the graph on the search path
+//        whether or not a target declared the edge (measured: a fixture imported VisionAX
+//        with no such dependency), so forbidding one spelling would leave the other as an
+//        open window.
 //
 
 import Foundation
@@ -55,7 +58,7 @@ final class VisionAXSealTests: XCTestCase {
     static let door = "Sources/MaryComputerUse/Sight/Vision/"
 
     /// Every way to name the vision engine in an import.
-    static let doorTokens = ["import FrigateVision", "import VisionAX"]
+    static let doorTokens = ["import FrigateVisionAX", "import FrigateVision", "import VisionAX"]
 
     /// Does this file import the engine, by either spelling?
     static func importsTheEngine(_ body: String) -> Bool {
@@ -82,8 +85,8 @@ final class VisionAXSealTests: XCTestCase {
             \(breaches.joined(separator: "\n"))
 
             VisionAX declares AXNodeSnapshot, AXWindowSnapshot, AXScreenElement and \
-            AXNodeCategory under the same names Mary does — and `FrigateVision` \
-            re-exports it, so either spelling carries them. A file that imports both \
+            AXNodeCategory under the same names Mary does — and `FrigateVisionAX` \
+            re-exports it, so every spelling carries them. A file that imports both \
             modules makes every use of those names ambiguous, and the compiler reports \
             it at the use rather than at the import. Convert at the seam instead.
             """)

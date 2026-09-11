@@ -163,10 +163,13 @@ import Testing
     /// below holds it in the manifest.
     ///
     /// IT ARRIVES THROUGH FRIGATE, which hosts the ML surfaces this repository takes
-    /// from one place. `FrigateVision` re-exports VisionAX and depends on nothing else,
-    /// so this edge still puts no model runtime behind a keystroke — see
-    /// `frigateInferenceOnlyThroughBrain`, which polices that per PRODUCT rather than
-    /// per package.
+    /// from one place. `FrigateVisionAX` is the product and the module — the perception
+    /// runtime, re-exporting VisionAX's `VisionAXCore`. Since
+    /// 2026-09 that runtime runs its classifier's backbone on Metal, so this edge carries
+    /// MLX's core: the one model runtime the machine layer holds, chosen deliberately (the
+    /// backbone was ~40% of a page read on CPU). None of Frigate's transformer names come
+    /// with it — see `frigateInferenceOnlyThroughBrain`, which polices that per PRODUCT
+    /// rather than per package.
     @Test func computerUseDependsOnFoundationAmbientAndFrigateVisionOnly() throws {
         let manifest = try Self.manifest()
         guard let target = Self.targetBlock(manifest, named: "MaryComputerUse") else { return }
@@ -176,7 +179,7 @@ import Testing
             declared.count == 3,
             """
             MaryComputerUse declares \(declared.count) dependencies: \(declared). \
-            It must declare exactly three — MaryFoundation, MaryAmbient and FrigateVision.
+            It must declare exactly three — MaryFoundation, MaryAmbient and FrigateVisionAX.
             """)
         #expect(declared.contains { $0.contains("MaryFoundation") })
         #expect(declared.contains { $0.contains("MaryAmbient") })
@@ -190,9 +193,9 @@ import Testing
     /// The inner half — that only one DIRECTORY imports it — is
     /// `Tests/MaryComputerUseTests/VisionAXSealTests.swift`.
     ///
-    /// BOTH NAMES, because the engine is reached through a re-export: `FrigateVision`
-    /// is the product, `VisionAX` is what it carries, and a target block naming either
-    /// has the edge.
+    /// BOTH SPELLINGS: `FrigateVisionAX` contains either one, and `VisionAX` alone is how a
+    /// target would name VisionAXCore's package directly — so a target block naming
+    /// either has the edge.
     @Test func onlyComputerUseNamesFrigateVision() throws {
         let manifest = try Self.manifest()
         for name in Self.plannedTargets where name != "MaryComputerUse" {
@@ -290,8 +293,9 @@ import Testing
         }
     }
 
-    /// Frigate's INFERENCE products, by name. `FrigateVision` is not among them: it
-    /// re-exports the perception engine and depends on no MLX target.
+    /// Frigate's INFERENCE products, by name. `FrigateVisionAX` is not among them: it is
+    /// the perception engine, whose only inference piece is
+    /// MLX's core for the classifier's backbone — none of the products listed here.
     static let frigateInferenceProducts = [
         "MLX", "MLXLMCommon", "MLXLLM", "MLXVLM", "MLXEmbedders", "MLXAccelerate",
         "FrigateHub", "FrigateTokenizers", "FrigateTransformers", "mlx_embeddings",
@@ -305,7 +309,7 @@ import Testing
     /// of those names — which is exactly why it needs no module-alias map — and that
     /// stays true only while one target owns the edge. The rule is now per PRODUCT
     /// rather than per package, because Frigate hosts two unrelated ML surfaces: the
-    /// inference stack, which carries those vendored names, and `FrigateVision`, which
+    /// inference stack, which carries those vendored names, and `FrigateVisionAX`, which
     /// carries none of them.
     @Test func frigateInferenceOnlyThroughBrain() throws {
         let manifest = try Self.manifest()
@@ -329,10 +333,11 @@ import Testing
         }
     }
 
-    /// NO MODEL RUNS IN THIS PROCESS. On-device generation moved into Sewn,
+    /// NO GENERATION RUNS IN THIS PROCESS. On-device generation moved into Sewn,
     /// so MaryBrain must no longer name an inference product at all — the
     /// rule above is now universal rather than "everyone but MaryBrain", and
-    /// this states the half that changed.
+    /// this states the half that changed. (The vision classifier's backbone does
+    /// run here, on Metal, through MaryComputerUse's FrigateVisionAX edge.)
     @Test func maryBrainNamesNoInferenceProduct() throws {
         let manifest = try Self.manifest()
         let target = try #require(Self.targetBlock(manifest, named: "MaryBrain"))

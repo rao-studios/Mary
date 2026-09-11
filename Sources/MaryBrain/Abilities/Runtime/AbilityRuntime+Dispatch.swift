@@ -348,6 +348,20 @@ extension AbilityRuntime {
             parameters: Self.enumParameters(
                 binding: binding, declared: runtimeSkill),
             utterance: world.store.utterance())
+        // A SKILL IS NEVER POINTED AT ITS OWN HOST. `window-management` answers
+        // to "window" as an application alias, so "bring a TextEdit window
+        // forward" named window-management itself as the app, and the adapter
+        // went looking for a process by that name. Dropped here, for both
+        // lanes, so the resolution below gets its turn.
+        if let runtimeSkill,
+           let receiver = ApplicationParameterNames.receiver(
+               in: binding.parameters.map(\.name)),
+           let named = arguments[receiver],
+           Self.namesOwnHost(named, ability: runtimeSkill.ability.id) {
+            arguments[receiver] = nil
+            Self.timingLog.info(
+                "own host — dropped \(named, privacy: .public) from \(receiver, privacy: .public)")
+        }
         // THE SILENCE THIS FILLS: "pause the music" names no player, and a
         // discipline's Skill has no application of its own. When something
         // inherits that discipline, the person's own habit says which one they

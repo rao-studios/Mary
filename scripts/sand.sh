@@ -6,7 +6,11 @@
 #       Accessibility grant. Same stable-signing reason as dev.sh: SwiftPM
 #       ad-hoc-signs, the identity IS the cdhash, and every rebuild would look
 #       like a new app to TCC — the hands would refuse while System Settings
-#       still showed a checkmark. No mlx.metallib: Sand never loads a model.
+#       still showed a checkmark.
+#       MLX's shaders go beside the binary, so a page read runs the classifier's
+#       backbone on Metal; the timeline's perceive line names the backbone that
+#       ran ("classify 9.8 ms on mlx-metal"). FRIGATE_VISION_BACKBONE=onnx runs the
+#       CPU backbone instead, which is the whole A/B.
 #
 #   ./scripts/sand.sh
 #   CONFIG=release ./scripts/sand.sh
@@ -14,6 +18,7 @@
 # Pointed at something, without a click:
 #   ./scripts/sand.sh --target com.google.Chrome
 #   ./scripts/sand.sh --target com.google.Chrome --read-page
+#   FRIGATE_VISION_BACKBONE=onnx ./scripts/sand.sh --target com.google.Chrome --read-page
 #   ./scripts/sand.sh --target com.apple.Safari --read-page \
 #       --say "open the first result" --auto
 #   ./scripts/sand.sh --target com.google.Chrome \
@@ -35,6 +40,11 @@ if [ "$CONFIG" = "release" ]; then
 else
     swift build --product Sand
 fi
+
+# Close to free when the shaders are current. Without them a page read keeps the ONNX
+# backbone on CPU and says so — Sand still runs.
+"$REPO_ROOT/../Frigate/scripts/build-metallib.sh" "$CONFIG" --package "$REPO_ROOT" \
+    || echo "sand: no mlx.metallib — page reads will use the ONNX backbone on CPU"
 
 BIN="$REPO_ROOT/.build/$CONFIG/Sand"
 

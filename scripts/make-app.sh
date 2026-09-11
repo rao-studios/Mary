@@ -44,12 +44,16 @@ fi
 # bundle beside the executable, which is not where a bundled app looks. Without this
 # the page-element lane has no model — the media lane still works, since its glyphs
 # are drawn rather than learned.
-VISION_BUNDLE=".build/$CONFIG/VisionAX_VisionAX.bundle"
+VISION_BUNDLE=".build/$CONFIG/Frigate_FrigateVisionAX.bundle"
 if [ -d "$VISION_BUNDLE" ]; then
     cp -R "$VISION_BUNDLE" "$APP_DIR/Contents/Resources/"
 else
     echo "warning: $VISION_BUNDLE not found — the page classifier is missing from the app"
 fi
+
+# MLX's shaders beside the binary (Contents/MacOS/mlx.metallib), so the classifier's
+# backbone runs on Metal. Before codesign: the file is part of what gets sealed.
+"$REPO_ROOT/../Frigate/scripts/build-metallib.sh" "$CONFIG" --package "$REPO_ROOT" --app "$APP_DIR"
 
 IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
     | awk -F'"' '/Apple Development|Mary Dev Signing/ {print $2; exit}')"

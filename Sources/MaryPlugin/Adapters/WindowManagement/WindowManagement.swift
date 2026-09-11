@@ -204,7 +204,10 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
     }
 
     public func raiseWindow(application: String, window: String) async -> WindowManagementResult {
-        await targetOperation(application: application, reference: window, verb: "Brought forward") {
+        await targetOperation(
+            application: application, reference: window, verb: "Brought forward",
+            frontWhenOmitted: true
+        ) {
             try await $0.adapter.raise($0.window, in: $0.application)
             // Raise verified activation and the exact window — typer staging.
             if SelectionSurfacePolicy.permitsProseApplication($0.application.bundleIdentifier) {
@@ -291,6 +294,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         application: String,
         reference: String,
         verb: String,
+        frontWhenOmitted: Bool = false,
         operation: @Sendable (Target) async throws -> Void
     ) async -> WindowManagementResult {
         do {
@@ -299,8 +303,16 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
             if let failure = inferred.failure { throw failure }
             let (app, adapter, windows) = try await resolvedWindows(
                 application: inferred.application)
-            let target = try await adapter.resolve(
-                inferred.reference, in: app, windows: windows)
+            // Omitted reference = front window, for a verb that says so — the
+            // rule `setFullScreen` states. Restore still needs one named.
+            let target: ManagedWindow
+            if frontWhenOmitted, inferred.reference.trimmingCharacters(
+                in: .whitespacesAndNewlines).isEmpty {
+                target = windows[0]
+            } else {
+                target = try await adapter.resolve(
+                    inferred.reference, in: app, windows: windows)
+            }
             try await operation((app, adapter, target))
             let title = target.title.isEmpty ? "That window" : target.title
             return WindowManagementResult(ok: true, summary: "\(verb) \(title) in \(app.displayName).")

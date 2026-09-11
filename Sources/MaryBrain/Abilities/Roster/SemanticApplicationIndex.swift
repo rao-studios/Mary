@@ -263,7 +263,7 @@ public struct SemanticApplicationIndex: Sendable {
     /// Shape, not subject. Kept small on purpose: a long stopword list starts
     /// deciding which sentences are about applications, which is the index's
     /// job and not a constant's.
-    private static let functionWords: Set<String> = [
+    static let functionWords: Set<String> = [
         "a", "an", "the", "my", "me", "i", "you", "your",
         "in", "on", "at", "to", "for", "of", "with", "into",
         "and", "or", "then", "please", "can", "could", "would",

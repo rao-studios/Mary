@@ -1074,3 +1074,48 @@ extension EmbeddingCalibrationTests {
         #expect(snapshot.bundleIdentifier(ofApplication: "calculator") == nil)
     }
 }
+
+// MARK: - Which application a window belongs to
+//
+// "Can you bring a text at window forward" — ASR for "a TextEdit window" —
+// dispatched with window-management itself as the app. The distance tier had
+// the answer all along; the Skill never asked for it.
+extension EmbeddingCalibrationTests {
+
+    private func raiserAndSnapshot() throws -> (AbilityRuntimeSkill, AbilityRuntime.Snapshot)? {
+        guard let environment = try Self.environment() else { return nil }
+        guard let skill = environment.snapshot.skill(
+            id: SkillID("window-management.bring-window-forward")) else { return nil }
+        return (skill, environment.snapshot)
+    }
+
+    @Test func aMisheardEditorNameStillReachesTheEditor() throws {
+        guard let (skill, snapshot) = try raiserAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Can you bring a text at window forward"))
+        for row in verdict.candidates.prefix(3) {
+            print(String(
+                format: "[application] text at window -> %@ %@",
+                row.applicationID,
+                row.score.map { String(format: "%.3f", $0) } ?? "—"))
+        }
+        #expect(verdict.chosen?.applicationID == "textedit")
+    }
+
+    /// A WINDOW TITLE IS NOT AN APPLICATION NAME. "Drafts" must not lean the
+    /// raise into some editor that merely sounds close to it.
+    @Test func aTitledWindowNamesNoApplication() throws {
+        guard let (skill, snapshot) = try raiserAndSnapshot() else { return }
+        let verdict = try #require(ApplicationReferenceResolution.resolve(
+            for: skill, snapshot: snapshot,
+            utterance: "Bring the Drafts window forward."))
+        for row in verdict.candidates.prefix(3) {
+            print(String(
+                format: "[application] drafts window -> %@ %@",
+                row.applicationID,
+                row.score.map { String(format: "%.3f", $0) } ?? "—"))
+        }
+        #expect(verdict.chosen == nil)
+    }
+}

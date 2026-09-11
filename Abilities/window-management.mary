@@ -725,7 +725,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "ee265557d6f4e7af6a121daf0b434d3fc82154ec23e1991b61102065619d6373"
+    "digest" : "245da104e63808d6dacfee3b60854b970a21fb9611464e8a0e1eef1418f0812b"
   },
   "interactions" : [
     {
@@ -1093,12 +1093,13 @@
 
             ],
             "name" : "window",
-            "required" : true,
+            "required" : false,
             "requiresComposition" : false,
+            "spokenSpan" : true,
             "spokenValues" : {
 
             },
-            "summary" : "Stable handle, exact unambiguous title, or conversation-established anaphoric window reference.",
+            "summary" : "Stable handle, exact unambiguous title, or conversation-established anaphoric window reference; omit to raise the application's front window.",
             "type" : "string"
           }
         ]
@@ -1129,6 +1130,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
 
         ]
@@ -1242,6 +1244,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
 
         ]
@@ -1463,6 +1466,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
 
         ]
@@ -1684,6 +1688,7 @@
         "perceptions" : [
 
         ],
+        "resolvesApplication" : true,
         "supportingAbilities" : [
 
         ]
