@@ -100,6 +100,10 @@ struct AbilityStudioRehearsal {
     /// Who inherits the winning Skill's discipline, ranked by habit. Nil when
     /// the winner's ability is not a discipline or nothing extends it.
     let expertise: ExpertiseResolution.Verdict?
+    /// Which application a system-control Skill was pointed at. Nil when the
+    /// winner never declared `resolvesApplication` — the other half of the same
+    /// question `expertise` answers for disciplines.
+    let applicationReference: ApplicationReferenceResolution.Verdict?
     let verdict: Verdict
     /// The registry these numbers came from. Indexes are built at reload, so a
     /// fixture added now changes them only after Save.
@@ -132,6 +136,7 @@ struct AbilityStudioRehearsal {
                 skills: [],
                 election: [],
                 expertise: nil,
+                applicationReference: nil,
                 verdict: trimmed.isEmpty ? .nothingMatched : .noBackend,
                 revision: revision)
         }
@@ -170,6 +175,18 @@ struct AbilityStudioRehearsal {
                 utterance: trimmed)
         }
 
+        // THE SAME CALL THE TURN LOOP MAKES. A rehearsal that reimplemented
+        // this would be a simulation, and would promise resolutions the turn
+        // would not make.
+        let applicationReference = leader.flatMap { runtime in
+            ApplicationReferenceResolution.resolve(
+                for: runtime,
+                snapshot: snapshot,
+                utterance: trimmed,
+                assertedApplicationIDs: Self.namedApplications(
+                    in: trimmed, snapshot: snapshot))
+        }
+
         return AbilityStudioRehearsal(
             utterance: trimmed,
             stage: stage,
@@ -177,6 +194,7 @@ struct AbilityStudioRehearsal {
             skills: skills,
             election: roster.election,
             expertise: expertise,
+            applicationReference: applicationReference,
             verdict: verdict(
                 for: skills, utterance: trimmed, affinities: skillAffinities,
                 snapshot: snapshot, expertise: expertise),
@@ -359,6 +377,37 @@ struct AbilityStudioRehearsal {
                 chosen.title, chosen.weight, runnerUp, seen)
         case .fallback, .staticPreference:
             return "\(chosen.title) — no habit yet, so the packages' own preference decides."
+        }
+    }
+
+    /// The application tier's one-line reading, for a Skill pointed at one.
+    ///
+    /// SAYS WHY IT FOUND NOTHING, because that is the question an author has
+    /// when the phrase they are debugging does nothing: a sentence that named
+    /// no application at all and one whose two candidates tied are completely
+    /// different repairs.
+    var applicationWord: String? {
+        guard let applicationReference else { return nil }
+        guard let chosen = applicationReference.chosen else {
+            let reached = applicationReference.candidates.compactMap { candidate in
+                candidate.score.map { (candidate.title, $0) }
+            }
+            guard let best = reached.max(by: { $0.1 < $1.1 }) else {
+                return "No application named, and none of the \(applicationReference.candidates.count) it could be pointed at was reached by these words."
+            }
+            return String(
+                format: "No application resolved — %@ led at %.2f, not clear enough to act on.",
+                best.0, best.1)
+        }
+        switch chosen.standing {
+        case .named:
+            return "\(chosen.title) — you named it."
+        case .nearest:
+            return String(
+                format: "%@ — nothing was named, and the words landed nearest it at %.2f.",
+                chosen.title, chosen.score ?? 0)
+        case .considered, .unreached:
+            return chosen.title
         }
     }
 

@@ -42,7 +42,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
     /// types; an adapter says what it perceives and the brain only asks.
     public func turnPerceptions() async -> [DeclaredPerception] {
         guard let (registration, pid) = support.resolve(nil),
-              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+              let reading = MediaTransportCache.shared.reading(
+                pid: pid, registration: registration)
         else { return [] }
         return [DeclaredPerception(
             schemaID: "perception.player-transport",
@@ -185,7 +186,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 guard let (registration, pid) = support.resolve(arguments["app"]) else {
                     return notRunning(arguments["app"])
                 }
-                guard let reading = MediaSurfaceAX.read(pid: pid, registration: registration) else {
+                // CACHED, LIKE THE PERCEPTION. This is a pure read of a thing
+                // that changes on a human timescale, and reading it live cost a
+                // MEASURED 20s on Apple Music. The transport-driving Skills
+                // invalidate on their way out, so "pause it" then "what's
+                // playing" still answers with the state they just created.
+                guard let reading = MediaTransportCache.shared.reading(
+                    pid: pid, registration: registration,
+                    readingColdSynchronously: true)
+                else {
                     return SkillOutcome(
                         ok: false,
                         summary: "I couldn't read \(registration.displayName)'s player just now.")
@@ -285,7 +294,7 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 // WHAT THE PLAYER WAS DOING BEFORE, so the answer afterwards can
                 // be about what changed rather than about what was sent. See
                 // `movement(from:to:for:)`.
-                let before = Self.reading(support: support, named: arguments["app"])
+                let before = await Self.reading(support: support, named: arguments["app"])
                 // ALREADY THERE — SO DO NOT PRESS.
                 //
                 // PIN: THE KEY IS A TOGGLE, AND THAT MAKES A REDUNDANT REQUEST
@@ -345,9 +354,10 @@ public struct MediaSurfaceAdapter: MaryAdapter {
     /// One read now, with no settle — the "before" half of a receipt.
     private static func reading(
         support: MediaSurfaceSupport, named: String? = nil
-    ) -> (MediaSurfaceAX.Reading, MediaSurfaceRegistration)? {
+    ) async -> (MediaSurfaceAX.Reading, MediaSurfaceRegistration)? {
         guard let (registration, pid) = support.resolve(named) ?? support.resolve(nil),
-              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+              let reading = await MediaTransportCache.shared.freshReadingIfAffordable(
+                pid: pid, registration: registration)
         else { return nil }
         return (reading, registration)
     }
@@ -425,7 +435,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
         // running — a read-back that ignored the name would report the wrong
         // player's state on a machine running two.
         guard let (registration, pid) = support.resolve(named) ?? support.resolve(nil),
-              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+              let reading = await MediaTransportCache.shared.freshReadingIfAffordable(
+                pid: pid, registration: registration)
         else { return nil }
         return (reading, registration)
     }

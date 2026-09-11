@@ -323,7 +323,7 @@ Electron is the exact mirror. Gate it on `WebContentHost.classify(pid:bundleID:)
 the question this work existed to answer: whether a page can be driven from pixels alone.
 It can. Stage 3 makes the answer *better* on one browser rather than possible on both,
 and doing it second means the vision lane had to be good enough to stand on its own —
-which is now pinned by five real captures in `VisionAX/Tests/VisionAXTests/Fixtures/media/`.
+which is now pinned by five real captures in `Frigate/Tests/FrigateVisionAXTests/Fixtures/media/`.
 
 ## Things that were measured, and are easy to get wrong again
 
@@ -438,7 +438,7 @@ VISIONAX_ROW_DUMP=1 VISIONAX_MEDIA_FILE=/tmp/page.png \
     VISIONAX_ROWS=505,507 swift test --filter dumpRows                # the pixels themselves
 ```
 
-A capture worth keeping becomes a fixture in `Tests/VisionAXTests/Fixtures/media/` with a
+A capture worth keeping becomes a fixture in Frigate's `Tests/FrigateVisionAXTests/Fixtures/media/` with a
 test in `MediaFixtureTests`, so the next change to the detector has to keep it working.
 
 ## One thing that changed elsewhere

@@ -10,6 +10,7 @@
 //        share it. Only a vouched, succeeded dispatch teaches a habit.
 //
 import Foundation
+import MaryComputerUse
 import os
 
 extension AbilityRuntime {
@@ -347,6 +348,20 @@ extension AbilityRuntime {
             parameters: Self.enumParameters(
                 binding: binding, declared: runtimeSkill),
             utterance: world.store.utterance())
+        // A SKILL IS NEVER POINTED AT ITS OWN HOST. `window-management` answers
+        // to "window" as an application alias, so "bring a TextEdit window
+        // forward" named window-management itself as the app, and the adapter
+        // went looking for a process by that name. Dropped here, for both
+        // lanes, so the resolution below gets its turn.
+        if let runtimeSkill,
+           let receiver = ApplicationParameterNames.receiver(
+               in: binding.parameters.map(\.name)),
+           let named = arguments[receiver],
+           Self.namesOwnHost(named, ability: runtimeSkill.ability.id) {
+            arguments[receiver] = nil
+            Self.timingLog.info(
+                "own host — dropped \(named, privacy: .public) from \(receiver, privacy: .public)")
+        }
         // THE SILENCE THIS FILLS: "pause the music" names no player, and a
         // discipline's Skill has no application of its own. When something
         // inherits that discipline, the person's own habit says which one they
@@ -354,24 +369,118 @@ extension AbilityRuntime {
         // they move to another player the ranking follows them.
         //
         // ONLY THE SILENCE. A named app arrives via the provider ladder's
-        // decisive rung and wins there; a model that filled `app` itself is
-        // left alone.
+        // decisive rung and wins there; a model that filled the parameter
+        // itself is left alone.
+        //
+        // WHICHEVER PARAMETER TAKES ONE, NOT ALWAYS `app`. This seam is the
+        // FOURTH place that had to agree on that list, and it was the one still
+        // hardcoding a single spelling — so a Skill saying `app_name` had the
+        // whole resolution computed and dropped. `ApplicationParameterNames`
+        // exists precisely so the four cannot drift again.
         if let runtimeSkill,
-           binding.parameters.contains(where: { $0.name == "app" }),
-           (arguments["app"] ?? "").isEmpty,
-           let verdict = ExpertiseResolution.resolve(
-               for: runtimeSkill,
-               snapshot: snapshot,
-               assertedApplicationIDs: turnProviderSelection(snapshot: snapshot)
-                   .decisiveApplicationIDs,
-               // So a shared word like "music" cannot count as naming a
-               // player — see `assertionIsOnlyDisciplineVocabulary`.
-               utterance: world.store.utterance(),
-               ledger: applicationHabitLedger.withLock { $0 }),
-           let chosen = verdict.chosen {
-            arguments["app"] = chosen.applicationID
+           let receiver = ApplicationParameterNames.receiver(
+               in: binding.parameters.map(\.name)),
+           (arguments[receiver] ?? "").isEmpty {
+            let asserted = turnProviderSelection(snapshot: snapshot)
+                .decisiveApplicationIDs
+            let utterance = world.store.utterance()
+            // A PROVEN STAGING IS AN ASSERTION, and it outranks a habit for the
+            // same reason words do: it is a fact about THIS turn, not a tally
+            // over past ones.
+            //
+            // MEASURED, and it is why the staging existed and did nothing.
+            // `type_at_cursor` documents "omit `app` to type into the
+            // just-opened document" — but a discipline's Skill with an empty
+            // `app` reaches `ExpertiseResolution`, which is non-nil whenever
+            // the discipline has ANY dependent, so an omitted `app` came back
+            // filled with `pages` at standing `staticPreference`: a cold-start
+            // default, never a decision. The typer resolves a NAMED application
+            // before it ever looks at the stage, so the window Mary had just
+            // opened and staged lost to a package's declared preference, and
+            // the documented contract could not once be honoured.
+            //
+            // An id outside this discipline's own candidates is ignored by the
+            // resolver, so a staged editor cannot speak for a music turn.
+            //
+            // IT REACHES THE HABIT TIER ONLY, and that boundary is the point.
+            // `ApplicationReferenceResolution`'s first tier means one thing —
+            // THE WORDS NAMED EXACTLY ONE — and a staged surface is not words.
+            // Injecting it there would turn a sentence that plainly names
+            // Safari into two "named" candidates, collapsing a certain answer
+            // into a distance judgement. `ExpertiseResolution`'s asserted tier
+            // means "the turn established this", which a proven staging is.
+            var assertedWithStaging = asserted
+            if let staged = StagedWritingSurface.shared.fresh(),
+               let stagedApplicationID = snapshot.applicationID(
+                   forBundleIdentifier: staged.bundleID) {
+                assertedWithStaging.insert(stagedApplicationID)
+            }
+            // WORDS FIRST, HABIT SECOND — and until now the words never got a
+            // turn here at all.
+            //
+            // `ApplicationReferenceResolution` ranks the applications a Skill
+            // declared it can be POINTED AT, by what this sentence actually
+            // says. Its only caller was the confidence lane, which requires a
+            // dispatchable `confidenceShape` — and that is nil for any Skill
+            // whose one required string `requiresComposition`. So the reverse
+            // lookup could never run for `type_at_cursor`, whose text only a
+            // model round can produce and whose application is exactly the
+            // thing that model should not have to guess. The resolver ran only
+            // where the model was absent, and was missing wherever it was not.
+            //
+            // Habit is the fallback and not the lead, which is what both
+            // resolvers' own PINs already claim: naming an application is an
+            // instruction, distance answers when nothing was named, and a
+            // habit only fills a silence neither of them broke.
+            let byWords = runtimeSkill.skill.requirements.resolvesApplication
+                ? ApplicationReferenceResolution.resolve(
+                    for: runtimeSkill,
+                    snapshot: snapshot,
+                    utterance: utterance,
+                    assertedApplicationIDs: asserted)
+                : nil
+            if let chosen = byWords?.chosen {
+                arguments[receiver] = chosen.applicationID
+                Self.timingLog.info(
+                    "reference — host=\(runtimeSkill.ability.id.rawValue, privacy: .public) chose=\(chosen.applicationID, privacy: .public) standing=\(chosen.standing.rawValue, privacy: .public) into=\(receiver, privacy: .public)")
+            } else if let verdict = ExpertiseResolution.resolve(
+                for: runtimeSkill,
+                snapshot: snapshot,
+                assertedApplicationIDs: assertedWithStaging,
+                // So a shared word like "music" cannot count as naming a
+                // player — see `assertionIsOnlyDisciplineVocabulary`.
+                utterance: utterance,
+                ledger: applicationHabitLedger.withLock { $0 }),
+                let chosen = verdict.chosen {
+                arguments[receiver] = chosen.applicationID
+                Self.timingLog.info(
+                    "expertise — discipline=\(verdict.disciplineID.rawValue, privacy: .public) chose=\(chosen.applicationID, privacy: .public) standing=\(chosen.standing.rawValue, privacy: .public) into=\(receiver, privacy: .public)")
+            }
+        }
+        // A PROCESS IS NAMED BY ITS BUNDLE, NOT BY ITS PACKAGE.
+        //
+        // Both lanes hand a system-control Skill the LOGICAL id the roster
+        // knows an application by (`chrome`, `apple-music`), or the model's own
+        // spelling of it ("Apple Music"). The window manager acts on a macOS
+        // process, and its cold-launch path is `open -a <name>`, which finds
+        // `Music.app` from neither — so "open Apple Music" with the player
+        // closed resolved perfectly and launched nothing. The package already
+        // carries the join, and this is the one seam both lanes pass through.
+        //
+        // SYSTEM CONTROL ONLY. A discipline's receiver (`type_at_cursor`'s
+        // `app`) is read against the roster by logical id. A name no installed
+        // expertise claims ("Calculator") passes through untouched, and the
+        // adapter resolves it by name exactly as it always did.
+        if let runtimeSkill,
+           runtimeSkill.skill.requirements.resolvesApplication,
+           snapshot.paradigm(of: runtimeSkill.ability.id) == .systemControl,
+           let receiver = ApplicationParameterNames.receiver(
+               in: binding.parameters.map(\.name)),
+           let named = arguments[receiver], !named.isEmpty,
+           let bundleID = snapshot.bundleIdentifier(ofApplication: named) {
+            arguments[receiver] = bundleID
             Self.timingLog.info(
-                "expertise — discipline=\(verdict.disciplineID.rawValue, privacy: .public) chose=\(chosen.applicationID, privacy: .public) standing=\(chosen.standing.rawValue, privacy: .public)")
+                "launch identity — \(named, privacy: .public) -> \(bundleID, privacy: .public) into=\(receiver, privacy: .public)")
         }
         // `type_at_cursor` covers compose and replace-selection — requirement is conditional.
         if binding.name == "type_at_cursor",

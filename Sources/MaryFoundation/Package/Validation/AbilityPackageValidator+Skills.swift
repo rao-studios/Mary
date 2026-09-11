@@ -127,6 +127,26 @@ extension AbilityPackageValidator {
                         "Model enum values must be bounded machine tokens, not prose.")
                 }
             }
+            // A SKILL THAT TAKES AN APPLICATION NEEDS SOMEWHERE TO PUT IT.
+            // `resolvesApplication` buys a resolved application id at routing
+            // time; a Skill exposing no parameter that names one would have the
+            // whole reverse lookup run and its answer dropped on the floor,
+            // silently and on every turn.
+            if skill.requirements.resolvesApplication {
+                let names = skill.modelExposure.parameters.map(\.name)
+                if ApplicationParameterNames.receiver(in: names) == nil {
+                    sink.error(
+                        "missing-application-parameter",
+                        "\(path).requirements.resolvesApplication",
+                        "A Skill that resolves an application must expose a parameter to receive it, named one of: \(ApplicationParameterNames.all.sorted().joined(separator: ", ")).")
+                }
+                if !skill.modelExposure.enabled {
+                    sink.error(
+                        "unexposed-application-resolution",
+                        "\(path).requirements.resolvesApplication",
+                        "An unexposed Skill has no parameters to receive a resolved application.")
+                }
+            }
             duplicates(skill.execution.bindings.map {
                 "\($0.adapterID.rawValue)/\($0.operation)/\($0.targetClasses.sorted().joined(separator: ","))"
             }).forEach {
@@ -388,7 +408,17 @@ extension AbilityPackageValidator {
             let path = "fixtures[\(index)]"
             sink.checkText(fixture.id, "\(path).id", "fixture-id")
             sink.checkText(fixture.utterance, "\(path).utterance", "fixture-utterance")
-            sink.checkText(fixture.expectedDisposition, "\(path).expectedDisposition", "fixture-disposition")
+            // No emptiness check on the disposition any more: `FixtureDisposition`
+            // is an enum, so decode already refused anything that is not one of
+            // the four. What DOES need saying is that a probe with no Skill to
+            // reach grades nothing — it is the exam with no answer key, and it
+            // would sit in the package looking like coverage.
+            if fixture.expectedDisposition == .probe, fixture.expectedSkill == nil {
+                sink.error(
+                    "probe-without-skill",
+                    "\(path).expectedSkill",
+                    "A probe is graded, never taught, so it must name the Skill it should reach — otherwise it asserts nothing.")
+            }
             if let skill = fixture.expectedSkill,
                !fixtureSkillIDs.contains(skill) {
                 sink.error(
@@ -399,6 +429,48 @@ extension AbilityPackageValidator {
             duplicates(fixture.interactions.map(\.rawValue)).forEach {
                 sink.error("duplicate-fixture-interaction", "\(path).interactions", "Interaction \($0) appears more than once.")
             }
+            checkPlaceholders(fixture.utterance, "\(path).utterance", sink)
         }
+        // The same pragma, in the three trigger fields that also become corpus.
+        for (index, phrase) in package.ability.triggers.phrases.enumerated() {
+            checkPlaceholders(phrase, "ability.triggers.phrases[\(index)]", sink)
+        }
+        // TOKENS ARE EXPANDED TOO, and were the one expanded field nothing
+        // checked. `EmbeddingRouting.expandedTriggers` fills a slot in BOTH
+        // phrases and tokens before handing them to the peeler, so a misspelled
+        // brace here survives into a literal phrase match and reaches nobody —
+        // the exact silence the phrase check exists to break.
+        for (index, token) in package.ability.triggers.tokens.enumerated() {
+            checkPlaceholders(token, "ability.triggers.tokens[\(index)]", sink)
+        }
+        for (key, seeds) in package.ability.triggers.intentSeeds.sorted(by: {
+            $0.key < $1.key
+        }) {
+            for (index, seed) in seeds.enumerated() {
+                checkPlaceholders(
+                    seed, "ability.triggers.intentSeeds.\(key)[\(index)]", sink)
+            }
+        }
+    }
+
+    /// AN UNFILLED PLACEHOLDER REACHES NOBODY.
+    ///
+    /// The identical rule `PluginValidator+Corpus` states for a document URL
+    /// template: a brace that names no declared slot is not expanded by
+    /// anything, so the braces survive into the corpus and match no sentence a
+    /// person would ever say. Failing the package is the only way an author
+    /// finds out — the symptom is silence.
+    static func checkPlaceholders(
+        _ text: String, _ path: String, _ sink: PackageIssueSink
+    ) {
+        let unknown = UtteranceTemplate.unknownPlaceholders(in: text)
+        guard !unknown.isEmpty else { return }
+        let known = UtteranceSlot.allCases
+            .map { "{\($0.rawValue)}" }
+            .joined(separator: ", ")
+        sink.error(
+            "unknown-utterance-placeholder",
+            path,
+            "\(unknown.joined(separator: ", ")) is not a placeholder this format fills; an unfilled one stays in the sentence and reaches nobody. Available: \(known).")
     }
 }

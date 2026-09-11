@@ -1,19 +1,22 @@
 //
-//  LocalTurnRungTests.swift
+//  EngineTurnRungTests.swift
 //  MaryBrainTests
 //
-//  WHAT: The two rungs the local turn gained — the continuation nudge and the
+//  WHAT: The two rungs the engine seat gained — the continuation nudge and the
 //        deterministic press — fire on exactly the turns the orchestrator's do.
-//  OUT:  MaryBrain+LocalTurn
-//  PIN:  LOCAL IS NOT A LESSER TURN, and this is the suite that keeps it honest. These
-//        rungs run for every person who has no Sewn, so the CONDITIONS matter more than
-//        the behaviour: a turn whose work landed must not be talked over, a turn that is
-//        not an action must not be pressed on, and the words a lane says to itself must
-//        not survive as words the person said.
-//        THE LANE IS CALLED DIRECTLY, WITH A ROUTE. `route` is localTurn's input, not its
-//        business — which turns route as `.operate` is `TurnTriage`'s question and has its
-//        own suite. Driving `respond(to:)` here would test the router instead, and with no
-//        semantic index in a unit test the triage abstains and no turn is ever an action.
+//  OUT:  MaryBrain+Turn (engineTurn)
+//  PIN:  NOT A LESSER TURN, and this is the suite that keeps it honest. `engineTurn`
+//        runs for every brain with no Lane A — Sand's bench is the production one — so
+//        the CONDITIONS matter more than the behaviour: a turn whose work landed must
+//        not be talked over, a turn that is not an action must not be pressed on, and
+//        the words a lane says to itself must not survive as words the person said.
+//        THE LANE IS CALLED DIRECTLY, WITH A ROUTE. `route` is engineTurn's input, not
+//        its business — which turns route as `.operate` is `TurnTriage`'s question and
+//        has its own suite. Driving `respond(to:)` here would test the router instead,
+//        and with no semantic index in a unit test the triage abstains and no turn is
+//        ever an action.
+//  PIN:  `spokenReadBack` and `isAffordanceNudge` are covered in SpokenReadBackTests —
+//        both are read by the SEWN path too, so they do not belong to this seat.
 //
 
 import Foundation
@@ -23,7 +26,7 @@ import MaryVoice
 @testable import MaryPlugin
 @testable import MaryBrain
 
-@Suite(.serialized) struct LocalTurnRungTests {
+@Suite(.serialized) struct EngineTurnRungTests {
 
     // MARK: - The continuation nudge
 
@@ -39,7 +42,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(brain, "fix the total", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "fix the total", route: Self.route(action: true))
 
         #expect(Self.nudgeCount(engine, MaryPrompts.continuationNudge) == 1)
     }
@@ -57,7 +60,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(brain, "fix the total", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "fix the total", route: Self.route(action: true))
 
         #expect(Self.nudgeCount(engine, MaryPrompts.continuationNudge) == 0)
     }
@@ -73,7 +76,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(brain, "fix the total", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "fix the total", route: Self.route(action: true))
 
         #expect(Self.nudgeCount(engine, MaryPrompts.continuationNudge) == 0)
     }
@@ -90,7 +93,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(
+        _ = try await Self.runEngineTurn(
             brain, "what does the total say", route: Self.route(action: false))
 
         #expect(Self.nudgeCount(engine, MaryPrompts.continuationNudge) == 0)
@@ -111,7 +114,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(
+        _ = try await Self.runEngineTurn(
             brain, "press accept all", route: Self.route(action: true))
 
         let nudges = Self.historyCount(engine) { MaryPrompts.isAffordanceNudge($0) }
@@ -132,7 +135,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(
+        let events = try await Self.runEngineTurn(
             brain, "press accept all", route: Self.route(action: true))
 
         #expect(dispatcher.dispatchedSnapshot().isEmpty)
@@ -159,7 +162,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(
+        let events = try await Self.runEngineTurn(
             brain, Self.nearGoal, route: Self.route(action: true))
 
         #expect(Self.historyCount(engine) { MaryPrompts.isAffordanceNudge($0) } == 1)
@@ -178,7 +181,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(
+        _ = try await Self.runEngineTurn(
             brain, "what does accept all do", route: Self.route(action: false))
 
         #expect(dispatcher.dispatchedSnapshot().isEmpty)
@@ -200,7 +203,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(
+        _ = try await Self.runEngineTurn(
             brain, "press accept all", route: Self.route(action: true))
 
         // The nudge WAS said — otherwise this proves nothing about the prune.
@@ -209,15 +212,6 @@ import MaryVoice
         #expect(!remembered.contains(MaryPrompts.continuationNudge))
         #expect(!remembered.contains { MaryPrompts.isAffordanceNudge($0) })
         #expect(!remembered.contains(MaryBrain.groundedRetryNudge))
-    }
-
-    /// The recognizer the prune depends on actually recognizes the nudge it is given —
-    /// and nothing else. A prune that matched loosely would eat the person's own words.
-    @Test func theAffordanceNudgeIsRecognizable() {
-        let nudge = MaryPrompts.affordanceNudge(labels: ["Accept all", "Reject"])
-        #expect(MaryPrompts.isAffordanceNudge(nudge))
-        #expect(!MaryPrompts.isAffordanceNudge("press accept all"))
-        #expect(!MaryPrompts.isAffordanceNudge(MaryPrompts.continuationNudge))
     }
 
     // MARK: - A question never ends in silence
@@ -240,7 +234,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(
+        let events = try await Self.runEngineTurn(
             brain, "what is this page about?", route: Self.route(action: false))
 
         let spoken = Self.spokenText(events)
@@ -263,32 +257,12 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(
+        let events = try await Self.runEngineTurn(
             brain, "what is this page about?", route: Self.route(action: false))
 
         let spoken = Self.spokenText(events)
         #expect(spoken.contains("It's about ski touring."))
         #expect(!spoken.contains("backcountry"), "the passage was read out over the answer")
-    }
-
-    /// THE PASSAGE ITSELF, as the deterministic voice takes it: header dropped,
-    /// clamped to two breaths, and empty when there is nothing readable to say.
-    @Test func theReadBackTakesThePassageAndNotItsHeader() {
-        let read = MaryBrain.LaneOutcome(
-            skillName: "read_page_text",
-            outcome: SkillOutcome(ok: true, summary: Self.passage))
-        let line = MaryBrain.spokenReadBack(outcomes: [read])
-        #expect(line.hasPrefix("Ski touring"))
-        #expect(!line.contains("The visible part"))
-        #expect(line.count <= MaryBrain.readBackClamp + 1)
-
-        // A MISS IS NOT A PASSAGE, and neither is a failure.
-        let miss = MaryBrain.LaneOutcome(
-            skillName: "read_page_text",
-            outcome: SkillOutcome(
-                ok: true, summary: "I can read nothing on this page.",
-                foundNothing: true))
-        #expect(MaryBrain.spokenReadBack(outcomes: [miss]).isEmpty)
     }
 
     private static let passage = """
@@ -316,12 +290,12 @@ import MaryVoice
     }
 
     /// A fresh brain's epoch is 0, so `appendHistory` accepts every append this makes.
-    private static func runLocalTurn(
+    private static func runEngineTurn(
         _ brain: MaryBrain, _ text: String, route: AmbientRoute
     ) async throws -> [BrainEvent] {
         let stream = AsyncThrowingStream<BrainEvent, Error> { continuation in
             Task {
-                await brain.localTurn(
+                await brain.engineTurn(
                     userText: text, systemPrompt: "", route: route,
                     continuation: continuation, epoch: 0)
                 continuation.finish()

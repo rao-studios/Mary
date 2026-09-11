@@ -104,6 +104,22 @@ public enum WindowManagementTurnClassifier {
                 explicitlyRequestsScript: explicitlyRequestsScript)
         }
 
+        // ASKING FOR A WINDOW THAT DOES NOT EXIST YET.
+        //
+        // NOT KEYED ON "OPEN". The obvious spelling —
+        // `words.contains("open")` — is wrong here and the shipped fixtures say
+        // so out loud: "Which note windows are open?" and "What windows do I
+        // have open?" are both LIST requests that contain the word. "Open" in
+        // English is as often the adjective as the verb.
+        //
+        // Newness is the thing being asked for, and it has no such ambiguity:
+        // a window described as new, another, or fresh is by construction one
+        // that is not on screen yet, whatever verb introduced it.
+        let namesNew = words.contains("new")
+            || words.contains("another")
+            || words.contains("fresh")
+        let opens = namesNew && targetsWindow
+
         let lists = words.contains("list")
             || words.contains("which")
             || normalized.contains(" what windows ")
@@ -138,6 +154,11 @@ public enum WindowManagementTurnClassifier {
         if namesFullScreen {
             invocationName = leavesFullScreen
                 ? "exit_full_screen" : "make_window_full_screen"
+        } else if opens {
+            // Before `lists` and `bringsForward` on purpose: "open a new window"
+            // and "bring me up another window" both carry raise vocabulary, and
+            // a window that does not exist cannot be raised.
+            invocationName = "open_new_window"
         } else if lists {
             invocationName = "list_app_windows"
         } else if restores {
@@ -164,6 +185,8 @@ public enum WindowManagementTurnClassifier {
             targetClasses.insert("window-operation.list")
         case "restore_window":
             targetClasses.insert("window-operation.restore")
+        case "open_new_window":
+            targetClasses.insert("window-operation.open-new")
         case "bring_all_windows_forward", "bring_window_forward":
             targetClasses.insert("window-operation.bring-all")
             targetClasses.insert("window-operation.bring-one")

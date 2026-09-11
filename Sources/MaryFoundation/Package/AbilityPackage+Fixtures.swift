@@ -45,7 +45,7 @@ public extension MaryAbilityPackage {
             utterance: trimmed,
             expectedSkill: expectedSkill,
             targetClass: targetClass,
-            expectedDisposition: "route"))
+            expectedDisposition: .route))
         return copy
     }
 

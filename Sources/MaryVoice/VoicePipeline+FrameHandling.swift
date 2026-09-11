@@ -13,7 +13,7 @@ import Foundation
 extension VoicePipeline {
 
     // MARK: - Frame handling
-    
+
     // ROUTE: The CORE mic loop
     func handle(frame: MicFrame) async {
         // Cancellation cannot retract an actor call already dispatched.
@@ -52,7 +52,7 @@ extension VoicePipeline {
             }
 
         case .listening(utteranceActive: true):
-            await transcriber.append(frame.buffer)
+            await feedTranscriber(frame.buffer)
             guard !Task.isCancelled, !stopExitInProgress, state != .idle else {
                 return
             }
@@ -72,6 +72,7 @@ extension VoicePipeline {
                     transition(to: .transcribing)
                     turnTask = Task { await self.runTurn() }
                 } else {
+                    utteranceDump?.abandon()
                     await transcriber.cancel()
                     guard !Task.isCancelled, !stopExitInProgress, state != .idle else {
                         return
@@ -126,17 +127,23 @@ extension VoicePipeline {
                     onsetRMS: bargeInOnsetRMS,
                     commitAfter: Double(config.vad.minUtteranceMs) / 1000,
                     retreatAfter: Double(config.vad.bargeResumeMs) / 1000)
+                bargeCapture = nil
             }
             switch bargeGovernor!.process(rms: frame.rms, frameDuration: frame.duration) {
             case .none:
-                break
+                // Provisional: the interruption's audio accumulates for the replay.
+                bargeCapture?.append(frame.buffer)
             case .pause:
+                // Snapshot at onset — by commit the pre-roll has scrolled past it.
+                bargeCapture = preRoll.map(\.0)
                 guard let lease = voiceFloor.currentLease else { return }
                 _ = await speaker.pause(lease: lease)
                 guard !terminated, voiceFloor.currentLease == lease else { return }
             case .commit:
+                bargeCapture?.append(frame.buffer)
                 await performBargeIn()
             case .resume:
+                bargeCapture = nil
                 guard let lease = voiceFloor.currentLease else { return }
                 _ = await speaker.resume(lease: lease)
                 guard !terminated, voiceFloor.currentLease == lease else { return }
@@ -159,6 +166,21 @@ extension VoicePipeline {
             let removed = preRoll.removeFirst()
             preRollDuration -= removed.1
         }
+    }
+
+    // MARK: - Transcriber feed
+
+    /// Every utterance opens here, so the dump sees each one with its begin latency.
+    func beginTranscriberUtterance(format: AVAudioFormat) async throws {
+        let started = Date()
+        try await transcriber.begin(format: format)
+        utteranceDump?.open(beginSeconds: Date().timeIntervalSince(started))
+    }
+
+    /// Every buffer the transcriber hears goes through here — the dump records exactly that.
+    func feedTranscriber(_ buffer: AVAudioPCMBuffer) async {
+        utteranceDump?.append(buffer)
+        await transcriber.append(buffer)
     }
 
     // MARK: - Amend flow orchestration
@@ -193,7 +215,7 @@ extension VoicePipeline {
             return
         }
         do {
-            try await transcriber.begin(format: format)
+            try await beginTranscriberUtterance(format: format)
         } catch {
             guard !stopExitInProgress, state != .idle else {
                 amendCapture.reset()
@@ -237,7 +259,7 @@ extension VoicePipeline {
                 partialTask = nil
                 return
             }
-            await transcriber.append(buffer)
+            await feedTranscriber(buffer)
         }
     }
 
@@ -247,7 +269,7 @@ extension VoicePipeline {
     private func openUtterance(includeCurrent frame: MicFrame) async {
         guard let format = mic?.format else { return }
         do {
-            try await transcriber.begin(format: format)
+            try await beginTranscriberUtterance(format: format)
         } catch {
             guard !stopExitInProgress, state != .idle else { return }
             emit(.error(error.localizedDescription))
@@ -289,7 +311,7 @@ extension VoicePipeline {
                 partialTask = nil
                 return
             }
-            await transcriber.append(buffer)
+            await feedTranscriber(buffer)
         }
         guard !Task.isCancelled, !stopExitInProgress, mic != nil,
               state == .listening(utteranceActive: true)
@@ -299,10 +321,14 @@ extension VoicePipeline {
             partialTask = nil
             return
         }
-        await transcriber.append(frame.buffer)
+        await feedTranscriber(frame.buffer)
     }
 
     func emitPartial(_ text: String) {
+        // A phrase that sounds unfinished earns a longer pause before the endpoint.
+        if vad.isSpeechActive {
+            vad.hangoverExtension = EndpointHold.extraSilence(forPartial: text)
+        }
         emit(.partialTranscript(text))
     }
 }

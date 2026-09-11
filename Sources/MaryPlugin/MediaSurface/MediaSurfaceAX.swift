@@ -92,9 +92,22 @@ public enum MediaSurfaceAX {
         guard AXIsProcessTrusted() else { return nil }
         let wanted = MediaSurfaceRegistration.folded(registration.schema.transportLabel)
 
-        guard let found = AXEngine.detail(pid: pid, select: { snapshot -> AXNodeID? in
-            transportID(in: snapshot, registration: registration)
-        }) else { return nil }
+        // THE SHELL PRESET, not `AXEngine.detail`'s `.exhaustive` default,
+        // whose web lane is 50,000 nodes.
+        //
+        // PIN: AND THAT IS AS CHEAP AS THIS GETS — DO NOT TIGHTEN IT FURTHER.
+        // MEASURED on Apple Music showing a playlist: 820 nodes at ~31ms each
+        // (the player's own AX server answering, not Mary), and the declared
+        // container "Mini Player" is node ~687 of 872 in tree order. A node cap
+        // that saves real time truncates the transport away — depth 8 / 400
+        // was tried and `mary-media-probe` could not find it at all. There is
+        // no budget that makes this read fast.
+        // WHICH IS WHY IT MUST NOT RUN WHERE ANYONE WAITS. `MediaTransportCache`
+        // owns when this happens; every turn-path caller goes through it.
+        guard let found = AXEngine.detail(
+            pid: pid, options: .shell, select: { snapshot -> AXNodeID? in
+                transportID(in: snapshot, registration: registration)
+            }) else { return nil }
 
         // Subtree in tree order: first valued text = leftmost on screen (title).
         var ordered: [AXNodeID] = []

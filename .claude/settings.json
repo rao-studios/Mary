@@ -13,10 +13,12 @@
       "Bash(awk '{print $5, $9}')",
       "Bash(sips -g pixelWidth -g pixelHeight /tmp/page-results.png)",
       "Bash(xargs -I{} sh -c 'echo ==={}===; grep -n \"\\\\\"watch\" \"{}\"')",
-      "Bash(cd /Users/ritesh/Documents/rao/repositories/Mary *)"
+      "Bash(cd /Users/ritesh/Documents/rao/repositories/Mary *)",
+      "Bash(sed -n '/THE NAME-SHAPED PIECES/,/^    private static let functionWords/p' Sources/MaryBrain/Abilities/Roster/SemanticApplicationIndex.swift)"
     ],
     "additionalDirectories": [
-      "/Users/ritesh/Documents/rao/repositories/Mary/docs"
+      "/Users/ritesh/Documents/rao/repositories/Mary/docs",
+      "/Users/ritesh/Documents/rao/repositories/Mary/Sources/MaryBrain/Abilities/Roster"
     ]
   }
 }

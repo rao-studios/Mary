@@ -263,6 +263,11 @@ extension AbilityLibrary {
                 issues: issues,
                 filesRead: discovery.filesRead)
         }
+        // WHAT `{application}` MEANS, decided once for every corpus below.
+        // Three of these builders read `fixture.utterance` straight into a
+        // vectorizer; if each learned the pragma separately, the one that
+        // forgot would embed a literal "{application}" — a term nobody says.
+        let templates = UtteranceTemplateExpander(records: discovery.records)
         let next = AbilityRuntime.Snapshot(
             records: discovery.records,
             validation: AbilityPackageValidation(issues: issues),
@@ -275,26 +280,33 @@ extension AbilityLibrary {
             // file's: no vectorizer at all still means nil, exact-only.
             semanticIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticAbilityRequestIndex.build(
-                    records: discovery.records, vectorizer: $0)
+                    records: discovery.records, vectorizer: $0, templates: templates)
             },
             // The Skill tier is built in the same breath and for the same
             // reason: one model load, two corpora, both off the turn path.
             semanticSkillIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticSkillRequestIndex.build(
-                    records: discovery.records, vectorizer: $0)
+                    records: discovery.records, vectorizer: $0, templates: templates)
             },
             // The intent tier reads every installed package's own
             // `intentSeeds` — a third corpus, same one model load.
             semanticIntentIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticIntentIndex.build(
-                    records: discovery.records, vectorizer: $0)
+                    records: discovery.records, vectorizer: $0, templates: templates)
             },
             // The fourth corpus: named seed families, the shapes of speech
             // that are neither an intent nor a Skill. Same one model load.
             semanticSeedFamilyIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticSeedFamilyIndex.build(
                     records: discovery.records, vectorizer: $0)
-            })
+            },
+            // The fifth corpus: the applications a system-control Skill can be
+            // pointed at, named the way people say them. Same one model load.
+            semanticApplicationIndex: MaryEmbeddings.vectorizer().flatMap {
+                SemanticApplicationIndex.build(
+                    records: discovery.records, vectorizer: $0, templates: templates)
+            },
+            templates: templates)
         lock.lock()
         state.snapshot = next
         state.lastIssues = issues

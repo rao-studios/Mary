@@ -42,13 +42,24 @@ public struct SemanticSkillRequestIndex: Sendable {
     public static func build(
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
+        templates: UtteranceTemplateExpander? = nil,
+        /// Fixture ids to leave OUT of the corpus.
+        ///
+        /// HOLD-OUT, AND IT IS THE ONLY WAY THIS CORPUS CAN BE MEASURED. A
+        /// route fixture is embedded here and then graded against this same
+        /// index, where it matches itself at ~1.0 and (because scoring is
+        /// max-over-positives) swamps every other term. Excluding it at build
+        /// asks the real question: does the sentence still route when it is
+        /// not teaching itself? Empty in production — nothing on the turn path
+        /// passes this.
+        excludingFixtures: Set<String> = [],
         threshold: Float = defaultThreshold
     ) -> SemanticSkillRequestIndex? {
         var entries: [Entry] = []
         var skipped = 0
         for record in records {
             let fixtures = record.package.fixtures
-                .filter { $0.expectedDisposition == "route" }
+                .filter { $0.teachesCorpus && !excludingFixtures.contains($0.id) }
             for skill in record.package.skills {
                 var terms: [String] = [skill.title, skill.summary]
                 // The name the model already selects by, spoken as words:
@@ -68,6 +79,10 @@ public struct SemanticSkillRequestIndex: Sendable {
                     .filter { $0.expectedSkill == skill.id }
                     .map(\.utterance)
 
+                // `{application}` becomes one sentence per pointable
+                // application; anything without a slot passes through.
+                terms = templates?.expand(terms, for: record.package.ability.id)
+                    ?? terms
                 let positives = terms
                     .filter { !$0.isEmpty }
                     .compactMap { vectorizer.vector(for: $0).map(Self.normalized) }

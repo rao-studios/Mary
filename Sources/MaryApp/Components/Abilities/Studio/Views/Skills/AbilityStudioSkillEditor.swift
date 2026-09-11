@@ -68,6 +68,55 @@ struct AbilityStudioSkillEditor: View {
             }
 
             parameters
+            applicationTarget
+        }
+    }
+
+    // MARK: - Pointed at an application
+
+    /// THE RELATIONSHIP, SAID WHERE IT IS AUTHORED. A skill that operates the
+    /// computer rather than a document often acts ON an application it does not
+    /// own — "open a new TextEdit window". Nothing in the schema could say so,
+    /// so the only way to reach an application was to name it in Swift, which
+    /// `ApplicationNameTests` forbids outright.
+    ///
+    /// The candidate list is shown rather than described because it is the
+    /// whole answer to "will this work": it is built from the packages that
+    /// declare a dependency on THIS ability, so an author who sees it empty has
+    /// learned the real problem — no application package points here yet.
+    private var applicationTarget: some View {
+        let resolves = skill.requirements.resolvesApplication
+        let candidates = model.snapshot.applicationsSupporting(package.ability.id)
+        let receiver = ApplicationParameterNames.receiver(
+            in: skill.modelExposure.parameters.map(\.name))
+        let names = candidates.compactMap {
+            model.snapshot.applicationID(ofAbility: $0)
+        }
+        return VStack(alignment: .leading, spacing: .layer2) {
+            Toggle(isOn: Binding(
+                get: { resolves },
+                set: { next in update { $0.requirements.resolvesApplication = next } })) {
+                Text("acts on an application it is pointed at")
+                    .font(.marySans(10.5))
+                    .foregroundStyle(Color.maryInk.opacity(0.7))
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .tint(Color.maryGold)
+            .disabled(isPinned)
+            .help("Mary works out which application was meant from what was said, and fills this skill's application parameter with it.")
+
+            if resolves {
+                if let receiver {
+                    if names.isEmpty {
+                        StudioNote("No installed application points at this ability yet, so there is nothing to resolve. An application package opts in by depending on \(package.ability.id.rawValue).")
+                    } else {
+                        StudioNote("Fills \(receiver) with one of: \(names.sorted().joined(separator: ", ")).")
+                    }
+                } else {
+                    StudioNote("This skill has no parameter to receive the application. Add one named app — or app_name, application, bundle_id — or the package will not seal.")
+                }
+            }
         }
     }
 

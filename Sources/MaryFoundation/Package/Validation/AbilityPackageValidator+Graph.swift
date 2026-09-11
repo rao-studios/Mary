@@ -10,6 +10,27 @@
 import Foundation
 
 extension AbilityPackageValidator {
+    /// How many applications `{application}` would name for this package —
+    /// both reverse-lookup routes, the same union `pointableApplications`
+    /// computes at run time, but from the package graph the validator can see.
+    /// Application expertise only, the same rule both runtime indexes apply.
+    static func pointableApplicationCount(
+        of package: MaryAbilityPackage,
+        in packages: [MaryAbilityPackage]
+    ) -> Int {
+        var seen = Set<String>()
+        for candidate in packages {
+            guard candidate.paradigm == .applicationExpertise,
+                  let affinity = candidate.applicationAffinities.first,
+                  candidate.dependencies.contains(where: {
+                      $0.packageID == package.package.id
+                  })
+            else { continue }
+            seen.insert(affinity.id)
+        }
+        return seen.count
+    }
+
     public static func validateGraph(
         _ packages: [MaryAbilityPackage]
     ) -> AbilityPackageValidation {
@@ -284,6 +305,19 @@ extension AbilityPackageValidator {
                         consumer: package,
                         path: "\(packagePath).fixtures[\(fixtureIndex)].interactions",
                         missingCode: "missing-fixture-interaction")
+                }
+                // A `{application}` SLOT WITH NOTHING TO FILL IT expands to no
+                // sentences at all, so the fixture silently tests zero cases
+                // and teaches the corpus nothing. A WARNING rather than an
+                // error: a package may legitimately ship before the
+                // application packages that will point at it exist.
+                if UtteranceTemplate.hasSlots(fixture.utterance),
+                   pointableApplicationCount(of: package, in: packages) == 0 {
+                    issues.append(.init(
+                        severity: .warning,
+                        code: "unpointable-application-slot",
+                        path: "\(packagePath).fixtures[\(fixtureIndex)].utterance",
+                        message: "This fixture says {application}, but no installed package points an application at \(package.ability.id.rawValue), so it expands to nothing and tests no cases."))
                 }
             }
             for dependency in package.dependencies {

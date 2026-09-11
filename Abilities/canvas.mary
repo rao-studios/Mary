@@ -130,21 +130,39 @@
   "fixtures" : [
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "canvas.present",
-      "id" : "show-me-that-as-a-chart",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "close-the-page",
       "interactions" : [
 
       ],
-      "utterance" : "Show me that as a chart."
+      "utterance" : "Close the page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "close-what-s-on-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close what's on screen."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "close-what-you-re-showing",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close what you're showing."
     },
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "canvas.present",
-      "id" : "put-it-up-on-screen-for-me",
+      "id" : "draw-me-a-diagram-of-it",
       "interactions" : [
 
       ],
-      "utterance" : "Put it up on screen for me."
+      "utterance" : "Draw me a diagram of it."
     },
     {
       "expectedDisposition" : "route",
@@ -158,20 +176,47 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "canvas.dismiss",
-      "id" : "close-the-page",
+      "id" : "hide-what-you-re-showing-me",
       "interactions" : [
 
       ],
-      "utterance" : "Close the page."
+      "utterance" : "Hide what you're showing me."
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "canvas.dismiss",
-      "id" : "close-what-you-re-showing",
+      "expectedSkill" : "canvas.present",
+      "id" : "put-it-up-on-screen-for-me",
       "interactions" : [
 
       ],
-      "utterance" : "Close what you're showing."
+      "utterance" : "Put it up on screen for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "put-that-on-the-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put that on the screen."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "show-me-a-chart-of-that",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me a chart of that."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "show-me-that-as-a-chart",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me that as a chart."
     },
     {
       "expectedDisposition" : "route",
@@ -187,7 +232,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "09de6dfee91058afe31b1622a4eccf86be6e6b08f429145dff49fcd8f55ba30e"
+    "digest" : "f229d9a145e001811773b82f13f4b07155d321043abe81fcb4364825ad765839"
   },
   "interactions" : [
 

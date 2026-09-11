@@ -115,8 +115,12 @@ enum TurnTriage {
         // when the bare one cannot.
         let bare = RoutingQuery.bareRequest(
             query, surfaces: registry.semanticSkillIndex?.surfaces ?? [])
-        let classified = bare.flatMap { intentIndex.classify($0, habits: habits) }
-            ?? intentIndex.classify(query, habits: habits)
+        let bareRanking = bare.map { intentIndex.ranked($0, habits: habits) }
+        let queryRanking = intentIndex.ranked(query, habits: habits)
+        let classified = bareRanking?.verdict(
+            floor: SemanticIntentIndex.floor, margin: SemanticIntentIndex.margin)
+            ?? queryRanking.verdict(
+                floor: SemanticIntentIndex.floor, margin: SemanticIntentIndex.margin)
 
         // Habits reach BOTH tiers. `classify` took them and `affinities`
         // silently fell back to `.shared`, so an injected store only half
@@ -147,7 +151,30 @@ enum TurnTriage {
         // returned nil outright. Everything downstream keeps its own gates: the
         // shortcut still needs a dispatchable shape, and a zero-argument verb
         // still needs a whole simple sentence.
-        let promoted = classified == nil && uniqueSkill != nil
+        // A SENTENCE SMALL TALK RECOGNIZES IS NOT PROMOTABLE.
+        //
+        // `classify` returns nil for two unrelated facts — nothing came near
+        // this sentence, and two intents came EQUALLY near it — and promotion
+        // treated both as licence to act. MEASURED on the shipped corpus:
+        //
+        //   "how are you doing"              operate 0.885  converse 0.869  <- tie
+        //   "which windows are up right now" ask     0.639  operate 0.613
+        //   "hello"                          converse 1.000 operate 0.518
+        //
+        // The greeting's nil is a TIE in which converse is a full contender;
+        // the stuck case's nil is a tie in which converse is nowhere. So the
+        // discriminator is not the tie, it is whether the converse class
+        // positively recognizes these words. When it does, the index HAS
+        // spoken and there is nothing to rescue — promoting there answered
+        // "how are you doing" by opening a shader window.
+        //
+        // The stuck case survives untouched, which is the whole constraint:
+        // "which windows are up right now" scores converse far below the
+        // floor, so it still promotes, still dispatches, still learns.
+        let converseRecognizes = max(
+            queryRanking.score(for: .converse),
+            bareRanking?.score(for: .converse) ?? -1) >= SemanticIntentIndex.floor
+        let promoted = classified == nil && uniqueSkill != nil && !converseRecognizes
         let intent = promoted ? .operate : (classified?.intent ?? .converse)
 
         return Verdict(

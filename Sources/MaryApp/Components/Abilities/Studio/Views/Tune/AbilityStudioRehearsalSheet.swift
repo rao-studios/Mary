@@ -210,6 +210,10 @@ struct AbilityStudioRehearsalSheet: View {
                     Divider().overlay(Color.maryBorder)
                     expertiseTier(expertise, reading: rehearsal.expertiseWord)
                 }
+                if let reference = rehearsal.applicationReference {
+                    Divider().overlay(Color.maryBorder)
+                    applicationTier(reference, reading: rehearsal.applicationWord)
+                }
                 legend
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -267,6 +271,71 @@ struct AbilityStudioRehearsalSheet: View {
             if let reading {
                 StudioNote(reading)
             }
+        }
+    }
+
+    /// WHICH APPLICATION THIS SKILL WAS POINTED AT. The expertise tier above
+    /// asks who inherits a discipline; this asks the same shape of question for
+    /// a skill that operates the computer — "open a new window" IN WHAT.
+    ///
+    /// EVERY CANDIDATE IS DRAWN, SCORED OR NOT, and an unreached one shows a
+    /// dash rather than a zero. An application the words never touched and one
+    /// they touched at 0.20 read identically as "no" and are different repairs.
+    private func applicationTier(
+        _ verdict: ApplicationReferenceResolution.Verdict,
+        reading: String?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: .layer2) {
+            HStack(alignment: .firstTextBaseline, spacing: .layer2) {
+                SectionLabel("Application tier")
+                Text("what \(verdict.hostID.rawValue) can be pointed at — named first, then nearest")
+                    .font(.marySans(9))
+                    .foregroundStyle(Color.maryInk.opacity(0.4))
+                    .lineLimit(1)
+            }
+            ForEach(verdict.candidates.prefix(8)) { row in
+                applicationRow(row, chosen: verdict.chosen?.abilityID == row.abilityID)
+            }
+            if let reading {
+                StudioNote(reading)
+            }
+        }
+    }
+
+    private func applicationRow(
+        _ row: ApplicationReferenceResolution.Candidate,
+        chosen: Bool
+    ) -> some View {
+        HStack(spacing: .layer2) {
+            Circle()
+                .fill(chosen ? Color.maryGold : Color.maryInk.opacity(0.15))
+                .frame(width: 6, height: 6)
+            Text(row.applicationID)
+                .font(.maryMono(10))
+                .foregroundStyle(Color.maryInk.opacity(chosen ? 0.85 : 0.5))
+                .lineLimit(1)
+                .frame(width: Paper.Layout.labelColumn, alignment: .leading)
+            Spacer(minLength: 0)
+            // A DASH, NOT A ZERO, for a candidate the words never reached.
+            Text(row.score.map { String(format: "%.2f", $0) } ?? "—")
+                .font(.maryMono(10))
+                .foregroundStyle(chosen ? Color.maryGold : Color.maryInk.opacity(0.4))
+                .frame(width: 34, alignment: .trailing)
+            Text(Self.applicationWord(row.standing))
+                .font(.maryMono(9))
+                .foregroundStyle(Color.maryInk.opacity(0.4))
+                .frame(width: 58, alignment: .trailing)
+        }
+    }
+
+    private static func applicationWord(
+        _ standing: ApplicationReferenceResolution.Standing
+    ) -> String {
+        switch standing {
+        case .named: return "you said"
+        case .nearest: return "nearest"
+        case .considered: return "considered"
+        case .unreached: return "not reached"
         }
     }
 

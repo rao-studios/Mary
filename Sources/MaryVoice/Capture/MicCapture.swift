@@ -76,6 +76,12 @@ public final class MicCapture: @unchecked Sendable {
         self.requestedDeviceUID = deviceUID
     }
 
+    /// Test seam: reports `format` like a started capture, never touches hardware.
+    init(testFormat: AVAudioFormat) {
+        self.voiceProcessing = false
+        self.format = testFormat
+    }
+
     // MARK: - Session lifecycle
 
     /// Start the tap. The returned stream ends when `stop()` is called.

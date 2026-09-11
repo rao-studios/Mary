@@ -42,12 +42,136 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         let wasRunning = (try? resolver.runningApplication(named: application).get()) != nil
         switch await resolver.activateApplication(named: application) {
         case .success(let resolved):
-            let verb = wasRunning ? "Brought" : "Opened"
+            // A cold launch is an opening, not a raise — "Opened Chrome
+            // forward." described neither.
             return WindowManagementResult(
-                ok: true, summary: "\(verb) \(resolved.displayName) forward.")
+                ok: true,
+                summary: wasRunning
+                    ? "Brought \(resolved.displayName) forward."
+                    : "Opened \(resolved.displayName).")
         case .failure(let error):
             return .failure(error)
         }
+    }
+
+    /// Make the application produce a NEW window, launching it if it is not up.
+    ///
+    /// THE APPLICATION'S OWN COMMAND, NOT A KEYSTROKE STANDING IN FOR ONE.
+    /// `File → New` is tried first and ⌘N only as the fallback, because the
+    /// menu item is the command the application publishes: it is localized by
+    /// the app, it is greyed out when the app means "not now" (which is an
+    /// answer, and one a posted chord cannot hear), and it cannot land in the
+    /// wrong window. This is the `nativeCommandOnly` guardrail, which
+    /// `window-management` already declares.
+    ///
+    /// A COLD LAUNCH OFTEN IS THE WHOLE ANSWER. Most Mac applications open a
+    /// window when they start, so asking for New immediately afterwards would
+    /// leave two where one was asked for. The count decides, not a guess about
+    /// which applications behave that way.
+    public func openNewWindow(application: String) async -> WindowManagementResult {
+        let query = application.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return .failure(.invalidApplication) }
+        let wasRunning = (try? resolver.runningApplication(named: query).get()) != nil
+        let before = wasRunning ? (try? await windowCount(application: query)) ?? 0 : 0
+
+        let resolved: ManagedApplication
+        switch await resolver.activateApplication(named: query) {
+        case .success(let application): resolved = application
+        case .failure(let error): return .failure(error)
+        }
+
+        // Launching may have made the window by itself.
+        if !wasRunning, (try? await windowCount(application: query)) ?? 0 > 0 {
+            stageNewWindow(resolved)
+            return WindowManagementResult(
+                ok: true, summary: "Opened \(resolved.displayName) with a new window.")
+        }
+
+        let pid = resolved.processIdentifier
+        var refusal: String?
+        switch await ApplicationMenuDriver.choose(path: ["File", "New"], pid: pid) {
+        case .success:
+            break
+        // "GREYED OUT" IS THE APPLICATION ANSWERING, NOT FAILING TO.
+        //
+        // MEASURED: run against a TextEdit that was midway through quitting,
+        // this came back `itemDisabled` — the app had disabled New because it
+        // was on its way out. Posting ⌘N there would be synthesizing input to
+        // do the very thing the application had just said it could not do,
+        // which is exactly what the `nativeCommandOnly` guardrail forbids, and
+        // the result would be a cheerful summary about a window that does not
+        // exist. A disabled command is a final answer; it is reported.
+        case .failure(.itemDisabled(let title)):
+            return .failure(.operationFailed(
+                ApplicationMenuDriver.Failure.itemDisabled(title)
+                    .spoken(app: resolved.displayName)))
+        case .failure(let failure):
+            // The menu could not ANSWER — no menu bar published yet, or the
+            // command sits under a localized title this path cannot name. That
+            // is ignorance, not refusal, so the chord is a fair fallback. It is
+            // the weaker gesture (it lands wherever focus is), so it runs only
+            // behind the frontmost check, against the app just proved forward.
+            refusal = failure.spoken(app: resolved.displayName)
+            guard KeyChordPress.press(
+                key: .n, modifiers: [.command],
+                targetPrefix: resolved.bundleIdentifier)
+            else {
+                return .failure(.operationFailed(
+                    refusal ?? "I couldn't ask \(resolved.displayName) for a new window."))
+            }
+        }
+
+        // VERIFY BY LOOKING, not by having pressed something. Poll rather than
+        // sleep once: an application makes its window on its own run loop.
+        let deadline = Date().addingTimeInterval(2.0)
+        while Date() < deadline {
+            if (try? await windowCount(application: query)) ?? 0 > before {
+                stageNewWindow(resolved)
+                let verb = wasRunning ? "" : "Opened \(resolved.displayName) and made "
+                return WindowManagementResult(
+                    ok: true,
+                    summary: wasRunning
+                        ? "New \(resolved.displayName) window."
+                        : "\(verb)a new window.")
+            }
+            if Task.isCancelled {
+                return .failure(.operationFailed(
+                    "Opening a \(resolved.displayName) window was cancelled."))
+            }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        // The app is forward and the count never moved. Say exactly that
+        // rather than reporting a window nobody can see.
+        return .failure(.operationFailed(
+            refusal ?? "\(resolved.displayName) never opened a new window."))
+    }
+
+    /// THE TYPER'S HANDSHAKE, FROM THE SKILL THAT MAKES THE PLACE TO WRITE IN.
+    ///
+    /// `type_at_cursor` documents its `app` parameter as "omit to type into the
+    /// just-opened document", and `create_document` has always honoured that by
+    /// recording here once it proved the document appeared. `open_new_window`
+    /// never did — so "open a TextEdit window" followed by "write a poem in it"
+    /// fell all the way down `TypingSurface.resolve` to frontmost, which during
+    /// a conversation is Mary. The one Skill whose whole job is making somewhere
+    /// to write was the one Skill that did not say where.
+    ///
+    /// PROVEN, NEVER PRESUMED: both callers have already counted a window into
+    /// existence, which is the contract `StagedWritingSurface.record` states and
+    /// `raiseWindow` above already keeps. The prose guard is the same one, too —
+    /// a new Terminal window is not somewhere prose belongs.
+    private func stageNewWindow(_ application: ManagedApplication) {
+        guard SelectionSurfacePolicy.permitsProseApplication(
+            application.bundleIdentifier) else { return }
+        StagedWritingSurface.shared.record(
+            bundleID: application.bundleIdentifier,
+            spokenName: application.displayName)
+    }
+
+    /// Windows the adapter can see right now, or a throw. Zero is a real answer.
+    private func windowCount(application: String) async throws -> Int {
+        let (_, _, windows) = try await resolvedWindows(application: application)
+        return windows.count
     }
 
     public func listWindows(application: String) async -> WindowManagementResult {
@@ -80,7 +204,10 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
     }
 
     public func raiseWindow(application: String, window: String) async -> WindowManagementResult {
-        await targetOperation(application: application, reference: window, verb: "Brought forward") {
+        await targetOperation(
+            application: application, reference: window, verb: "Brought forward",
+            frontWhenOmitted: true
+        ) {
             try await $0.adapter.raise($0.window, in: $0.application)
             // Raise verified activation and the exact window — typer staging.
             if SelectionSurfacePolicy.permitsProseApplication($0.application.bundleIdentifier) {
@@ -167,6 +294,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         application: String,
         reference: String,
         verb: String,
+        frontWhenOmitted: Bool = false,
         operation: @Sendable (Target) async throws -> Void
     ) async -> WindowManagementResult {
         do {
@@ -175,8 +303,16 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
             if let failure = inferred.failure { throw failure }
             let (app, adapter, windows) = try await resolvedWindows(
                 application: inferred.application)
-            let target = try await adapter.resolve(
-                inferred.reference, in: app, windows: windows)
+            // Omitted reference = front window, for a verb that says so — the
+            // rule `setFullScreen` states. Restore still needs one named.
+            let target: ManagedWindow
+            if frontWhenOmitted, inferred.reference.trimmingCharacters(
+                in: .whitespacesAndNewlines).isEmpty {
+                target = windows[0]
+            } else {
+                target = try await adapter.resolve(
+                    inferred.reference, in: app, windows: windows)
+            }
             try await operation((app, adapter, target))
             let title = target.title.isEmpty ? "That window" : target.title
             return WindowManagementResult(ok: true, summary: "\(verb) \(title) in \(app.displayName).")
@@ -262,6 +398,26 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
             else { return .failure(.invalidApplication) }
             return .success(value)
         }
+        // A BUNDLE IDENTIFIER NAMES ONE APPLICATION EXACTLY, AND IS LOOKED UP
+        // BY THAT IDENTIFIER.
+        //
+        // Exactly: with Safari closed, five `com.apple.SafariPlatformSupport.Helper`
+        // processes (the AutoFill extensions) share its prefix, so the partial
+        // tier called `com.apple.Safari` ambiguous and the launch never ran.
+        //
+        // By identifier: the process-wide `runningApplications` list is a
+        // cache. Measured in the headless turn probe, polled off the main
+        // thread after `open -b` exited 0, it did not show the freshly launched
+        // Safari once in 46 reads over five seconds, while
+        // `runningApplications(withBundleIdentifier:)` found it on the first —
+        // the lookup `VerifiedActivation.regularApplication` already prefers.
+        if NSWorkspace.shared.urlForApplication(withBundleIdentifier: query) != nil {
+            return Self.resolve(
+                query,
+                candidates: NSRunningApplication.runningApplications(
+                    withBundleIdentifier: query).compactMap(Self.value),
+                exactOnly: true)
+        }
         return Self.resolve(query, candidates: NSWorkspace.shared.runningApplications.compactMap(Self.value))
     }
 
@@ -331,9 +487,12 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
         return .success(running)
     }
 
+    /// `exactOnly` when the query is a bundle identifier: a prefix or substring
+    /// of one is a different application, never a looser spelling of it.
     static func resolve(
         _ application: String,
-        candidates: [ManagedApplication]
+        candidates: [ManagedApplication],
+        exactOnly: Bool = false
     ) -> Result<ManagedApplication, WindowManagementError> {
         let query = normalize(application)
         guard !query.isEmpty else { return .failure(.invalidApplication) }
@@ -343,6 +502,7 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
         }
         if let selected = uniqueApplication(exact) { return .success(selected) }
         if distinctApplications(exact).count > 1 { return .failure(.ambiguousApplication(application)) }
+        if exactOnly { return .failure(.applicationNotRunning(application)) }
 
         let partial = candidates.filter {
             let id = normalize($0.bundleIdentifier)

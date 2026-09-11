@@ -13,7 +13,7 @@
 //      ─first TTS audio→ speaking ─reply done + drained→ listening(waiting)
 //    speaking ─sustained user speech→ barge-in → listening(active)
 //
-//  PIN: Mic stays open for barge-in. ~300 ms pre-roll into the transcriber.
+//  PIN: Mic stays open for barge-in. ~600 ms pre-roll into the transcriber.
 //
 
 import AVFoundation
@@ -25,6 +25,8 @@ public actor VoicePipeline {
     let transcriber: any VoiceTranscriber
     let speaker: KokoroStreamSpeaker
     let responder: any LanguageResponder
+    /// Opt-in record of what the transcriber heard (config.utteranceDumpDirectory).
+    let utteranceDump: UtteranceDump?
 
     let voiceFloor: VoiceFloorOwner
     var amendCapture: AmendCapture
@@ -49,6 +51,9 @@ public actor VoicePipeline {
     var preRollDuration: TimeInterval = 0
     /// Sustained voiced time while speaking — barge-in trigger.
     var bargeGovernor: BargeInGovernor?
+    /// Interrupting speech from the governor's onset to its commit, replayed at
+    /// barge-in. Pre-roll alone has scrolled past the first word by then.
+    var bargeCapture: [AVAudioPCMBuffer]?
     /// True only while audio is actually audible. `.speaking` outlives sound
     /// (Skill / slow lane). Boost only while live, else the mic deafens the user.
     var speakerAudioLive = false
@@ -99,6 +104,9 @@ public actor VoicePipeline {
         self.transcriber = transcriber
         self.speaker = speaker
         self.responder = responder
+        self.utteranceDump = config.utteranceDumpDirectory.map {
+            UtteranceDump(directory: $0, backend: config.sttBackend)
+        }
         self.continuous = continuous
         self.intakeTuning = intakeTuning
         self.vad = EnergyVAD(config: config.vad)
@@ -166,6 +174,10 @@ public actor VoicePipeline {
     func handleFrameForTesting(_ frame: MicFrame) async {
         await handle(frame: frame)
     }
+    /// A capture that reports a format without hardware, so open/replay paths run.
+    func installMicForTesting(format: AVAudioFormat) {
+        mic = MicCapture(testFormat: format)
+    }
 
     func transition(to newState: VoicePipelineState) {
         guard state != newState else { return }
@@ -195,7 +207,12 @@ public actor VoicePipeline {
         preRollDuration = 0
         transition(to: .listening(utteranceActive: false))
         // No tap format → nothing to hear; the acoustic path fails on its own.
-        if let format = mic.format { await startContinuousHearing(format: format) }
+        if let format = mic.format {
+            // Warm the recognizer off the frame path; the first `begin` finds it ready.
+            let transcriber = transcriber
+            Task { await transcriber.prewarm(format: format) }
+            await startContinuousHearing(format: format)
+        }
         guard !terminated, state != .idle else {
             mic.stop()
             throw CancellationError()
@@ -262,6 +279,8 @@ public actor VoicePipeline {
         currentUserTurnID = nil
         speakerAudioLive = false
         amendCapture.reset()
+        bargeCapture = nil
+        utteranceDump?.abandon()
         respondStarted = false
         generationActive = false
 

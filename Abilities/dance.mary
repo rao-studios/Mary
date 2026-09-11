@@ -168,12 +168,21 @@
   "fixtures" : [
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "dance.start",
-      "id" : "let-s-dance",
+      "expectedSkill" : "dance.stop",
+      "id" : "close-the-dance-window",
       "interactions" : [
 
       ],
-      "utterance" : "Let's dance."
+      "utterance" : "Close the dance window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "close-the-shader",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close the shader."
     },
     {
       "expectedDisposition" : "route",
@@ -187,24 +196,6 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.start",
-      "id" : "shall-we-dance",
-      "interactions" : [
-
-      ],
-      "utterance" : "Shall we dance?"
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.start",
-      "id" : "put-on-a-light-show",
-      "interactions" : [
-
-      ],
-      "utterance" : "Put on a light show."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.start",
       "id" : "dance-mary",
       "interactions" : [
 
@@ -213,30 +204,21 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "dance.start",
-      "id" : "show-me-a-dance",
+      "expectedSkill" : "dance.stop",
+      "id" : "enough-stop-the-show",
       "interactions" : [
 
       ],
-      "utterance" : "Show me a dance."
+      "utterance" : "Enough, stop the show."
     },
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.start",
-      "id" : "let-s-have-a-dance",
+      "id" : "give-me-a-light-show",
       "interactions" : [
 
       ],
-      "utterance" : "Let's have a dance."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.start",
-      "id" : "time-to-dance",
-      "interactions" : [
-
-      ],
-      "utterance" : "Time to dance."
+      "utterance" : "Give me a light show."
     },
     {
       "expectedDisposition" : "route",
@@ -250,6 +232,15 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.mood",
+      "id" : "how-are-you-feeling-today",
+      "interactions" : [
+
+      ],
+      "utterance" : "How are you feeling today?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
       "id" : "how-do-you-feel-right-now",
       "interactions" : [
 
@@ -258,21 +249,21 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "dance.mood",
-      "id" : "what-do-you-think-i-feel-like-right-now",
+      "expectedSkill" : "dance.start",
+      "id" : "let-s-dance",
       "interactions" : [
 
       ],
-      "utterance" : "What do you think I feel like right now?"
+      "utterance" : "Let's dance."
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "dance.mood",
-      "id" : "show-me-your-mood",
+      "expectedSkill" : "dance.start",
+      "id" : "let-s-have-a-dance",
       "interactions" : [
 
       ],
-      "utterance" : "Show me your mood."
+      "utterance" : "Let's have a dance."
     },
     {
       "expectedDisposition" : "route",
@@ -286,29 +277,65 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.mood",
-      "id" : "how-are-you-feeling-today",
-      "interactions" : [
-
-      ],
-      "utterance" : "How are you feeling today?"
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.mood",
-      "id" : "what-do-you-think-i-m-feeling",
-      "interactions" : [
-
-      ],
-      "utterance" : "What do you think I'm feeling?"
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.mood",
       "id" : "paint-your-mood-for-me",
       "interactions" : [
 
       ],
       "utterance" : "Paint your mood for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "put-on-a-light-show",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put on a light show."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "put-on-a-show",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put on a show."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "shall-we-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Shall we dance?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "show-me-a-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me a dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "show-me-your-mood",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me your mood."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "shut-the-shader-down",
+      "interactions" : [
+
+      ],
+      "utterance" : "Shut the shader down."
     },
     {
       "expectedDisposition" : "route",
@@ -322,24 +349,6 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.stop",
-      "id" : "that-s-enough-dancing",
-      "interactions" : [
-
-      ],
-      "utterance" : "That's enough dancing."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.stop",
-      "id" : "close-the-shader",
-      "interactions" : [
-
-      ],
-      "utterance" : "Close the shader."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.stop",
       "id" : "stop-the-dance",
       "interactions" : [
 
@@ -349,27 +358,54 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "dance.stop",
-      "id" : "enough-stop-the-show",
-      "interactions" : [
-
-      ],
-      "utterance" : "Enough, stop the show."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "dance.stop",
       "id" : "take-the-mood-down",
       "interactions" : [
 
       ],
       "utterance" : "Take the mood down."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "that-s-enough-dancing",
+      "interactions" : [
+
+      ],
+      "utterance" : "That's enough dancing."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "time-to-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Time to dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "what-do-you-think-i-feel-like-right-now",
+      "interactions" : [
+
+      ],
+      "utterance" : "What do you think I feel like right now?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "what-do-you-think-i-m-feeling",
+      "interactions" : [
+
+      ],
+      "utterance" : "What do you think I'm feeling?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "5c32733031a5067b775c2b64c51637ba54ee3569e3448cbf768da5ce52761dce"
+    "digest" : "6a1c6e4cc41c4f83e25a46435e2c91024dbc2ca93187da11ed18e01747edcf03"
   },
   "interactions" : [
 

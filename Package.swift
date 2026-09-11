@@ -8,7 +8,7 @@
 //       MaryPlugin, and the machine they drive lives in MaryComputerUse —
 //       nothing above it posts an event or performs an AX action.
 //       AX is tier 0 (MaryAmbient → MaryFoundation only).
-//       VisionAX joins ONLY MaryComputerUse, THROUGH Frigate's FrigateVision product:
+//       VisionAX joins ONLY MaryComputerUse, THROUGH Frigate's FrigateVisionAX product:
 //       it consumes the pixels only this layer may capture, and it replicates the
 //       AXNode/AXScreenElement type names, so a second importer would face an ambiguity
 //       on every use (VisionAXSealTests).
@@ -39,8 +39,8 @@ let package = Package(
     ],
     dependencies: [
         // Frigate: the ML surfaces, one package. Its inference products (MLX, MLXLLM,
-        // MLXLMCommon) belong to MaryBrain; its FrigateVision product — VisionAX,
-        // re-exported — belongs to MaryComputerUse and to nothing else. No alias map.
+        // MLXLMCommon) belong to MaryBrain; its FrigateVisionAX product — Frigate's
+        // vision runtime — belongs to MaryComputerUse and to nothing else. No alias map.
         .package(path: "../Frigate"),
         // Conduit: local checkout, same wire as the Sewn/Thread node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
@@ -85,10 +85,11 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
-                // VisionAX, hosted by Frigate. MLX-free: the vision product depends on
-                // the perception engine and nothing else, so a keystroke still has no
-                // model runtime behind it.
-                .product(name: "FrigateVision", package: "Frigate"),
+                // VisionAX, hosted by Frigate. The vision product carries the perception
+                // engine and — since the classifier's backbone moved to Metal (2026-09) —
+                // MLX's core with it: the one model runtime this layer holds, chosen on
+                // purpose. None of Frigate's transformer names come along.
+                .product(name: "FrigateVisionAX", package: "Frigate"),
             ],
             path: "Sources/MaryComputerUse",
             swiftSettings: [.swiftLanguageMode(.v5)]

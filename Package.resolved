@@ -1,5 +1,5 @@
 {
-  "originHash" : "4373b36f0914982499621f6f263b6aff9edc04096bfa99a3c92ad634ed11e6c7",
+  "originHash" : "b2d83f4f61689f7c33cc6e1cbe570eddd4f43232e5bd235d1a3dad759f5ccd71",
   "pins" : [
     {
       "identity" : "granite",
@@ -224,6 +224,15 @@
       "state" : {
         "revision" : "869129b7bf4ecc57b97d0193ad29690ca2134750",
         "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "yyjson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ibireme/yyjson.git",
+      "state" : {
+        "revision" : "8b4a38dc994a110abaec8a400615567bd996105f",
+        "version" : "0.12.0"
       }
     }
   ],

@@ -87,6 +87,7 @@ public protocol WindowManagementServing: Sendable {
     func listWindows(application: String) async -> WindowManagementResult
     func restoreWindow(application: String, window: String) async -> WindowManagementResult
     func raiseWindow(application: String, window: String) async -> WindowManagementResult
+    func openNewWindow(application: String) async -> WindowManagementResult
     func raiseAllWindows(application: String) async -> WindowManagementResult
     /// Enter or leave full screen. Empty `window` = the one in front.
     func setFullScreen(

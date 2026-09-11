@@ -19,9 +19,12 @@ extension VoicePipeline {
     // ROUTE: Entry point for processing a completed turn from the transcriber
     func runTurn() async {
         let text: String
+        let finishStarted = Date()
         do {
             text = try await transcriber.finish()
         } catch {
+            utteranceDump?.close(
+                transcript: nil, finishSeconds: Date().timeIntervalSince(finishStarted))
             guard !Task.isCancelled, !stopExitInProgress, state != .idle else {
                 return
             }
@@ -36,6 +39,8 @@ extension VoicePipeline {
             vad.reset()
             return
         }
+        utteranceDump?.close(
+            transcript: text, finishSeconds: Date().timeIntervalSince(finishStarted))
         guard !Task.isCancelled, !stopExitInProgress, state != .idle else {
             return
         }
@@ -80,7 +85,7 @@ extension VoicePipeline {
         emit(.amendedTranscript(query))
         await submitTurn(query: query, superseding: amend.wasSubmitted)
     }
-    
+
     // ROUTE: Execute turn
     func submitTurn(query: String, superseding: Bool) async {
         guard !terminated else { return }
@@ -168,6 +173,7 @@ extension VoicePipeline {
         if state != .idle {
             vad.reset()
             bargeGovernor = nil
+            bargeCapture = nil
             amendCapture.resetGovernor()
             respondStarted = false
             speakerAudioLive = false

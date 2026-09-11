@@ -8,13 +8,13 @@
 //        that passes while the lane is broken.
 //        THE ONE OTHER FILE THAT MAY IMPORT THE VISION ENGINE. It is a test fixture,
 //        outside Sources/, so the seal test does not see it — and it exists so the seal
-//        itself can be tested at all. It says `FrigateVision`, the same spelling the
-//        door says, so there is one vocabulary in the repository.
+//        itself can be tested at all. It says `VisionAX`, the same spelling the door
+//        says, so there is one vocabulary in the repository.
 //
 
 import CoreGraphics
 import Foundation
-import FrigateVision
+import FrigateVisionAX
 
 enum SeenPageFixture {
 

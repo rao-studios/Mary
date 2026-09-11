@@ -11,7 +11,7 @@
 //        with the one before it. These are the three places it now declines,
 //        on BOTH lanes, and the labels the model reads instead of "FAILED".
 //        THE LANE IS CALLED DIRECTLY, WITH A ROUTE — the same reason as
-//        LocalTurnRungTests: with no semantic index no turn is ever an action.
+//        EngineTurnRungTests: with no semantic index no turn is ever an action.
 //
 
 import Foundation
@@ -26,10 +26,10 @@ import MaryVoice
     static let skipTheAd = #"{"goal":"skip the ad"}"#
     static let whichOne = "There's more than one \"skip the ad\" on this page — \"My Ad Center\", \"Why you're seeing this ad\". Which one?"
 
-    // MARK: - Local lane
+    // MARK: - Engine seat (no Lane A)
 
     /// A QUESTION ENDS THE LANE, AND IS THE REPLY — not "that didn't go through".
-    @Test func aQuestionEndsTheLocalLane() async throws {
+    @Test func aQuestionEndsTheEngineTurn() async throws {
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.failingTools = ["probe"]
         dispatcher.askingTools = ["probe"]
@@ -41,7 +41,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(brain, "skip the ad", route: Self.route(action: true))
+        let events = try await Self.runEngineTurn(brain, "skip the ad", route: Self.route(action: true))
 
         #expect(dispatcher.dispatchedSnapshot() == ["probe"])
         #expect(engine.requestsSnapshot().count == 1, "the lane ended on the question")
@@ -62,7 +62,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        let events = try await Self.runLocalTurn(brain, "click the purple button", route: Self.route(action: true))
+        let events = try await Self.runEngineTurn(brain, "click the purple button", route: Self.route(action: true))
 
         #expect(dispatcher.dispatchedSnapshot() == ["probe"])
         #expect(engine.requestsSnapshot().count == 2, "the repeat was refused and the turn wrapped up")
@@ -79,7 +79,7 @@ import MaryVoice
             .init(text: "Done."),
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        _ = try await Self.runLocalTurn(brain, "click it", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "click it", route: Self.route(action: true))
         #expect(dispatcher.dispatchedSnapshot() == ["probe", "probe"])
     }
 
@@ -93,7 +93,7 @@ import MaryVoice
             .init(text: "Done."),
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        _ = try await Self.runLocalTurn(brain, "click it", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "click it", route: Self.route(action: true))
         #expect(dispatcher.dispatchedSnapshot().count == 1)
     }
 
@@ -108,7 +108,7 @@ import MaryVoice
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
-        _ = try await Self.runLocalTurn(brain, "skip the ad", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "skip the ad", route: Self.route(action: true))
 
         #expect(dispatcher.dispatchedSnapshot() == ["probe"])
         #expect(engine.requestsSnapshot().count == 3, "the lane continued — the model may look, or stop")
@@ -126,7 +126,7 @@ import MaryVoice
             .init(text: "Done."),
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        _ = try await Self.runLocalTurn(brain, "skip two songs", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "skip two songs", route: Self.route(action: true))
         #expect(dispatcher.dispatchedSnapshot() == ["probe", "probe"])
     }
 
@@ -142,7 +142,7 @@ import MaryVoice
             .init(text: "Done."),
         ])
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        _ = try await Self.runLocalTurn(brain, "skip the ad", route: Self.route(action: true))
+        _ = try await Self.runEngineTurn(brain, "skip the ad", route: Self.route(action: true))
         #expect(dispatcher.dispatchedSnapshot() == ["probe", "look", "probe"])
     }
 
@@ -238,12 +238,12 @@ import MaryVoice
             verdicts: AmbientVerdicts(actionTurn: action))
     }
 
-    private static func runLocalTurn(
+    private static func runEngineTurn(
         _ brain: MaryBrain, _ text: String, route: AmbientRoute
     ) async throws -> [BrainEvent] {
         let stream = AsyncThrowingStream<BrainEvent, Error> { continuation in
             Task {
-                await brain.localTurn(
+                await brain.engineTurn(
                     userText: text, systemPrompt: "", route: route,
                     continuation: continuation, epoch: 0)
                 continuation.finish()

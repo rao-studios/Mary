@@ -9,10 +9,19 @@
 
 import Foundation
 
-/// STT backend. One case today; enum stays so `VoiceTranscriber` can grow.
+/// STT backend. Both are Apple and on-device; they differ in the model.
 public enum STTBackend: String, Sendable, Codable, CaseIterable {
-    /// Apple Speech — on-device, live partials.
+    /// SFSpeechRecognizer — the classic on-device recognizer, live partials.
     case apple
+    /// SpeechAnalyzer + SpeechTranscriber — the macOS 26 model, flushed through end of input.
+    case analyzer
+
+    public var displayName: String {
+        switch self {
+        case .apple:    return "Speech (classic recognizer)"
+        case .analyzer: return "SpeechAnalyzer (newer on-device model)"
+        }
+    }
 }
 
 /// TTS backend the speaker synthesizes with.
@@ -40,7 +49,8 @@ public struct VADConfig: Sendable, Codable, Equatable {
     public var hangoverMs: Int
     /// Shorter bursts than this are discarded as noise.
     public var minUtteranceMs: Int
-    /// Audio kept from before speechStart and replayed into STT.
+    /// Audio kept from before speechStart and replayed into STT. Not persisted:
+    /// nobody tunes it, and a stored value would pin an old default forever.
     public var preRollMs: Int
     /// While Kokoro speaks, multiply speechStartRMS by this. Barge-in must beat it.
     public var bargeInRMSBoost: Float
@@ -54,7 +64,7 @@ public struct VADConfig: Sendable, Codable, Equatable {
         speechContinueRMS: Float = 0.008,
         hangoverMs: Int = 850,
         minUtteranceMs: Int = 300,
-        preRollMs: Int = 300,
+        preRollMs: Int = 600,
         bargeInRMSBoost: Float = 3.0,
         bargeResumeMs: Int = 500,
         voiceProcessing: Bool = true
@@ -69,9 +79,10 @@ public struct VADConfig: Sendable, Codable, Equatable {
         self.voiceProcessing = voiceProcessing
     }
 
+    /// `preRollMs` is deliberately absent — see its doc comment.
     enum CodingKeys: String, CodingKey {
         case speechStartRMS, speechContinueRMS, hangoverMs, minUtteranceMs,
-             preRollMs, bargeInRMSBoost, bargeResumeMs, voiceProcessing
+             bargeInRMSBoost, bargeResumeMs, voiceProcessing
     }
 
     /// Tolerant decode — persisted in the app config store; new fields must not fail old restores.
@@ -82,7 +93,6 @@ public struct VADConfig: Sendable, Codable, Equatable {
         speechContinueRMS = try c.decodeIfPresent(Float.self, forKey: .speechContinueRMS) ?? 0.008
         hangoverMs = try c.decodeIfPresent(Int.self, forKey: .hangoverMs) ?? 850
         minUtteranceMs = try c.decodeIfPresent(Int.self, forKey: .minUtteranceMs) ?? 300
-        preRollMs = try c.decodeIfPresent(Int.self, forKey: .preRollMs) ?? 300
         bargeInRMSBoost = try c.decodeIfPresent(Float.self, forKey: .bargeInRMSBoost) ?? 3.0
         bargeResumeMs = try c.decodeIfPresent(Int.self, forKey: .bargeResumeMs) ?? 500
         voiceProcessing = try c.decodeIfPresent(Bool.self, forKey: .voiceProcessing) ?? true
@@ -100,18 +110,23 @@ public struct VoicePipelineConfig: Sendable {
     /// When set, "stop listening" is intercepted: this line is spoken, then
     /// `.stopListeningCommand`. nil disables (probes, tests).
     public var stopListeningAck: String?
+    /// When set, every utterance's transcriber audio + transcript lands here
+    /// (UtteranceDump). nil = off, the shipping default.
+    public var utteranceDumpDirectory: URL?
 
     public init(
         sttBackend: STTBackend = .apple,
         voice: String = "af_heart",
         vad: VADConfig = VADConfig(),
         kokoroModelsDir: URL? = nil,
-        stopListeningAck: String? = nil
+        stopListeningAck: String? = nil,
+        utteranceDumpDirectory: URL? = nil
     ) {
         self.sttBackend = sttBackend
         self.voice = voice
         self.vad = vad
         self.kokoroModelsDir = kokoroModelsDir
         self.stopListeningAck = stopListeningAck
+        self.utteranceDumpDirectory = utteranceDumpDirectory
     }
 }

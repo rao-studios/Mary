@@ -3,8 +3,8 @@
 //  MaryComputerUse
 //
 //  WHAT: What is on a page, read from its pixels. THE ONLY FILE THAT IMPORTS THE VISION
-//        ENGINE — as `FrigateVision`, which re-exports VisionAX.
-//  IN:   WindowPixels + FrigateVision
+//        ENGINE — as `FrigateVisionAX`, Frigate's vision product and module.
+//  IN:   WindowPixels + VisionAX (hosted by Frigate)
 //  OUT:  Reading — AXScreenElement rows and a MediaControlReading, in screen points
 //  PIN:  THE SEAL IS HERE. VisionAX replicates Mary's AX type names (AXNodeSnapshot,
 //        AXScreenElement, AXNodeCategory), so a second importer anywhere in the module
@@ -21,7 +21,7 @@
 
 import CoreGraphics
 import Foundation
-import FrigateVision
+import FrigateVisionAX
 import os
 
 public enum VisionPageReader {
@@ -236,6 +236,7 @@ public enum VisionPageReader {
                 + (intent == .elements
                     ? " · \(Int((summary.labeledFraction * 100).rounded()))% named"
                         + " · \(summary.groups.count) groups"
+                        + Self.classifyNote(scene: scene, classifier: classifier)
                     : "")
                 + (media.map { " · \($0.others.count) controls · \($0.playback.rawValue)" } ?? "")
                 + " · \(elapsed)")
@@ -255,6 +256,19 @@ public enum VisionPageReader {
                 timing.perceive = elapsed
                 return timing
             }())
+    }
+
+    /// " · classify 9.8 ms on mlx-metal" — what naming the rows cost, and which backbone
+    /// paid it. Sand's timeline shows the perceive note after every read, so a CPU/Metal A/B
+    /// (FRIGATE_VISION_BACKBONE=onnx) is two launches and a glance. Empty when nothing
+    /// was classified.
+    private static func classifyNote(scene: VisionScene, classifier: RegionClassifier?) -> String {
+        guard let classifier,
+              let phase = scene.timing.phases.first(where: { $0.name == VisionTiming.Name.classify })
+        else { return "" }
+        let parts = phase.duration.components
+        let milliseconds = Double(parts.seconds) * 1_000 + Double(parts.attoseconds) / 1e15
+        return String(format: " · classify %.1f ms on ", milliseconds) + classifier.backboneDescription
     }
 
     private static func capture(

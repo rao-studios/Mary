@@ -134,11 +134,12 @@ public enum EmbeddingRouting {
         for skill: AbilityRuntimeSkill,
         utterance: String,
         applicationID: String?,
-        applicationProfiles: [ApplicationProfile] = []
+        applicationProfiles: [ApplicationProfile] = [],
+        templates: UtteranceTemplateExpander? = nil
     ) -> String {
         filledArguments(
             for: skill, utterance: utterance, applicationID: applicationID,
-            applicationProfiles: applicationProfiles).json
+            applicationProfiles: applicationProfiles, templates: templates).json
     }
 
     /// The shortcut's arguments, and how the words became them.
@@ -150,19 +151,27 @@ public enum EmbeddingRouting {
         for skill: AbilityRuntimeSkill,
         utterance: String,
         applicationID: String?,
-        applicationProfiles: [ApplicationProfile] = []
+        applicationProfiles: [ApplicationProfile] = [],
+        templates: UtteranceTemplateExpander? = nil
     ) -> (json: String, stages: [String]) {
         var args: [String: String] = [:]
         var stages: [String] = []
         let parameters = skill.skill.modelExposure.parameters
         let required = parameters.filter(\.required)
         let aliases = applicationProfiles.first { $0.id == applicationID }?.aliases ?? []
+        // THE PEELER MATCHES PHRASES LITERALLY, so a trigger carrying
+        // `{application}` would be compared word-for-word against the sentence
+        // and never match anything — silently dead vocabulary. Expanding first
+        // is what makes a templated phrase actually strip: "open a new Safari
+        // window" peels away, which is the whole point of authoring it.
+        let triggers = expandedTriggers(
+            skill.ability.triggers, ability: skill.ability.id, templates: templates)
         /// The sentence's remaining span, peeled once for whichever parameter takes it.
         var peeledSpan: (value: String, stages: [String])?
         func span() -> (value: String, stages: [String]) {
             if let peeledSpan { return peeledSpan }
             let peeled = SpokenArgumentExtractor.peeled(
-                utterance, triggers: skill.ability.triggers, applicationAliases: aliases)
+                utterance, triggers: triggers, applicationAliases: aliases)
             peeledSpan = peeled
             return peeled
         }
@@ -197,16 +206,84 @@ public enum EmbeddingRouting {
             && parameter.enumValues.isEmpty && args[parameter.name] == nil {
             let peeled = span()
             guard !peeled.value.isEmpty else { continue }
+            // A SPAN OF ONLY THE COMMAND'S OWN WORDS NAMES NOTHING. "Bring a
+            // TextEdit window forward" leaves "bring a text at window forward":
+            // grammar, the verb's vocabulary and the application's name, with
+            // no title in it. Sent as `window` it matched no window; omitted,
+            // the binding does what an optional span means — the front one.
+            guard Self.carriesContent(
+                peeled.value, triggers: triggers,
+                abilityAliases: skill.ability.aliases, applicationAliases: aliases)
+            else {
+                stages.append("span \(parameter.name): only command words — omitted")
+                continue
+            }
             args[parameter.name] = peeled.value
             stages.append("span \(parameter.name): \"\(peeled.value)\"")
         }
-        if let applicationID, !applicationID.isEmpty,
-           parameters.contains(where: { $0.name == "app" }) {
-            args["app"] = applicationID
+        if let applicationID, !applicationID.isEmpty {
+            // THE PARAMETER THAT TAKES AN APPLICATION IS NOT ALWAYS CALLED
+            // `app`. A Skill that DECLARED `resolvesApplication` gets the
+            // resolved id in whichever parameter it exposes for one, and it
+            // OVERRIDES the peeled span above: the span is what is left of the
+            // sentence after the verb, so for "open a new textedit window" it
+            // is "a new textedit window" — the words, not the application, and
+            // useless to a binding that wants an identity.
+            //
+            // A Skill that did NOT declare it keeps the exact behaviour it had:
+            // only a parameter literally named `app`. Widening the name test
+            // for every Skill would rewrite parameters that never asked for an
+            // application. `bring_application_forward` now DECLARES it, so
+            // "open chrome" fills `app_name` with the resolved id; when nothing
+            // resolves ("open calculator") the span above stands, as before.
+            if skill.skill.requirements.resolvesApplication,
+               let receiver = ApplicationParameterNames.receiver(in: parameters.map(\.name)) {
+                args[receiver] = applicationID
+                stages.append("application \(receiver): \"\(applicationID)\"")
+            } else if parameters.contains(where: { $0.name == ApplicationParameterNames.canonical }) {
+                args[ApplicationParameterNames.canonical] = applicationID
+            }
         }
         let data = (try? JSONSerialization.data(
             withJSONObject: args, options: [.sortedKeys])) ?? Data("{}".utf8)
         return (String(data: data, encoding: .utf8) ?? "{}", stages)
+    }
+
+    /// Whether a peeled span says anything beyond grammar, the Skill's own
+    /// command vocabulary (its ability's tokens, phrases and aliases), and the
+    /// resolved application's own name.
+    static func carriesContent(
+        _ span: String,
+        triggers: AbilityTriggerSchema,
+        abilityAliases: [String],
+        applicationAliases: Set<String>
+    ) -> Bool {
+        func words(_ text: String) -> [String] {
+            text.lowercased().split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        }
+        let known = SemanticApplicationIndex.functionWords
+            .union((triggers.tokens + triggers.phrases + abilityAliases).flatMap(words))
+            .union(applicationAliases.flatMap(words))
+        return words(span).contains { !known.contains($0) }
+    }
+
+    /// The ability's phrases and tokens with every `{application}` filled in.
+    ///
+    /// Only the two fields the peeler reads. Returns the schema untouched when
+    /// nothing carries a slot, which is every shipped package but one.
+    static func expandedTriggers(
+        _ triggers: AbilityTriggerSchema,
+        ability: AbilityID,
+        templates: UtteranceTemplateExpander?
+    ) -> AbilityTriggerSchema {
+        guard let templates,
+              triggers.phrases.contains(where: UtteranceTemplate.hasSlots)
+                  || triggers.tokens.contains(where: UtteranceTemplate.hasSlots)
+        else { return triggers }
+        var expanded = triggers
+        expanded.phrases = templates.expand(triggers.phrases, for: ability)
+        expanded.tokens = templates.expand(triggers.tokens, for: ability)
+        return expanded
     }
 
     public static func recordRoutingHabits(

@@ -18,6 +18,13 @@
 //        repeat itself, which would drift the moment one of them was wrong.
 //        NON-OPTIONAL EDGES ONLY, so an optional support (window-management)
 //        never makes an ability look like somebody's player.
+//  PIN:  TWO BACKWARDS INDEXES, ASKING DIFFERENT QUESTIONS. The expertise index
+//        above answers "which player answers this discipline's skill" and reads
+//        required edges onto disciplines. `applicationsBySupport` answers "which
+//        applications can this system-control ability be pointed at" and reads
+//        OPTIONAL edges onto systemControl — which is precisely the edge the
+//        first one must throw away. They are not a widening of each other; the
+//        discipline election was measured against the first one's exact shape.
 //
 import MaryAmbient
 import MaryFoundation
@@ -66,6 +73,12 @@ extension AbilityRuntime {
         /// revision; see the expertise section below — internal rather
         /// than private because that extension is its only reader.
         let expertiseByDiscipline: [AbilityID: [AbilityID]]
+        /// System-control Ability → the application-bearing Abilities that name
+        /// it as a dependency, OPTIONAL EDGES INCLUDED, preference-ordered.
+        /// A second index rather than a widening of `expertiseByDiscipline`,
+        /// which answers a different question and whose exact shape the
+        /// discipline election was measured against.
+        let applicationsBySupport: [AbilityID: [AbilityID]]
         /// Optional embedding recall for `requestedAbilities(in:)`. Nil — lexical
         /// fallback for tests and hosts with no OS embedding asset.
         private let semanticIndex: SemanticAbilityRequestIndex?
@@ -78,6 +91,15 @@ extension AbilityRuntime {
         public let semanticIntentIndex: SemanticIntentIndex?
         /// Named seed families — see `SemanticSeedFamilyIndex`.
         public let semanticSeedFamilyIndex: SemanticSeedFamilyIndex?
+        /// Optional embedding recall over applications a system-control Skill
+        /// may be pointed at. Nil leaves `ApplicationReferenceResolution` with
+        /// only its exact-naming tier, which is a narrower answer, not a wrong one.
+        public let semanticApplicationIndex: SemanticApplicationIndex?
+        /// What `{application}` expands to for each Ability, for the readers
+        /// that cannot be handed pre-expanded strings — the literal phrase
+        /// peeler, the routing fixture suite, and Ability Studio. Built from
+        /// these same records, so it always agrees with the corpora above.
+        public let templates: UtteranceTemplateExpander
 
         public init(
             revision: UUID = UUID(),
@@ -90,12 +112,16 @@ extension AbilityRuntime {
             semanticIndex: SemanticAbilityRequestIndex? = nil,
             semanticSkillIndex: SemanticSkillRequestIndex? = nil,
             semanticIntentIndex: SemanticIntentIndex? = nil,
-            semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil
+            semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil,
+            semanticApplicationIndex: SemanticApplicationIndex? = nil,
+            templates: UtteranceTemplateExpander? = nil
         ) {
             self.semanticIndex = semanticIndex
             self.semanticSkillIndex = semanticSkillIndex
             self.semanticIntentIndex = semanticIntentIndex
             self.semanticSeedFamilyIndex = semanticSeedFamilyIndex
+            self.semanticApplicationIndex = semanticApplicationIndex
+            self.templates = templates ?? UtteranceTemplateExpander(records: records)
             let inventory = InstalledAdapterInventory(
                 manifests: adapterManifests + plugins.adapterManifests,
                 primitiveBindings: primitiveBindings)
@@ -115,6 +141,7 @@ extension AbilityRuntime {
                 records.map { ($0.package.package.id, $0) },
                 uniquingKeysWith: { _, latest in latest })
             self.expertiseByDiscipline = Self.buildExpertiseIndex(records: records)
+            self.applicationsBySupport = Self.buildApplicationSupportIndex(records: records)
 
             let capabilitySchemas = Dictionary(
                 records.flatMap { $0.package.capabilities }.map { ($0.id, $0) },
@@ -597,6 +624,194 @@ extension AbilityRuntime.Snapshot {
                 let discipline = abilityIDs[dependency.packageID]
                     ?? AbilityID(dependency.packageID.rawValue)
                 index[discipline, default: []].append((
+                    ability: package.ability.id,
+                    preference: package.ability.routing.preference))
+            }
+        }
+        return index.mapValues { rows in
+            rows.sorted {
+                $0.preference != $1.preference
+                    ? $0.preference > $1.preference
+                    : $0.ability.rawValue < $1.ability.rawValue
+            }.map(\.ability)
+        }
+    }
+}
+
+// MARK: - The same graph read backwards for a system-control Ability
+
+extension AbilityRuntime.Snapshot {
+
+    /// Application-bearing Abilities that name this one as a dependency.
+    ///
+    /// THE OPTIONAL EDGE IS THE WHOLE POINT. `buildExpertiseIndex` keeps only
+    /// REQUIRED edges onto disciplines, because inheriting a craft is not
+    /// optional — you either extend `writing` or you do not. Being operable by
+    /// the window manager is the other kind of relationship entirely, and every
+    /// application package already declares it exactly that way
+    /// (`window-management, optional`). Nine such edges were sitting in the
+    /// shipped packages, thrown away by the only index that read dependencies.
+    public func applicationsSupporting(_ ability: AbilityID) -> [AbilityID] {
+        applicationsBySupport[ability] ?? []
+    }
+
+    /// THE APPLICATIONS AN ABILITY CAN BE POINTED AT, however it earns them.
+    ///
+    /// An Ability reaches applications by one of two authored routes, and until
+    /// now nothing joined them: a DISCIPLINE is inherited by expertise packages
+    /// that require it (`expertiseAbilities(extending:)`), while a
+    /// SYSTEM-CONTROL ability is named as an optional support by the packages
+    /// it can operate (`applicationsSupporting(_:)`). Both are the dependency
+    /// graph read backwards; they differ only in which edge carries the claim.
+    ///
+    /// `{application}` means THIS set. That is the whole point of the pragma —
+    /// an author writes the relationship once and the roster supplies the
+    /// names, so `multimedia` expands over its players and `window-management`
+    /// over its targets without either package saying so twice.
+    ///
+    /// Ordered by the underlying indexes (declared preference, then id) and
+    /// deduplicated, so an expansion is identical across launches.
+    public func pointableApplications(of ability: AbilityID) -> [ApplicationAffinity] {
+        var seen = Set<String>()
+        var found: [ApplicationAffinity] = []
+        for abilityID in pointableAbilities(of: ability) {
+            guard let affinity = records.first(where: {
+                $0.package.ability.id == abilityID
+            })?.package.applicationAffinities.first,
+                seen.insert(affinity.id).inserted
+            else { continue }
+            found.append(affinity)
+        }
+        return found
+    }
+
+    /// THE SAME SET, AS ABILITY IDS — the one definition both halves read.
+    ///
+    /// The union above and `applicationCandidates` below are the AUTHOR-TIME and
+    /// RUN-TIME halves of one pragma, and they read different edges: expansion
+    /// took both, resolution took only the support edge. So `writing` — a
+    /// discipline, reached by the REQUIRED edge from textedit, scrivener and
+    /// pages — expanded `{application}` over three editors and then resolved
+    /// over none of them. A Skill of its could declare `resolvesApplication`,
+    /// pass the validator, and be handed an empty candidate set on every turn.
+    ///
+    /// Stated once so the two cannot disagree again, which is what the doc above
+    /// already claims when it says `{application}` MEANS this set.
+    public func pointableAbilities(of ability: AbilityID) -> [AbilityID] {
+        var seen = Set<AbilityID>()
+        return (expertiseAbilities(extending: ability)
+            + applicationsSupporting(ability))
+            .filter { seen.insert($0).inserted }
+    }
+
+    /// The applications a Skill may be pointed at, or empty when it did not ask.
+    ///
+    /// OPT-IN, NEVER AMBIENT. A Skill that did not declare
+    /// `resolvesApplication` gets nothing here even though its Ability may have
+    /// dependents — "bring all my windows forward" names no application and
+    /// must not be handed one. Widening the SET does not widen the gate: this
+    /// guard is untouched, and it is the whole opt-in.
+    public func applicationCandidates(for skill: AbilityRuntimeSkill) -> [AbilityID] {
+        guard skill.skill.requirements.resolvesApplication else { return [] }
+        return pointableAbilities(of: skill.ability.id)
+    }
+
+    /// The application a RUNNING PROCESS is, by its bundle identifier.
+    ///
+    /// The one direction the roster could not be read. Everything that observes
+    /// the Mac — a staged writing surface, a frontmost process — holds a bundle
+    /// id, while everything that routes holds a logical application id, and
+    /// nothing joined the two. The packages already carry the join; this is it,
+    /// stated once rather than re-derived per caller.
+    public func applicationID(forBundleIdentifier bundleID: String) -> String? {
+        let wanted = bundleID.lowercased()
+        guard !wanted.isEmpty else { return nil }
+        for record in records {
+            for affinity in record.package.applicationAffinities
+            where affinity.bundleIdentifiers.contains(where: {
+                $0.lowercased() == wanted
+            }) {
+                return affinity.id
+            }
+        }
+        return nil
+    }
+
+    /// The bundle an installed application expertise launches, by any name its
+    /// package gives it — the other direction of the join above.
+    ///
+    /// Routing holds a logical id (`apple-music`) or a spoken name ("Apple
+    /// Music"); a process is found by its bundle. Matched ignoring case and
+    /// whitespace, because ASR says "text edit". Nil for a name no installed
+    /// expertise claims, and for one that declares no bundle — known by name
+    /// only has nothing better to offer than the name itself.
+    public func bundleIdentifier(ofApplication name: String) -> String? {
+        let wanted = Self.applicationNameKey(name)
+        guard !wanted.isEmpty else { return nil }
+        for record in records where record.package.paradigm == .applicationExpertise {
+            let package = record.package
+            var names = package.ability.aliases + [package.ability.title]
+            if let application = package.plugin?.application {
+                names += application.aliases + [application.title]
+            }
+            for affinity in package.applicationAffinities {
+                guard let bundleID = affinity.bundleIdentifiers.first,
+                      (names + [affinity.id, affinity.title] + affinity.bundleIdentifiers)
+                          .contains(where: { Self.applicationNameKey($0) == wanted })
+                else { continue }
+                return bundleID
+            }
+        }
+        return nil
+    }
+
+    /// Case- and whitespace-blind — the same fold the window manager's own
+    /// resolver applies, so the two agree on what "the same name" means.
+    private static func applicationNameKey(_ value: String) -> String {
+        value.lowercased().filter { !$0.isWhitespace }
+    }
+
+    /// The logical application an Ability drives, whatever declares it.
+    /// `plugin.application.id` or the first `ability.applications` entry —
+    /// the same join `applicationAffinities` already makes.
+    public func applicationID(ofAbility abilityID: AbilityID) -> String? {
+        records.first { $0.package.ability.id == abilityID }?
+            .package.applicationAffinities.first?.id
+    }
+
+    /// Inverted dependency edges for support, built once per revision.
+    ///
+    /// ONLY AN INSTALLED APPLICATION EXPERTISE IS A CANDIDATE. It must carry an
+    /// application affinity — the thing being resolved — AND declare the
+    /// `.applicationExpertise` paradigm. The affinity alone used to qualify,
+    /// which let any package that merely mentioned an application stand in for
+    /// one. "Open Chrome" launches a process, and only a package that knows the
+    /// application has standing to say which. Anything else the words name
+    /// resolves to nothing and falls to the model, which can still act on it.
+    static func buildApplicationSupportIndex(
+        records: [AbilityPackageRecord]
+    ) -> [AbilityID: [AbilityID]] {
+        var paradigms: [PackageID: AbilityParadigm] = [:]
+        var abilityIDs: [PackageID: AbilityID] = [:]
+        for record in records {
+            paradigms[record.package.package.id] = record.package.paradigm
+            abilityIDs[record.package.package.id] = record.package.ability.id
+        }
+        var index: [AbilityID: [(ability: AbilityID, preference: Int)]] = [:]
+        for record in records {
+            let package = record.package
+            // No expertise, no standing; no affinity, nothing to resolve TO.
+            guard package.paradigm == .applicationExpertise,
+                  !package.applicationAffinities.isEmpty
+            else { continue }
+            for dependency in package.dependencies {
+                // Only a system-control Ability operates other applications.
+                // An absent dependency cannot be shown to be one, so it is
+                // skipped rather than assumed — same rule as the expertise index.
+                guard paradigms[dependency.packageID] == .systemControl else { continue }
+                let host = abilityIDs[dependency.packageID]
+                    ?? AbilityID(dependency.packageID.rawValue)
+                index[host, default: []].append((
                     ability: package.ability.id,
                     preference: package.ability.routing.preference))
             }

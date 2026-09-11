@@ -4,13 +4,16 @@
 //
 //  WHAT: Per-utterance STT seam: begin → append… → finish.
 //  IN:   VoicePipeline / WakeWordListener
-//  OUT:  AppleSpeechTranscriber (and any future backend)
+//  OUT:  AppleSpeechTranscriber / AnalyzerSpeechTranscriber
 //
 
 import AVFoundation
 import Foundation
 
 public protocol VoiceTranscriber: AnyObject, Sendable {
+    /// Ready the recognizer before the first utterance so `begin` does no cold
+    /// work on the speech-start frame. Safe to call more than once.
+    func prewarm(format: AVAudioFormat) async
     /// Prepare for one utterance in the mic's format.
     func begin(format: AVAudioFormat) async throws
     /// Feed one captured buffer.
@@ -21,6 +24,10 @@ public protocol VoiceTranscriber: AnyObject, Sendable {
     func finish() async throws -> String
     /// Abandon the in-flight utterance.
     func cancel() async
+}
+
+extension VoiceTranscriber {
+    public func prewarm(format: AVAudioFormat) async {}
 }
 
 public enum TranscriberError: LocalizedError {

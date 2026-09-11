@@ -233,7 +233,7 @@ import Testing
                 id: "skill-only",
                 utterance: "wrangle the widget",
                 expectedSkill: skill.id,
-                expectedDisposition: "route")])
+                expectedDisposition: .route)])
         let record = AbilityPackageRecord(
             package: package,
             source: .sourceTree,
