@@ -41,10 +41,16 @@ let package = Package(
         // Frigate: the ML surfaces, one package. Its inference products (MLX, MLXLLM,
         // MLXLMCommon) belong to MaryBrain; its FrigateVisionAX product — Frigate's
         // vision runtime — belongs to MaryComputerUse and to nothing else. No alias map.
+        // STILL A PATH, pending one push. SwiftPM refuses a revision-based
+        // requirement on a package that carries a local dependency, and Frigate
+        // declared `.package(path: "../VisionAX")`. Frigate's working tree now
+        // names VisionAX by URL, but its `main` does not yet — the moment that
+        // commit lands, this line becomes:
+        //   .package(url: "https://github.com/rao-studios/Frigate.git", branch: "main"),
         .package(path: "../Frigate"),
-        // Conduit: local checkout, same wire as the Sewn/Thread node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
-        .package(path: "../Conduit"),
+        // Conduit: the same wire the Sewn/Thread node speaks.
+        .package(url: "https://github.com/rao-studios/Conduit.git", branch: "main"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],

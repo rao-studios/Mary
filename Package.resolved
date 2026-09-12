@@ -1,6 +1,15 @@
 {
-  "originHash" : "b2d83f4f61689f7c33cc6e1cbe570eddd4f43232e5bd235d1a3dad759f5ccd71",
+  "originHash" : "e42b8e5250560b80cdc55ee2fcebaacd2b315d4a4de89257bcd62fc38a30efd0",
   "pins" : [
+    {
+      "identity" : "conduit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/rao-studios/Conduit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "4ebda09161ea1c838c9bf5343a166619bb5ba250"
+      }
+    },
     {
       "identity" : "granite",
       "kind" : "remoteSourceControl",
@@ -224,6 +233,15 @@
       "state" : {
         "revision" : "869129b7bf4ecc57b97d0193ad29690ca2134750",
         "version" : "1.8.1"
+      }
+    },
+    {
+      "identity" : "visionax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/rao-studios/VisionAX.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "a5655415206d16eb45f380f428338b8abb4d3107"
       }
     },
     {

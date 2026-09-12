@@ -53,7 +53,16 @@ fi
 
 # MLX's shaders beside the binary (Contents/MacOS/mlx.metallib), so the classifier's
 # backbone runs on Metal. Before codesign: the file is part of what gets sealed.
-"$REPO_ROOT/../Frigate/scripts/build-metallib.sh" "$CONFIG" --package "$REPO_ROOT" --app "$APP_DIR"
+# Prefer a sibling Frigate checkout; fall back to the one SwiftPM resolved.
+FRIGATE_METALLIB="$REPO_ROOT/../Frigate/scripts/build-metallib.sh"
+[ -x "$FRIGATE_METALLIB" ] \
+    || FRIGATE_METALLIB="$REPO_ROOT/.build/checkouts/Frigate/scripts/build-metallib.sh"
+if [ ! -x "$FRIGATE_METALLIB" ]; then
+    echo "error: build-metallib.sh not found beside the repo or in .build/checkouts." >&2
+    echo "       Run 'swift package resolve', or check Frigate out beside this repo." >&2
+    exit 1
+fi
+"$FRIGATE_METALLIB" "$CONFIG" --package "$REPO_ROOT" --app "$APP_DIR"
 
 IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
     | awk -F'"' '/Apple Development|Mary Dev Signing/ {print $2; exit}')"

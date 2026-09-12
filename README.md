@@ -120,17 +120,24 @@ these are the ones to keep checked out and current when working on MaryOS.
 |---|---|---|
 | **[Sewn](https://github.com/rao-studios/Seer)** | The orchestration server (Swift on Hummingbird 2): authentication, chat completions, sentiment-tuned generation, attribution and royalty accounting, and fan-out to Thread nodes. | Every generation. Both lanes of the turn ride Sewn, which is why no model is ever loaded in Mary's process. |
 | **[Thread](https://github.com/rao-studios/Totem)** | A distributed vector-search and knowledge-graph node. Documents are chunked, embedded to 1024 dimensions, product-quantized, and folded into a graph of entities and relationships. | Memory. `MaryThread` is the gRPC facade onto the local node; the Threads pane is the read window onto it. |
-| **[Conduit](https://github.com/rao-studios/Conduit)** | The wire between a mothership and its nodes — one canonical set of `.proto` files, the generated types, and the session/client/server machinery. A library; it ships no executable. | The gRPC contract (`thread.v1`). **A SwiftPM path dependency: `../Conduit` must sit beside this repository.** |
+| **[Conduit](https://github.com/rao-studios/Conduit)** | The wire between a mothership and its nodes — one canonical set of `.proto` files, the generated types, and the session/client/server machinery. A library; it ships no executable. | The gRPC contract (`thread.v1`). A SwiftPM dependency, resolved from this URL. |
 | **[Fleet](https://github.com/rao-studios/Fleet)** | LoRA-gated JSON state machines. Trains LoRA adapters on small on-device LLMs so output conforms to a fixed schema, and enforces that schema while decoding. | Life — the training runs that learn from recent turns and publish adapters. |
-| **[Frigate](https://github.com/rao-studios/Frigate)** | On-device embeddings and LLM inference on MLX, plus `FrigateVisionAX`, the bundled ONNX region classifier. | Embedding-based routing, and the page classifier behind VisionAX. **A SwiftPM path dependency: `../Frigate` must sit beside this repository.** |
+| **[Frigate](https://github.com/rao-studios/Frigate)** | On-device embeddings and LLM inference on MLX, plus `FrigateVisionAX`, the bundled ONNX region classifier. | Embedding-based routing, and the page classifier behind VisionAX. A SwiftPM dependency; see the note below on why it is still resolved from a sibling checkout. |
 
 > **A naming note.** Seer was renamed to **Sewn** and Totem to **Thread**
 > throughout the code, the protos, the config keys and the local checkouts — but
 > the GitHub repositories still carry the old names, which is why the two links
 > above read `Seer` and `Totem`.
 
-Only `../Frigate` and `../Conduit` are needed to *build* Mary; Sewn, Thread and
-Fleet are services she talks to at runtime.
+Only Frigate and Conduit are needed to *build* Mary; Sewn, Thread and Fleet are
+services she talks to at runtime.
+
+> **Frigate is still a path dependency.** Frigate declares
+> `.package(url: "https://github.com/rao-studios/VisionAX.git", branch: "main")`
+> only once that change is pushed; SwiftPM refuses a revision-based requirement
+> on any package carrying a local dependency, so until then `Package.swift`
+> keeps `.package(path: "../Frigate")` and Frigate must sit beside this
+> repository. Everything else resolves from its URL.
 
 ## Toward MaryOS on Linux
 
@@ -157,8 +164,9 @@ Test plans name the destination, not the incident pile:
 ## Building
 
 Requires macOS 26 (the floor is `SpeechAnalyzer`, the only API for long-form
-continuous on-device transcription) and sibling checkouts of `../Frigate` and
-`../Conduit` alongside this repository once those stages land.
+continuous on-device transcription). Dependencies resolve from their GitHub
+URLs, with one exception: `../Frigate` is still a sibling checkout — see the
+note in [The core repositories](#the-core-repositories).
 
 ```sh
 swift build
