@@ -171,12 +171,19 @@ function OriginBanner({ doc }: { doc: JsonObject }) {
   return (
     <div className="banner info">
       <strong>This ability has parts this editor does not touch.</strong>
-      {operations > 0
-        ? `${operations} native action${operations === 1 ? '' : 's'}`
-        : 'A plugin block'}
-      {corpus ? ' and a corpus' : ''} {operations === 1 && !corpus ? 'is' : 'are'} kept exactly as
-      {' '}they are, byte for byte. Recipes are authored in Mary's own Studio, where she can watch
-      {' '}the application while you record them.
+      Kept exactly as found, byte for byte:{' '}
+      {[
+        operations > 0
+          ? `${operations} native action${operations === 1 ? '' : 's'}`
+          : plugin
+            ? 'a plugin block'
+            : null,
+        corpus ? 'a corpus' : null,
+      ]
+        .filter(Boolean)
+        .join(' and ')}
+      . Recipes are authored in Mary's own Studio, where she can watch the application while you
+      {' '}record them.
     </div>
   )
 }
