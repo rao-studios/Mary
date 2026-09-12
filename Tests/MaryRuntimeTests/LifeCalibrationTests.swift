@@ -17,12 +17,12 @@ import MaryFoundation
     private let anchor = Date(timeIntervalSince1970: 1_787_821_200)
 
     private func episode(
-        lane: String = "dual", ability: AbilityID = .writing
+        lane: String = "dual", ability: AbilityID = .writing, at time: Date? = nil
     ) -> BehavioralEpisode {
         BehavioralEpisode(
             id: UUID(),
-            openedAt: anchor,
-            sealedAt: anchor,
+            openedAt: time ?? anchor,
+            sealedAt: time ?? anchor,
             sealedReason: .completed,
             input: BehavioralInput(query: "type this"),
             provenance: EpisodeProvenance(engine: "local", lane: lane, appVersion: "test"),
@@ -49,7 +49,8 @@ import MaryFoundation
         episodes: [BehavioralEpisode],
         slots: [AbilityID: LifeLoRASlot] = [:],
         ticks: [AbilityID: LifeTrainTick] = [:],
-        reachable: Bool = true
+        reachable: Bool = true,
+        paused: Bool = false
     ) -> LifeCalibrationSnapshot {
         LifeCalibration.snapshot(
             disciplines: [(id: .writing, title: "Writing")],
@@ -57,7 +58,8 @@ import MaryFoundation
             slots: slots,
             ticks: ticks,
             tails: [:],
-            fleetReachable: reachable)
+            fleetReachable: reachable,
+            trainingPaused: paused)
     }
 
     @Test func anUntrainedDisciplineCollectsTowardTheFirstAdapter() {
@@ -111,12 +113,25 @@ import MaryFoundation
         #expect(rows[0].phase != .training)
     }
 
+    /// New turns are counted from when the adapter trained, not by
+    /// subtracting its pairs — a run learns from a fixed window.
     @Test func afterAPublishTheBarCountsOnlyNewTurns() {
-        let episodes = (0..<30).map { _ in episode() }
-        let rows = snapshot(episodes: episodes, slots: [.writing: slot(pairCount: 24)]).rows
+        let before = (0..<24).map { _ in episode(at: anchor.addingTimeInterval(-60)) }
+        let after = (0..<6).map { _ in episode(at: anchor.addingTimeInterval(60)) }
+        let rows = snapshot(
+            episodes: before + after, slots: [.writing: slot(pairCount: 24)]).rows
         #expect(rows[0].fill.filled == 6)
         #expect(rows[0].fill.goal == 12)
         #expect(rows[0].caption == "6 of 12 since gen 1")
+    }
+
+    /// Life off: a full window holds at its goal and says it is waiting.
+    @Test func aFullWindowWithLifeOffSaysItIsPaused() {
+        let episodes = (0..<30).map { _ in episode() }
+        let row = snapshot(episodes: episodes, paused: true).rows[0]
+        #expect(row.fill.filled == 24)
+        #expect(row.caption == "24 of 24 turns · paused")
+        #expect(snapshot(episodes: episodes).rows[0].caption == "24 of 24 turns")
     }
 
     @Test func anUnreachableFleetIsCarriedOnTheSnapshot() {

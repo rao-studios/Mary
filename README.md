@@ -4,8 +4,90 @@ A macOS ambient-intelligence assistant. Mary perceives your screen through the
 accessibility tree, carries out declarative **Plugins** by voice, speaks through
 Sewn, and remembers through Thread.
 
-Mary is a re-architecture of [Bonnie](../Bonnie) — the same ideas, cut down to
-their load-bearing shape. Three commitments define it:
+![Mary — the session window](README_Assets/hero.png)
+
+## What she is
+
+You talk; she acts on the machine in front of you. What separates that from a
+chat window is that Mary has already read the screen before the sentence ends —
+which window is frontmost, what the selection holds, what the cursor sits
+inside — so *"change the second paragraph"* resolves to a paragraph instead of
+becoming a question.
+
+Say **"Hey Mary"** or type. Transcription is on-device (`SpeechAnalyzer`), the
+reply is spoken by an on-device Kokoro voice, and every generation rides Sewn —
+so no model is ever loaded in this process.
+
+What she can *do* is not compiled in. Seventeen declarative ability packages
+under `Abilities/` — **131 skills** across five disciplines, nine application
+expertises and three system controls — describe an application, the skills it
+offers, and the recipes that carry them out. No Swift file anywhere names a
+target application.
+
+## What she can do
+
+| | |
+|---|---|
+| **Disciplines** | Coding (42 skills) · Writing (31) · Browsing (22) · Multimedia (9) · Awareness (5) |
+| **Application expertise** | Xcode · Pages · Scrivener · TextEdit · Safari · Chrome · Apple Music · Calendar · Reminders |
+| **System control** | Window Management (8) · Canvas (2) · Dance (3) |
+
+A discipline is the verb and an application joins it by declaring the surface it
+offers — so "read the selection" reaches Xcode and Scrivener through the same
+skill, and teaching Mary a new editor is a `.mary` file, not a pull request.
+
+## What you can watch her do
+
+Every stage of a turn has a window onto it. That is deliberate: a screenshot of
+these panes is a bug report.
+
+### She sees what you see
+
+![Mary's eyes — the perception minimap](README_Assets/perception.png)
+
+Tier 0 is the accessibility walk — every window Mary can *and cannot* see,
+grouped by application, each with the snapshot she is holding and how old it is.
+A stale fact renders with its age and loses authority; a stale surface is
+dropped outright, because a screen that may no longer exist is a confidently
+wrong answer waiting for a question.
+
+### She routes before she reasons
+
+![Routes — the routing decision for a turn](README_Assets/routes.png)
+
+One semantic read classifies the turn — architect, decide, halt, revise,
+compose, operate, perceive, ask, converse — and the pane records what was
+decided, what decided it, and how long it took. The `converse via embedding`
+above is a turn settled with no model call at all; when exactly one skill is
+confident, dispatch happens the same way.
+
+### You teach her, and you watch her learn it
+
+![Ability Studio — the Coding discipline](README_Assets/ability-studio.png)
+
+The Ability Studio is the authoring surface for a `.mary` package: the recipe
+and its steps, who owns each one, the phrases and tokens the ability listens
+for, and the skills it exposes. Packages export and import as single files, and
+saving creates a local override rather than editing what shipped.
+
+### She remembers, and the memory is inspectable
+
+![Threads — the local memory node](README_Assets/threads.png)
+
+Memory lives in a local Thread node — documents, groups, the knowledge graph
+built from them, and the ledger of what retrieval actually did with them. The
+pane is a read window; storing and retrieving happen on the turn.
+
+### Permissions and engines are yours to set
+
+![Settings — permissions and engines](README_Assets/settings.png)
+
+Each macOS permission is asked at most once and is shown with what it buys.
+Lane A (the voice) and Lane B (the skills) pick their engines independently —
+hosted through Sewn, or Sewn's own on-device model. Whichever you pick, the
+skills themselves always run on this Mac; only the synthesis moves.
+
+## Three commitments
 
 **Every plugin is a plugin.** A Plugin is a declarative package: one `.mary`
 file under `Abilities/` describing an application, the skills it offers, and the
@@ -25,6 +107,40 @@ wrong answer waiting for a question.
 
 **Ambient intelligence is the philosophy.** Mary's job is to already know what
 you are looking at, so that "change the second paragraph" needs no explanation.
+
+Mary is a re-architecture of [Bonnie](https://github.com/rao-studios/Bonnie) —
+the same ideas, cut down to their load-bearing shape.
+
+## The core repositories
+
+Mary is the client. The rest of the system lives in sibling repositories, and
+these are the ones to keep checked out and current when working on MaryOS.
+
+| Repo | What it is | What Mary uses it for |
+|---|---|---|
+| **[Sewn](https://github.com/rao-studios/Seer)** | The orchestration server (Swift on Hummingbird 2): authentication, chat completions, sentiment-tuned generation, attribution and royalty accounting, and fan-out to Thread nodes. | Every generation. Both lanes of the turn ride Sewn, which is why no model is ever loaded in Mary's process. |
+| **[Thread](https://github.com/rao-studios/Totem)** | A distributed vector-search and knowledge-graph node. Documents are chunked, embedded to 1024 dimensions, product-quantized, and folded into a graph of entities and relationships. | Memory. `MaryThread` is the gRPC facade onto the local node; the Threads pane is the read window onto it. |
+| **[Conduit](https://github.com/rao-studios/Conduit)** | The wire between a mothership and its nodes — one canonical set of `.proto` files, the generated types, and the session/client/server machinery. A library; it ships no executable. | The gRPC contract (`thread.v1`). **A SwiftPM path dependency: `../Conduit` must sit beside this repository.** |
+| **[Fleet](https://github.com/rao-studios/Fleet)** | LoRA-gated JSON state machines. Trains LoRA adapters on small on-device LLMs so output conforms to a fixed schema, and enforces that schema while decoding. | Life — the training runs that learn from recent turns and publish adapters. |
+| **[Frigate](https://github.com/rao-studios/Frigate)** | On-device embeddings and LLM inference on MLX, plus `FrigateVisionAX`, the bundled ONNX region classifier. | Embedding-based routing, and the page classifier behind VisionAX. **A SwiftPM path dependency: `../Frigate` must sit beside this repository.** |
+
+> **A naming note.** Seer was renamed to **Sewn** and Totem to **Thread**
+> throughout the code, the protos, the config keys and the local checkouts — but
+> the GitHub repositories still carry the old names, which is why the two links
+> above read `Seer` and `Totem`.
+
+Only `../Frigate` and `../Conduit` are needed to *build* Mary; Sewn, Thread and
+Fleet are services she talks to at runtime.
+
+## Toward MaryOS on Linux
+
+Neither of these is required to build or run Mary on macOS. They are where the
+assistant stops being an app on someone else's desktop and becomes the desktop.
+
+| Repo | What it is |
+|---|---|
+| **[MaryPi](https://github.com/rao-studios/MaryPi)** | Two kits for putting an operating system on a Raspberry Pi 5 from a Mac — each builds an image, boots it in a VM on the Mac first, and writes it to an SD card. The active one is **MaryOS**, an Ubuntu 24.04 (Noble) arm64 fork built from source; the ravynOS (XNU/Darwin) bring-up is kept as it landed. |
+| **[MaryUI](https://github.com/rao-studios/MaryUI)** | The desktop-first design system, theme **Liquid Platinum**. A React reference implementation of the whole desktop, and the same system in C — `libmaryui` plus `maryui-desktop`, a wlroots compositor that *is* the desktop. |
 
 ## Status
 
@@ -66,6 +182,10 @@ logic inlined in a **launch pre-action** — pure SwiftPM packages have no build
 phases, and `SRCROOT` does not resolve in scheme actions, so only
 `BUILT_PRODUCTS_DIR` works there.
 
+Adapter-backed skills need permissions the *bundle* holds, not the bare binary:
+run `./scripts/make-app.sh` and launch `build/Mary.app` when you want App
+Automation and the rest to actually answer.
+
 Kokoro's speech models (~665 MB) are tracked with git-lfs; run
 `git lfs install` before cloning or the voice target builds against
 placeholder files.
@@ -92,3 +212,8 @@ reads `Package.swift` as text and fails the build when an edge appears that
 should not, because SwiftPM offers no build-time hook for "this target may not
 depend on that one" and a wrong edge forms no cycle: it compiles, links, ships,
 and the boundary is simply gone.
+
+## The turn
+
+One file runs a turn: `Sources/MaryBrain/Brain/MaryBrain+Turn.swift`. A walking
+route through it, stage by stage, is in [`docs/turn/`](docs/turn/README.md).

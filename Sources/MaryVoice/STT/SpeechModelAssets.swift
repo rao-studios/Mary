@@ -11,13 +11,13 @@ import Foundation
 import Speech
 import os
 
-enum SpeechModelAssets {
+public enum SpeechModelAssets {
 
-    enum Failure: LocalizedError {
+    public enum Failure: LocalizedError {
         case localeUnsupported(String)
         case modelDownloading(String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .localeUnsupported(let identifier):
                 return "On-device transcription is unavailable for \(identifier)."
@@ -27,7 +27,36 @@ enum SpeechModelAssets {
         }
     }
 
+    /// Settings' answer to "is the model ready" — a read, never a trigger.
+    public enum Status: Sendable {
+        case installed
+        case notInstalled
+        case downloading
+        case unsupported
+    }
+
     private static let log = Logger(subsystem: "nyc.rao.mary", category: "voice.assets")
+
+    /// Cheap readiness read for Settings. Never installs or reserves.
+    public static func status(locale: Locale) async -> Status {
+        let transcriber = SpeechTranscriber(
+            locale: locale, transcriptionOptions: [], reportingOptions: [], attributeOptions: [])
+        switch await AssetInventory.status(forModules: [transcriber]) {
+        case .installed: return .installed
+        case .supported: return .notInstalled
+        case .downloading: return .downloading
+        case .unsupported: return .unsupported
+        @unknown default: return .unsupported
+        }
+    }
+
+    /// Settings-triggered fetch, for a "Download" button rather than the
+    /// first spoken turn paying for it.
+    public static func download(locale: Locale) async throws {
+        let transcriber = SpeechTranscriber(
+            locale: locale, transcriptionOptions: [], reportingOptions: [], attributeOptions: [])
+        try await ensureInstalled([transcriber], locale: locale)
+    }
 
     /// Returns once the model is installed. Throws rather than hang on someone else's download.
     static func ensureInstalled(_ modules: [any SpeechModule], locale: Locale) async throws {

@@ -20,12 +20,13 @@ import Testing
         lane: String = "dual",
         sealed: EpisodeSealReason? = .completed,
         ability: AbilityID = .writing,
-        paradigm: AbilityParadigm = .discipline
+        paradigm: AbilityParadigm = .discipline,
+        at time: Date? = nil
     ) -> BehavioralEpisode {
         BehavioralEpisode(
             id: UUID(),
-            openedAt: anchor,
-            sealedAt: anchor,
+            openedAt: time ?? anchor,
+            sealedAt: time ?? anchor,
             sealedReason: sealed,
             input: BehavioralInput(query: "type this"),
             provenance: EpisodeProvenance(engine: "local", lane: lane, appVersion: "test"),
@@ -35,32 +36,32 @@ import Testing
     // MARK: - The threshold
 
     @Test func theFirstAdapterNeedsTwentyFourTurns() {
-        #expect(!LifeTrainPolicy.shouldTrain(completedCount: 23, trainedPairCount: nil))
-        #expect(LifeTrainPolicy.shouldTrain(completedCount: 24, trainedPairCount: nil))
+        #expect(!LifeTrainPolicy.shouldTrain(completedCount: 23, newSinceTrain: nil))
+        #expect(LifeTrainPolicy.shouldTrain(completedCount: 24, newSinceTrain: nil))
     }
 
-    @Test func aRetrainNeedsTwelveMoreThanWasPublished() {
-        #expect(!LifeTrainPolicy.shouldTrain(completedCount: 35, trainedPairCount: 24))
-        #expect(LifeTrainPolicy.shouldTrain(completedCount: 36, trainedPairCount: 24))
+    @Test func aRetrainNeedsTwelveNewTurnsSinceTheLastRun() {
+        #expect(!LifeTrainPolicy.shouldTrain(completedCount: 400, newSinceTrain: 11))
+        #expect(LifeTrainPolicy.shouldTrain(completedCount: 400, newSinceTrain: 12))
     }
 
     @Test func progressFillsTowardTheFirstAdapter() {
-        let fill = LifeTrainPolicy.progress(completedCount: 12, trainedPairCount: nil)
+        let fill = LifeTrainPolicy.progress(completedCount: 12, newSinceTrain: nil)
         #expect(fill.filled == 12)
         #expect(fill.goal == 24)
         #expect(fill.fraction == 0.5)
     }
 
     @Test func progressAfterPublishCountsOnlyTheNewTurns() {
-        let fill = LifeTrainPolicy.progress(completedCount: 30, trainedPairCount: 24)
+        let fill = LifeTrainPolicy.progress(completedCount: 30, newSinceTrain: 6)
         #expect(fill.filled == 6)
         #expect(fill.goal == 12)
     }
 
+    /// Past its goal the bar holds full — the window rolls instead.
     @Test func progressNeverOverfillsItsBar() {
-        let fill = LifeTrainPolicy.progress(completedCount: 400, trainedPairCount: 24)
-        #expect(fill.filled == 12)
-        #expect(fill.fraction == 1)
+        #expect(LifeTrainPolicy.progress(completedCount: 400, newSinceTrain: 376).fraction == 1)
+        #expect(LifeTrainPolicy.progress(completedCount: 400, newSinceTrain: nil).filled == 24)
     }
 
     // MARK: - Whose turns count
@@ -107,5 +108,39 @@ import Testing
         #expect(EpisodeProvenance.proactiveLane == "proactive")
         #expect(episode(lane: EpisodeProvenance.proactiveLane).provenance.isProactive)
         #expect(!episode().provenance.isProactive)
+    }
+
+    // MARK: - The window
+
+    /// A RUN LEARNS FROM THE LATEST 24, oldest first. Each new turn pushes
+    /// the oldest out.
+    @Test func aRunLearnsFromTheLatestTwentyFourTurns() {
+        let episodes = (0..<30).map { episode(at: anchor.addingTimeInterval(Double($0))) }
+        let window = LifeTrainPolicy.window(episodes.shuffled(), abilityID: .writing)
+        #expect(window.count == 24)
+        #expect(window.first?.sealedAt == anchor.addingTimeInterval(6))
+        #expect(window.last?.sealedAt == anchor.addingTimeInterval(29))
+    }
+
+    @Test func theWindowHoldsOnlyTurnsThatCanTeach() {
+        let episodes = [
+            episode(at: anchor),
+            episode(lane: EpisodeProvenance.proactiveLane, at: anchor.addingTimeInterval(1)),
+            episode(ability: .coding, at: anchor.addingTimeInterval(2)),
+            episode(sealed: .cancelled, at: anchor.addingTimeInterval(3)),
+        ]
+        #expect(LifeTrainPolicy.window(episodes, abilityID: .writing).count == 1)
+    }
+
+    /// A run's pair count stays at the window, so new turns are counted by time.
+    @Test func newTurnsAreCountedFromWhenTheLastRunTrained() {
+        let episodes = [
+            episode(at: anchor.addingTimeInterval(-10)),
+            episode(at: anchor),
+            episode(at: anchor.addingTimeInterval(10)),
+            episode(at: anchor.addingTimeInterval(20)),
+        ]
+        #expect(LifeTrainPolicy.completedCount(
+            in: episodes, abilityID: .writing, after: anchor) == 2)
     }
 }

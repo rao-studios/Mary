@@ -10,8 +10,54 @@ import Foundation
 import MaryAmbient
 import MaryComputerUse
 import MaryFoundation
+import os
 
 public enum MediaSurfaceLibrary {
+
+    /// WHAT THE LIBRARY LANE COST, on the media surface's own category — the
+    /// way the web surface puts its acts, receipts and timings on `browsing`.
+    /// `turns` is the turn circuit's (`TurnLog`), and a surface borrowing it
+    /// makes the category stop saying who spoke. Nothing is lost by the
+    /// scope: every category shares the subsystem, so
+    /// `subsystem == "nyc.rao.mary"` still interleaves this with the turn
+    /// clock it explains. This lane was the one media path the latency pass
+    /// never covered, and it had no log line at all.
+    private static let log = Logger(subsystem: "nyc.rao.mary", category: "media")
+
+    /// Below this the lane is noise; at or above it, it is the turn.
+    private static let slowLaneMilliseconds: UInt64 = 250
+
+    /// `MARY_LANE_TIMING=1` also puts the line on stderr, because a probe is
+    /// where this lane gets measured and a CLI tool's `os_log` info messages
+    /// do not survive to `log show`. Same rung as
+    /// `MARY_LIVE_SELECTION_COPY_PROBE`; off, this is os_log only.
+    private static let echoesTiming =
+        ProcessInfo.processInfo.environment["MARY_LANE_TIMING"] == "1"
+
+    private static func note(
+        _ what: String, since started: DispatchTime,
+        fromReads: Int = 0, detail: String = ""
+    ) {
+        let ms = (DispatchTime.now().uptimeNanoseconds
+            &- started.uptimeNanoseconds) / 1_000_000
+        guard ms >= slowLaneMilliseconds || echoesTiming else { return }
+        // ROUND TRIPS, NOT JUST MILLISECONDS. On a player whose AX server
+        // answers between 7ms and 70ms depending on nothing this process
+        // controls, the call count is the only number that compares two
+        // traversals honestly. Zero unless `MARY_AX_COUNT=1`.
+        let reads = AX.Accounting.enabled
+            ? " · \(AX.Accounting.reads - fromReads) reads" : ""
+        let suffix = (detail.isEmpty ? "" : " · " + detail) + reads
+        log.info(
+            """
+            library — \(what, privacy: .public) \(ms, privacy: .public)ms\
+            \(suffix, privacy: .public)
+            """)
+        if echoesTiming {
+            FileHandle.standardError.write(
+                Data("library — \(what) \(ms)ms\(suffix)\n".utf8))
+        }
+    }
 
     // MARK: - Reading the playlists
 
@@ -45,23 +91,17 @@ public enum MediaSurfaceLibrary {
         labelled label: String, pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> Bool {
         guard !Task.isCancelled else { return false }
-        guard let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
-        else { return false }
         let folded = MediaSurfaceRegistration.folded(label)
-        var hit: AXNodeID?
-        func walk(_ node: AXNodeSnapshot) {
-            guard hit == nil else { return }
-            if node.role.contains("Button"),
-               MediaSurfaceRegistration.folded(node.label ?? "") == folded {
-                hit = node.id
-                return
-            }
-            for child in node.children { walk(child) }
-        }
-        for window in built.snapshot.windows where hit == nil {
-            if let root = window.root { walk(root) }
-        }
-        guard let hit, let element = built.elements[hit] else { return false }
+        // FIRST MATCH WINS, so the search stops at it — the old whole-app
+        // snapshot described every node in the player before this same
+        // "first button wearing the label" rule was applied to the result.
+        guard let element = AXElementFind.first(
+            under: playerElement(pid: pid), budget: playerBudget,
+            where: { candidate in
+                candidate.role?.contains("Button") == true
+                    && MediaSurfaceRegistration.folded(candidate.label ?? "") == folded
+            })
+        else { return false }
         return await press(element, pid: pid)
     }
 
@@ -142,29 +182,43 @@ public enum MediaSurfaceLibrary {
     public static func pressPagePlay(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> Bool {
-        guard let wanted = registration.schema.pagePlayLabel,
-              let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
-        else { return false }
+        guard let wanted = registration.schema.pagePlayLabel else { return false }
+        let started = DispatchTime.now()
+        let fromReads = AX.Accounting.reads
         let folded = MediaSurfaceRegistration.folded(wanted)
-        let transport = transportIDs(in: built.snapshot, registration: registration)
+        // SKIP WHAT CANNOT HOLD THE ANSWER. The page Play button is never in
+        // the library outline, and that outline is most of the player:
+        // MEASURED on Apple Music, the sidebar subtree is ~427 of ~729 nodes,
+        // and the old whole-app snapshot described every one of them to find
+        // a button in the content pane.
+        let skipped = [outlineElement(pid: pid, registration: registration)]
+            .compactMap { $0 }
 
-        var best: (id: AXNodeID, area: Double)?
-        func walk(_ node: AXNodeSnapshot) {
-            if !transport.contains(node.id),
-               node.role.contains("Button"),
-               let label = node.label,
-               MediaSurfaceRegistration.folded(label) == folded,
-               let frame = node.frame {
-                let area = Double(frame.width * frame.height)
-                if area > (best?.area ?? 0) { best = (node.id, area) }
-            }
-            for child in node.children { walk(child) }
+        // ALL, NOT FIRST: the rule is the LARGEST matching button, which
+        // cannot be decided until every candidate has been seen.
+        let candidates = AXElementFind.all(
+            under: playerElement(pid: pid), budget: playerBudget, skipping: skipped,
+            where: { candidate in
+                candidate.role?.contains("Button") == true
+                    && MediaSurfaceRegistration.folded(candidate.label ?? "") == folded
+            })
+
+        // ...AND NOT THE TRANSPORT'S OWN PLAY, which is the distinction this
+        // function exists to make. Asked of the few candidates by walking
+        // their parents, rather than of every node by building a set of the
+        // transport's ids — the answer is the same and only the matches pay.
+        let transportLabel = MediaSurfaceRegistration.folded(
+            registration.schema.transportLabel)
+        var best: (element: AXUIElement, area: Double)?
+        for element in candidates {
+            guard !isInside(element, labelled: transportLabel),
+                  let frame = AX.frame(of: element) else { continue }
+            let area = Double(frame.width * frame.height)
+            if area > (best?.area ?? 0) { best = (element, area) }
         }
-        for window in built.snapshot.windows {
-            if let root = window.root { walk(root) }
-        }
-        guard let target = best, let element = built.elements[target.id] else { return false }
-        return await press(element, pid: pid)
+        note("page-play", since: started, fromReads: fromReads, detail: "\(candidates.count) candidates")
+        guard let best else { return false }
+        return await press(best.element, pid: pid)
     }
 
     // MARK: - Shuffle
@@ -181,28 +235,22 @@ public enum MediaSurfaceLibrary {
         else { return false }
         guard current != desired else { return true }
 
-        guard let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
-        else { return false }
-        let transport = transportIDs(in: built.snapshot, registration: registration)
-
-        var control: AXUIElement?
-        func walk(_ node: AXNodeSnapshot) {
-            guard control == nil else { return }
-            if transport.contains(node.id),
-               node.role.contains("Button"),
-               let label = node.label,
-               registration.shuffleState(label) != nil,
-               let element = built.elements[node.id] {
-                control = element
-                return
-            }
-            for child in node.children { walk(child) }
-        }
-        for window in built.snapshot.windows where control == nil {
-            if let root = window.root { walk(root) }
-        }
-
-        guard let control else { return false }
+        // The shuffle control lives INSIDE the transport, so the library
+        // outline cannot hold it — skip it, for the same reason `pressPagePlay`
+        // does, and ask the parent question only of the buttons that matched.
+        let skipped = [outlineElement(pid: pid, registration: registration)]
+            .compactMap { $0 }
+        let transportLabel = MediaSurfaceRegistration.folded(
+            registration.schema.transportLabel)
+        let candidates = AXElementFind.all(
+            under: playerElement(pid: pid), budget: playerBudget, skipping: skipped,
+            where: { candidate in
+                candidate.role?.contains("Button") == true
+                    && registration.shuffleState(candidate.label ?? "") != nil
+            })
+        guard let control = candidates.first(where: {
+            isInside($0, labelled: transportLabel)
+        }) else { return false }
         return await press(control, pid: pid)
     }
 
@@ -213,43 +261,64 @@ public enum MediaSurfaceLibrary {
         let element: AXUIElement
     }
 
-    private struct RowsSnapshot {
-        let outline: AXNodeSnapshot
-        let elements: AXSnapshotBuilder.ElementTable
-        let detail: AXSubtreeDetail
+    // MARK: - Finding things without describing the player
+
+    /// The ceiling the targeted searches run against. Deliberately generous —
+    /// the saving here is NOT a tighter ceiling. A whole-player snapshot costs
+    /// five to nine Accessibility round trips on every node because a snapshot
+    /// must describe what it finds; a search costs role plus children on the
+    /// nodes it passes and a label only where the role already matched, and it
+    /// stops when it has the answer. MEASURED on Apple Music: 729 nodes at
+    /// ~7ms each is ~5.1s for one snapshot, and `play_playlist` paid for two.
+    private static let playerBudget = AXTreeWalker.Budget(maxDepth: 64, maxNodes: 20000)
+
+    private static func playerElement(pid: pid_t) -> AXUIElement {
+        let application = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(application, 0.5)
+        return application
     }
 
-    /// Locate the declared library outline and read its subtree once. Split
-    /// out of `sidebarRows` so a re-walk after expanding folders is a second
-    /// call to this, not a duplicated copy of the same search.
-    private static func rowsSnapshot(
+    /// The declared library outline, found without describing the whole
+    /// player. Breadth-first, so a container that sits near the top of the
+    /// window is reached before the hundreds of rows hanging under it —
+    /// measured on Apple Music, "Sidebar" is the FOURTH node a walk meets.
+    private static func outlineElement(
         pid: pid_t, registration: MediaSurfaceRegistration
-    ) -> RowsSnapshot? {
+    ) -> AXUIElement? {
         guard AXIsProcessTrusted(),
-              let wanted = registration.schema.libraryLabel?.nilWhenEmpty,
-              let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
+              let wanted = registration.schema.libraryLabel?.nilWhenEmpty
         else { return nil }
         let folded = MediaSurfaceRegistration.folded(wanted)
-
-        var outline: AXNodeSnapshot?
-        func find(_ node: AXNodeSnapshot) {
-            guard outline == nil else { return }
-            if let label = node.label,
-               MediaSurfaceRegistration.folded(label) == folded {
-                outline = node
-                return
-            }
-            for child in node.children { find(child) }
-        }
-        for window in built.snapshot.windows {
-            if let root = window.root, outline == nil { find(root) }
-        }
-        guard let outline,
-              let detail = AXDetailReader.read(
-                subtree: outline, table: built.elements, budget: .probe)
-        else { return nil }
-        return RowsSnapshot(outline: outline, elements: built.elements, detail: detail)
+        return AXElementFind.first(
+            under: playerElement(pid: pid), budget: playerBudget,
+            where: { MediaSurfaceRegistration.folded($0.label ?? "") == folded })
     }
+
+    /// Is this node inside a container wearing `folded`?
+    ///
+    /// PIN: ASKED OF THE MATCHES, NOT OF THE TREE. The old shape built a set
+    /// of every node id inside the transport, which meant walking the
+    /// transport to answer a question about a handful of buttons. Walking a
+    /// candidate's PARENTS costs a few reads each and gives the same answer.
+    /// Bounded: a control's distance from its container is small, and an
+    /// unbounded parent walk would not end on a cycle.
+    private static func isInside(
+        _ element: AXUIElement, labelled folded: String, hops: Int = 12
+    ) -> Bool {
+        guard !folded.isEmpty else { return false }
+        var current: AXUIElement? = element
+        var remaining = hops
+        while let node = current, remaining > 0 {
+            let label = AX.string(node, kAXTitleAttribute).flatMap { $0.isEmpty ? nil : $0 }
+                ?? AX.string(node, kAXDescriptionAttribute).flatMap { $0.isEmpty ? nil : $0 }
+            if let label, MediaSurfaceRegistration.folded(label) == folded { return true }
+            current = AX.element(node, kAXParentAttribute)
+            remaining -= 1
+        }
+        return false
+    }
+
+    // MARK: - Rows
 
     /// A collapsed outline row's children are not materialized in the
     /// accessibility tree AT ALL until `kAXDisclosingAttribute` reads true —
@@ -265,83 +334,107 @@ public enum MediaSurfaceLibrary {
     private static let maxFoldersToExpand = 20
 
     @discardableResult
-    private static func expandCollapsedRows(_ snapshot: RowsSnapshot) -> Bool {
+    private static func expandCollapsedRows(_ rows: [AXUIElement]) -> Bool {
         var expanded = 0
-        func walk(_ node: AXNodeSnapshot) {
-            guard expanded < maxFoldersToExpand else { return }
-            if node.role == "AXRow", let element = snapshot.elements[node.id] {
-                let disclosing = AX.attribute(element, kAXDisclosingAttribute as String) as? Bool
-                if disclosing == false {
-                    let result = AXUIElementSetAttributeValue(
-                        element, kAXDisclosingAttribute as CFString, true as CFTypeRef)
-                    if result == .success { expanded += 1 }
-                }
+        for element in rows {
+            guard expanded < maxFoldersToExpand else { break }
+            let disclosing = AX.attribute(element, kAXDisclosingAttribute as String) as? Bool
+            if disclosing == false {
+                let result = AXUIElementSetAttributeValue(
+                    element, kAXDisclosingAttribute as CFString, true as CFTypeRef)
+                if result == .success { expanded += 1 }
             }
-            for child in node.children { walk(child) }
         }
-        walk(snapshot.outline)
         return expanded > 0
     }
 
-    private static func collectRows(_ snapshot: RowsSnapshot) -> [Row] {
-        var rows: [Row] = []
-        func collect(_ node: AXNodeSnapshot) {
-            if node.role == "AXRow" {
-                // THE FIRST TEXT IN THE ROW IS ITS NAME. A row is a cell
-                // holding an icon and a label; the icon carries no value, so
-                // the first node that has one is the name.
-                var name: String?
-                func firstText(_ inner: AXNodeSnapshot) {
-                    guard name == nil else { return }
-                    if inner.role.contains("StaticText"),
-                       let value = snapshot.detail.nodes[inner.id]?.textValue?
-                        .trimmingCharacters(in: .whitespacesAndNewlines),
-                       !value.isEmpty {
-                        name = value
-                        return
-                    }
-                    for child in inner.children { firstText(child) }
-                }
-                firstText(node)
-                if let name, let element = snapshot.elements[node.id] {
-                    rows.append(Row(name: name, element: element))
-                }
+    /// Every row under the outline, and each row's name, in ONE traversal.
+    ///
+    /// PIN: ONE PASS, AND THE PASS IS THE WHOLE COST. The shape this replaced
+    /// built a full `AXSnapshotBuilder` description of the player and then ran
+    /// `AXDetailReader` over the outline — two traversals charging five to
+    /// nine attributes a node, for a result that uses exactly two of them:
+    /// which nodes are rows, and the first text value inside each. This reads
+    /// role and children once per node and a value once per static text, and
+    /// nothing else.
+    ///
+    /// PIN: AND IT IS ONE PASS FOR A REASON — a targeted search PER ROW was
+    /// tried and MEASURED SLOWER than the snapshot it replaced (10-17s against
+    /// ~6s): a hundred small searches re-read the subtrees the outer walk had
+    /// already passed through. On this player the round trip is the cost, so
+    /// the only thing that helps is making fewer of them, not shorter walks.
+    ///
+    /// Rows are recorded in PRE-ORDER — a disclosure folder before the rows it
+    /// discloses — because `playlistNames` slices this list at a section
+    /// header and order is the whole meaning of that slice.
+    private static func readRows(under outline: AXUIElement) -> [Row] {
+        var slots: [(element: AXUIElement, name: String?)] = []
+
+        /// Returns the first static-text value anywhere in this subtree, which
+        /// is what an enclosing row takes for its name.
+        func visit(_ element: AXUIElement, depth: Int) -> String? {
+            guard depth < rowTreeDepth, slots.count < maxRowsToRead else { return nil }
+            let role = AX.string(element, kAXRoleAttribute)
+            var slot: Int?
+            if role == "AXRow" {
+                slot = slots.count
+                slots.append((element, nil))
             }
-            for child in node.children { collect(child) }
+            var firstText: String?
+            if role?.contains("StaticText") == true {
+                firstText = AX.string(element, kAXValueAttribute)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .nilWhenEmpty
+            }
+            for child in AX.children(element) {
+                let found = visit(child, depth: depth + 1)
+                if firstText == nil { firstText = found }
+            }
+            if let slot, let firstText { slots[slot].name = firstText }
+            return firstText
         }
-        collect(snapshot.outline)
-        return rows
+        _ = visit(outline, depth: 0)
+
+        return slots.compactMap { slot in
+            slot.name.map { Row(name: $0, element: slot.element) }
+        }
     }
+
+    /// A sidebar is deep enough for nested disclosure and no deeper; a row's
+    /// name is two hops down. Bounded so a pathological tree cannot stall.
+    private static let rowTreeDepth = 32
+    private static let maxRowsToRead = 2000
 
     /// Every row of the declared library outline, with its live element.
     private static func sidebarRows(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> [Row]? {
-        guard let first = rowsSnapshot(pid: pid, registration: registration) else { return nil }
-        guard expandCollapsedRows(first) else { return collectRows(first) }
-        // Something was expanded — its children only exist in a fresh walk.
+        let started = DispatchTime.now()
+        let fromReads = AX.Accounting.reads
+        guard let outline = outlineElement(pid: pid, registration: registration)
+        else { return nil }
+        let before = readRows(under: outline)
+        guard expandCollapsedRows(before.map(\.element)) else {
+            note("outline", since: started, fromReads: fromReads, detail: "\(before.count) rows")
+            return before
+        }
+        // Something was expanded and its children exist only once the outline
+        // has re-laid-out. THE OUTLINE ELEMENT IS STILL LIVE, so this re-reads
+        // ITS subtree — the shape this replaced threw the whole snapshot away
+        // and described the entire player a second time to see a few more rows.
         try? await Task.sleep(nanoseconds: 700_000_000)
-        guard let second = rowsSnapshot(pid: pid, registration: registration) else {
-            return collectRows(first)
+        let after = readRows(under: outline)
+        // Fewer rows than before the expand means the view was rebuilt under us
+        // and these handles are stale — find the outline again.
+        guard after.count >= before.count else {
+            guard let fresh = outlineElement(pid: pid, registration: registration)
+            else { return before }
+            let rebuilt = readRows(under: fresh)
+            note("outline", since: started, fromReads: fromReads, detail: "\(rebuilt.count) rows · rebuilt")
+            return rebuilt
         }
-        return collectRows(second)
-    }
-
-    private static func transportIDs(
-        in snapshot: AXAppSnapshot, registration: MediaSurfaceRegistration
-    ) -> Set<AXNodeID> {
-        let folded = MediaSurfaceRegistration.folded(registration.schema.transportLabel)
-        var found: Set<AXNodeID> = []
-        func collect(_ node: AXNodeSnapshot, inside: Bool) {
-            let here = inside
-                || MediaSurfaceRegistration.folded(node.label ?? "") == folded
-            if here { found.insert(node.id) }
-            for child in node.children { collect(child, inside: here) }
-        }
-        for window in snapshot.windows {
-            if let root = window.root { collect(root, inside: false) }
-        }
-        return found
+        note("outline", since: started, fromReads: fromReads, detail: "\(after.count) rows · expanded")
+        return after
     }
 
     /// Select a sidebar row without needing it on screen. A library of 80+

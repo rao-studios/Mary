@@ -8,6 +8,8 @@
 //  OUT:  MaryLifeEngine (the loop, the gates, the acting) + LifeTrainer
 //  PIN:  No loop, no gates and no adapters live here any more. This file
 //        builds the engine, feeds the trainer, and answers the sheet.
+//  PIN:  TRAINING FOLLOWS LIFE MODE. Off pauses it; turning Life on checks
+//        every discipline's window at once rather than waiting for a turn.
 //
 import Foundation
 import MaryAmbient
@@ -70,10 +72,15 @@ extension MaryRuntime {
         behavior: brainWiring.behavior,
         mode: .off)
 
-    /// Threshold training. Refreshes adapters when a run publishes.
-    package static let lifeTrainer = LifeTrainer { _ in
+    /// Threshold training, paused while Life is off. Refreshes adapters when
+    /// a run publishes.
+    package static let lifeTrainer = LifeTrainer(isPaused: { lifeTrainingPaused }) { _ in
         await lifeEngine.noteTrainingChanged()
     }
+
+    /// Life is off: nothing trains, and each discipline keeps only its latest
+    /// turns — see `LifeTrainPolicy.window`.
+    static var lifeTrainingPaused: Bool { lifeModeBox.withLock { $0 } == .off }
 
     // MARK: - Wiring
 
@@ -86,8 +93,17 @@ extension MaryRuntime {
     }
 
     package static func setLifeMode(_ mode: LifeMode) async {
-        lifeModeBox.withLock { $0 = mode }
+        let previous = lifeModeBox.withLock { current in
+            let previous = current
+            current = mode
+            return previous
+        }
         await lifeEngine.setMode(mode)
+        // A window that filled while Life was off gets its run now, not on
+        // the next turn.
+        if previous == .off, mode != .off {
+            Task { await considerTrainingWindows() }
+        }
     }
 
     /// Disciplines whose adapter may answer a live turn. Opt-in, per
@@ -147,6 +163,12 @@ extension MaryRuntime {
 
     static func considerTrain(_ episode: BehavioralEpisode) async {
         let id = BehavioralAssembler.shortID(episode.id)
+        // Paused: no Fleet or Thread dial per turn. The window rolls by itself.
+        guard !lifeTrainingPaused else {
+            BehavioralAssembler.behavioralLog.info(
+                "train skipped \(id, privacy: .public) — Life is off")
+            return
+        }
         guard let owner = await sewnSession.userID else {
             BehavioralAssembler.behavioralLog.info(
                 "train skipped \(id, privacy: .public) — unsigned in")
@@ -163,6 +185,30 @@ extension MaryRuntime {
         await refreshBehaviorEpisodesFromThread(ifOlderThan: behaviorExportMinimumInterval)
         await lifeTrainer.consider(
             episode: episode,
+            episodes: behaviorEpisodesBox.withLock { $0 },
+            slots: await lifeSlots.lastKnown().slots,
+            ownerID: owner,
+            threadID: threadID)
+    }
+
+    /// Check every installed discipline's window — what turning Life on does.
+    static func considerTrainingWindows() async {
+        guard let owner = await sewnSession.userID else {
+            BehavioralAssembler.behavioralLog.info("train check skipped — unsigned in")
+            return
+        }
+        let threadID = threadNodeIDBox.withLock { $0 }
+        guard !threadID.isEmpty else {
+            BehavioralAssembler.behavioralLog.info("train check skipped — no thread id")
+            return
+        }
+        await lifeSlots.refresh()
+        await refreshBehaviorEpisodesFromThread(ifOlderThan: behaviorExportMinimumInterval)
+        let disciplines = LifeCalibration.disciplines(
+            in: AbilityLibrary.shared.snapshot().records.map(\.package)
+        ).map(\.id)
+        await lifeTrainer.consider(
+            disciplines: disciplines,
             episodes: behaviorEpisodesBox.withLock { $0 },
             slots: await lifeSlots.lastKnown().slots,
             ownerID: owner,
@@ -210,6 +256,7 @@ extension MaryRuntime {
             slots: known.slots,
             ticks: await lifeTrainer.ticks(),
             tails: await lifeTrainer.logTails(),
-            fleetReachable: known.reachable)
+            fleetReachable: known.reachable,
+            trainingPaused: lifeTrainingPaused)
     }
 }

@@ -6,6 +6,8 @@
 //  IN:   in-memory boxes (episodes, Fleet slots, train ticks). No Fleet/Thread dial.
 //  OUT:  LifeCalibrationSnapshot → Life sheet
 //  PIN:  Episode cache refresh: Life-loop start, Ability deposit, sheet open.
+//  PIN:  New turns since a run are counted by time: a run learns from a fixed
+//        window, so its pair count no longer says how many turns it saw.
 //
 
 import Foundation
@@ -57,6 +59,8 @@ package struct LifeDisciplineStatus: Sendable, Equatable, Identifiable {
     package var fill: LifeTrainPolicy.Fill
     package var latest: LifeTrainTick?
     package var logTail: [String]
+    /// Life is off: nothing trains, and a full window rolls instead of growing.
+    package var trainingPaused: Bool = false
 
     package var id: String { abilityID.rawValue }
 
@@ -94,10 +98,11 @@ package struct LifeDisciplineStatus: Sendable, Equatable, Identifiable {
             let pairs = pairCount ?? 0
             return "ready · gen \(generation) · \(pairs) pair\(pairs == 1 ? "" : "s")"
         case .collecting:
-            if pairCount == nil {
-                return "\(fill.filled) of \(fill.goal) turns"
-            }
-            return "\(fill.filled) of \(fill.goal) since gen \(generation)"
+            let base = pairCount == nil
+                ? "\(fill.filled) of \(fill.goal) turns"
+                : "\(fill.filled) of \(fill.goal) since gen \(generation)"
+            // A full window with Life off doesn't grow; its oldest turn rolls off.
+            return trainingPaused && fill.filled >= fill.goal ? base + " · paused" : base
         }
     }
 }
@@ -126,19 +131,34 @@ package enum LifeCalibration {
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
+    /// Completed turns since the adapter behind `slot` trained; nil when
+    /// there is no adapter.
+    package static func newSinceTrain(
+        _ slot: LifeLoRASlot?, episodes: [BehavioralEpisode], abilityID: AbilityID
+    ) -> Int? {
+        guard let slot else { return nil }
+        guard let trainedAt = slot.trainedAt else {
+            let completed = LifeTrainPolicy.completedCount(in: episodes, abilityID: abilityID)
+            return max(0, completed - slot.pairCount)
+        }
+        return LifeTrainPolicy.completedCount(in: episodes, abilityID: abilityID, after: trainedAt)
+    }
+
     package static func snapshot(
         disciplines: [(id: AbilityID, title: String)],
         episodes: [BehavioralEpisode],
         slots: [AbilityID: LifeLoRASlot],
         ticks: [AbilityID: LifeTrainTick],
         tails: [AbilityID: [String]],
-        fleetReachable: Bool
+        fleetReachable: Bool,
+        trainingPaused: Bool = false
     ) -> LifeCalibrationSnapshot {
         let rows = disciplines.map { item -> LifeDisciplineStatus in
             let slot = slots[item.id]
             let tick = ticks[item.id]
             let completed = LifeTrainPolicy.completedCount(
                 in: episodes, abilityID: item.id)
+            let fresh = newSinceTrain(slot, episodes: episodes, abilityID: item.id)
             let trained = slot.map(\.pairCount)
             let isTraining = slot?.training == true
                 || (tick != nil && tick?.stage != "finished" && tick?.stage != "error")
@@ -156,9 +176,10 @@ package enum LifeCalibration {
                 schemaJSON: slot?.schemaJSON ?? Data(),
                 cid: slot?.cid ?? "",
                 fill: LifeTrainPolicy.progress(
-                    completedCount: completed, trainedPairCount: trained),
+                    completedCount: completed, newSinceTrain: fresh),
                 latest: tick,
-                logTail: tails[item.id] ?? [])
+                logTail: tails[item.id] ?? [],
+                trainingPaused: trainingPaused)
         }
         return LifeCalibrationSnapshot(rows: rows, fleetReachable: fleetReachable)
     }

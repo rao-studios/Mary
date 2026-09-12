@@ -33,6 +33,10 @@ struct SettingsSheet: View {
     /// What Sewn reports for each backend. Empty until the first read.
     @State var providerStatuses: [SewnProviderStatus] = []
     @State var warmingLocal = false
+    /// SpeechAnalyzer's on-device model for the current locale. Nil until read.
+    @State var speechModelStatus: SpeechModelAssets.Status?
+    @State var speechModelDownloading = false
+    @State var speechModelError: String?
 
     var voices: [String] {
         guard let dir = KokoroAssets.modelsDirectory() else { return ["af_heart"] }
@@ -73,6 +77,7 @@ struct SettingsSheet: View {
         .onAppear {
             refreshPermissionStatus()
             Task { await refreshCodingAgentStatus() }
+            if config.state.sttBackend == .analyzer { Task { await refreshSpeechModelStatus() } }
         }
         // Recompute on app activation — grant in System Settings, then cmd-tab back.
         .onReceive(NotificationCenter.default.publisher(
@@ -367,8 +372,30 @@ struct SettingsSheet: View {
     var sttBinding: Binding<STTBackend> {
         Binding(
             get: { config.state.sttBackend },
-            set: { config.center.update.send(ConfigService.Update.Meta(sttBackend: $0)) }
+            set: { backend in
+                config.center.update.send(ConfigService.Update.Meta(sttBackend: backend))
+                if backend == .analyzer { Task { await refreshSpeechModelStatus() } }
+            }
         )
+    }
+
+    /// Read-only — Settings should never silently start a download.
+    func refreshSpeechModelStatus() async {
+        speechModelStatus = await SpeechModelAssets.status(locale: .current)
+    }
+
+    func downloadSpeechModel() {
+        speechModelDownloading = true
+        speechModelError = nil
+        Task {
+            do {
+                try await SpeechModelAssets.download(locale: .current)
+            } catch {
+                speechModelError = error.localizedDescription
+            }
+            speechModelDownloading = false
+            await refreshSpeechModelStatus()
+        }
     }
 
     func updateVAD(_ mutate: (inout VADConfig) -> Void) {
