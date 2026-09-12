@@ -70,6 +70,15 @@ and its steps, who owns each one, the phrases and tokens the ability listens
 for, and the skills it exposes. Packages export and import as single files, and
 saving creates a local override rather than editing what shipped.
 
+You do not need a build of Mary to write one. The **[Ability
+Workshop](https://rao-studios.github.io/MaryOS/)** is the same format in a
+browser tab — teach it an application, or open any of the seventeen shipped
+packages and read how it is put together, then take the `.mary` file away and
+import it. It runs entirely client-side; nothing is uploaded. Recipes stay in
+the Studio, because the key presses and typing are recorded against a live
+accessibility tree with the application running, and a web page cannot watch
+your screen. Source in `site/`.
+
 ### She remembers, and the memory is inspectable
 
 ![Threads — the local memory node](README_Assets/threads.png)
@@ -226,6 +235,14 @@ reads `Package.swift` as text and fails the build when an edge appears that
 should not, because SwiftPM offers no build-time hook for "this target may not
 depend on that one" and a wrong edge forms no cycle: it compiles, links, ships,
 and the boundary is simply gone.
+
+Outside that package, `site/` holds the [Ability
+Workshop](https://rao-studios.github.io/MaryOS/) — a static, browser-only
+creator for `.mary` packages, built with Vite and TypeScript and deployed to
+GitHub Pages by `.github/workflows/pages.yml`. It has no backend and no Swift in
+its build. Its test suite re-serializes every package in `Abilities/`
+byte-for-byte and reproduces each integrity digest, so a schema change that
+leaves the workshop stale turns the workflow red.
 
 ## The turn
 
