@@ -104,8 +104,17 @@ public enum AXSnapshotBuilder {
     /// found needs the element behind an `AXNodeID`, and re-walking to find it
     /// again would race the user. The table is only as fresh as the walk:
     /// resolve, act, and drop it. Never store one.
+    /// - Parameter isCancelled: asked between windows and before descending.
+    ///   DEFAULTS TO THE CALLING TASK, which is the whole point: `bounded()`
+    ///   cancels the loser of a race and then stops waiting on it, but a
+    ///   synchronous `AXUIElementCopyAttributeValue` loop never noticed, so an
+    ///   abandoned walk ran to completion holding the target's AX server while
+    ///   the next turn's walk queued behind it. A detached refresh
+    ///   (`Task.detached`) inherits no cancellation and is unaffected; a call
+    ///   made outside any task reads `false` and behaves exactly as before.
     public static func build(
-        pid: pid_t, options: Options = .init()
+        pid: pid_t, options: Options = .init(),
+        isCancelled: () -> Bool = { Task.isCancelled }
     ) -> (
         snapshot: AXAppSnapshot, elements: ElementTable, web: WebWalkSummary
     )? {
@@ -125,7 +134,9 @@ public enum AXSnapshotBuilder {
         var windows: [AXWindowSnapshot] = []
         var nodeCount = 0
         var web = WebWalkSummary()
+        var abandoned = false
         for (index, row) in rows.enumerated() {
+            if isCancelled() { abandoned = true; break }
             AXUIElementSetMessagingTimeout(row.element, 0.25)
             // Front window (index 0 — AX enumerates front-to-back) gets the deep budget;
             // every other window gets the shallow one.
@@ -140,7 +151,8 @@ public enum AXSnapshotBuilder {
                 source: .live(recorder: recorder),
                 options: options,
                 budgets: budgets,
-                tallies: &tallies)
+                tallies: &tallies,
+                isCancelled: isCancelled)
             nodeCount += tallies.native.visited + tallies.web.visited
             web.absorb(tallies)
             let windowID = AXNodeID(hashing: row.element)
@@ -181,6 +193,18 @@ public enum AXSnapshotBuilder {
         // default for a 1.5s poll; a walk measured in SECONDS is not ambient
         // noise, it is the turn, and it was invisible until it was timed from
         // the caller's side. Threshold, not every walk — the poll stays quiet.
+        // AN ABANDONED WALK SAYS SO, at any duration. These are the ones that
+        // used to run invisibly after nobody was waiting, and a session that
+        // accumulates them is a session that gets slower — which is exactly
+        // what this line is for: if they pile up, that is the reason.
+        if abandoned || isCancelled() {
+            walkLog.info(
+                """
+                walk abandoned — \(appName, privacy: .public) after \
+                \(nodeCount, privacy: .public) nodes, \
+                \(Int(seconds * 1000), privacy: .public)ms
+                """)
+        }
         if seconds >= slowWalkSeconds {
             walkLog.info(
                 """
@@ -288,7 +312,8 @@ public enum AXSnapshotBuilder {
         source: AXNodeSource<Node>,
         options: Options,
         budgets: LaneBudgets,
-        tallies: inout LaneTallies
+        tallies: inout LaneTallies,
+        isCancelled: () -> Bool = { false }
     ) -> AXNodeSnapshot {
         let id = source.id(node)
         source.record(id, node)
@@ -318,9 +343,19 @@ public enum AXSnapshotBuilder {
 
         var children: [AXNodeSnapshot] = []
         var childrenComplete = true
-        if effectiveDepth < budget.maxDepth {
+        if isCancelled() {
+            // STOP BEFORE THE NEXT READ, not after the subtree. Checked here
+            // rather than at the top so the node already being described is
+            // finished honestly, and `source.children` — itself a round trip —
+            // is never asked for. Every level below unwinds on the same check,
+            // so the cost of stopping is the depth, not what was left.
+            // TRUNCATED, because that is what an incomplete tree is; `build`'s
+            // contract is that a walk comes back short, never nil.
+            tallies[effectiveLane].truncated = true
+            childrenComplete = false
+        } else if effectiveDepth < budget.maxDepth {
             for child in source.children(node) {
-                if tallies[effectiveLane].visited >= budget.maxNodes {
+                if tallies[effectiveLane].visited >= budget.maxNodes || isCancelled() {
                     tallies[effectiveLane].truncated = true
                     childrenComplete = false
                     break
@@ -332,7 +367,8 @@ public enum AXSnapshotBuilder {
                     source: source,
                     options: options,
                     budgets: budgets,
-                    tallies: &tallies))
+                    tallies: &tallies,
+                    isCancelled: isCancelled))
             }
         } else if !source.children(node).isEmpty {
             tallies[effectiveLane].truncated = true

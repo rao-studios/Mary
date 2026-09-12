@@ -1,0 +1,975 @@
+{
+  "$description": "Liquid Platinum design tokens (W3C Design Tokens format). This file is the source of truth: `npm run tokens` emits src/styles/tokens.css, src/tokens/tokens.ts, and tokens/export/liquid-platinum.sketchpalette. Values may alias other tokens with {path.to.token}.",
+  "platinum": {
+    "$type": "color",
+    "$description": "The raw metal ramp: near-white to deep steel, with a cool blue-violet cast.",
+    "0": {
+      "$value": "#f7f7f9"
+    },
+    "1": {
+      "$value": "#eeeff2"
+    },
+    "2": {
+      "$value": "#e3e5e9"
+    },
+    "3": {
+      "$value": "#d4d7dd"
+    },
+    "4": {
+      "$value": "#c1c5cd"
+    },
+    "5": {
+      "$value": "#a9aeb8"
+    },
+    "6": {
+      "$value": "#8b909b"
+    },
+    "7": {
+      "$value": "#6b707b"
+    },
+    "8": {
+      "$value": "#4a4e57"
+    },
+    "9": {
+      "$value": "#2a2d33"
+    }
+  },
+  "surface": {
+    "$type": "color",
+    "$description": "Semantic surface colors. Every brushed surface is a vertical gradient from -top to -bottom.",
+    "window-top": {
+      "$value": "{platinum.1}"
+    },
+    "window-bottom": {
+      "$value": "{platinum.3}"
+    },
+    "titlebar-top": {
+      "$value": "{platinum.0}"
+    },
+    "titlebar-bottom": {
+      "$value": "{platinum.4}"
+    },
+    "titlebar-inactive-top": {
+      "$value": "{platinum.1}"
+    },
+    "titlebar-inactive-bottom": {
+      "$value": "{platinum.2}"
+    },
+    "menubar-top": {
+      "$value": "{platinum.0}"
+    },
+    "menubar-bottom": {
+      "$value": "{platinum.3}"
+    },
+    "raised-top": {
+      "$value": "{platinum.0}"
+    },
+    "raised-bottom": {
+      "$value": "{platinum.3}"
+    },
+    "pressed-top": {
+      "$value": "{platinum.4}"
+    },
+    "pressed-bottom": {
+      "$value": "{platinum.3}"
+    },
+    "well": {
+      "$value": "{platinum.0}"
+    },
+    "body": {
+      "$value": "{platinum.0}"
+    },
+    "sidebar": {
+      "$value": "{platinum.2}"
+    },
+    "menu": {
+      "$value": "rgba(238, 239, 242, 0.94)"
+    },
+    "selected": {
+      "$value": "rgba(59, 125, 216, 0.16)"
+    }
+  },
+  "ink": {
+    "$type": "color",
+    "primary": {
+      "$value": "#1f2228"
+    },
+    "secondary": {
+      "$value": "#4a4e57"
+    },
+    "tertiary": {
+      "$value": "#7a7f8a"
+    },
+    "disabled": {
+      "$value": "#a9aeb8"
+    },
+    "inverse": {
+      "$value": "#f7f7f9"
+    },
+    "on-accent": {
+      "$value": "#ffffff"
+    },
+    "emboss": {
+      "$value": "rgba(255, 255, 255, 0.8)",
+      "$description": "Text highlight below embossed labels."
+    }
+  },
+  "accent": {
+    "$type": "color",
+    "$description": "Two appearances, as in Aqua's Blue / Graphite preference. base.css maps the chosen one onto --lp-accent-*.",
+    "blue": {
+      "base": {
+        "$value": "#3b7dd8"
+      },
+      "deep": {
+        "$value": "#2a5fae"
+      },
+      "light": {
+        "$value": "#8fb8ee"
+      },
+      "soft": {
+        "$value": "rgba(59, 125, 216, 0.18)"
+      },
+      "focus-ring": {
+        "$value": "rgba(59, 125, 216, 0.5)"
+      }
+    },
+    "graphite": {
+      "base": {
+        "$value": "#6f7683"
+      },
+      "deep": {
+        "$value": "#4f5561"
+      },
+      "light": {
+        "$value": "#aab0bb"
+      },
+      "soft": {
+        "$value": "rgba(111, 118, 131, 0.2)"
+      },
+      "focus-ring": {
+        "$value": "rgba(111, 118, 131, 0.5)"
+      }
+    }
+  },
+  "traffic": {
+    "$type": "color",
+    "$description": "Window indicator liquids. base = liquid body, deep = the well behind it, light = the surface tint.",
+    "close": {
+      "base": {
+        "$value": "#ee6b5f"
+      },
+      "deep": {
+        "$value": "#a83a30"
+      },
+      "light": {
+        "$value": "#ffb7ae"
+      }
+    },
+    "minimize": {
+      "base": {
+        "$value": "#f2bd4f"
+      },
+      "deep": {
+        "$value": "#a6781a"
+      },
+      "light": {
+        "$value": "#ffe6aa"
+      }
+    },
+    "zoom": {
+      "base": {
+        "$value": "#63c657"
+      },
+      "deep": {
+        "$value": "#2c7f28"
+      },
+      "light": {
+        "$value": "#bdf2b3"
+      }
+    },
+    "inactive": {
+      "$value": "#c1c5cd"
+    },
+    "inactive-deep": {
+      "$value": "#8b909b"
+    },
+    "rim": {
+      "$value": "rgba(0, 0, 0, 0.32)"
+    },
+    "gloss": {
+      "$value": "rgba(255, 255, 255, 0.85)"
+    },
+    "bead-shadow": {
+      "$value": "rgba(0, 0, 0, 0.35)",
+      "$description": "The drop shadow that sits a glass bead proud of its surface \u2014 the same one a toggle knob uses."
+    }
+  },
+  "liquid": {
+    "$type": "number",
+    "$description": "Bubble liquid: fill level as a fraction of the well, the two wave layers' opacities, and the travelling wave. slosh-scale amplifies the engine's physical tilt so it reads at 18px.",
+    "fill": {
+      "$value": 0.6,
+      "$description": "Orbs sit half full, so the surface line is the point of them."
+    },
+    "fill-traffic": {
+      "$value": 0.72,
+      "$description": "Traffic-light beads carry the same level as a toggle knob: enough colour to read at 18px, with the surface line sitting across the middle where a tilt is most visible."
+    },
+    "opacity-front": {
+      "$value": 0.95
+    },
+    "opacity-back": {
+      "$value": 0.55
+    },
+    "slosh-scale": {
+      "$value": 1.15,
+      "$description": "The bubble shows a little more tilt than the physics, so it still reads at 18px. The physical tilt itself lives in motion.slosh-gain."
+    },
+    "wave-amplitude": {
+      "$value": 0.12,
+      "$description": "Crest travel as a fraction of the bubble diameter."
+    },
+    "wave-period": {
+      "$type": "duration",
+      "$value": "3.4s"
+    },
+    "meniscus": {
+      "$type": "dimension",
+      "$value": "1px",
+      "$description": "Thickness of the painted hairline across the waterline. Debug only \u2014 it is off unless the Gallery's Debug tab turns it on; what shows the waterline normally is liquid.surface-light."
+    },
+    "surface-light": {
+      "$type": "color",
+      "$value": "rgba(255, 255, 255, 0.3)",
+      "$description": "Light along the top of the liquid body itself. Unlike the meniscus hairline this survives the merge filter, since the threshold touches alpha and not colour \u2014 which makes it the crest you can actually see in a traffic light."
+    },
+    "surface-depth": {
+      "$type": "number",
+      "$value": 0.16,
+      "$description": "How far down the body the surface light reaches, as a fraction of it."
+    },
+    "meniscus-light": {
+      "$type": "color",
+      "$value": "rgba(255, 255, 255, 0.72)"
+    },
+    "meniscus-shade": {
+      "$type": "color",
+      "$value": "rgba(0, 0, 0, 0.28)"
+    }
+  },
+  "sheen": {
+    "$description": "The specular highlight that slides across brushed surfaces. light-x is where the room light sits, as a fraction of viewport width.",
+    "color": {
+      "$type": "color",
+      "$value": "#ffffff"
+    },
+    "alpha": {
+      "$type": "number",
+      "$value": 0.5
+    },
+    "alpha-inactive": {
+      "$type": "number",
+      "$value": 0.18
+    },
+    "angle": {
+      "$type": "dimension",
+      "$value": "105deg"
+    },
+    "light-x": {
+      "$type": "number",
+      "$value": 0.35
+    }
+  },
+  "molten": {
+    "$description": "The molten-platinum wallpaper: a domain-warped height field lit by two lights, after M\u00e5rten R\u00e5nge's shader. It advances its own clock only while the desktop is already animating, so an idle desktop still schedules no frames. `tone` picks the finish \u2014 `platinum` lifts the field into this palette's cool cast, `faithful` keeps the shader's own dark, high-contrast grade.",
+    "flow": {
+      "$type": "number",
+      "$value": 4,
+      "$description": "Units of shader time per second of window motion. The source rotates its warp at time*0.1, so a drag lasting about a second needs several units before anything moves visibly."
+    },
+    "scale": {
+      "$type": "number",
+      "$value": 0.6,
+      "$description": "Render scale against *device* pixels while the desktop is moving. Below 1 to leave the GPU to the interface during a drag; the still frame that follows is drawn at scale-still."
+    },
+    "scale-still": {
+      "$type": "number",
+      "$value": 1,
+      "$description": "Render scale against device pixels once everything settles. 1 is native: the wallpaper you actually sit and look at is never upscaled, which is what stops it reading as grainy."
+    },
+    "settle-ms": {
+      "$type": "duration",
+      "$value": "180ms",
+      "$description": "Quiet time after the last motion frame before the sharp still is drawn."
+    },
+    "max-pixels": {
+      "$type": "number",
+      "$value": 6000000,
+      "$description": "Ceiling on the drawing buffer, so a 4K display at dpr 2 does not ask for a 33-megapixel frame."
+    },
+    "zoom": {
+      "$type": "number",
+      "$value": 1
+    },
+    "platinum": {
+      "$description": "Lifted into the platinum ramp so light windows read against it.",
+      "base": {
+        "$type": "color",
+        "$value": "#6b7080"
+      },
+      "lift": {
+        "$type": "number",
+        "$value": 0.13,
+        "$description": "Black point. Enough to keep the valleys off pure black without flattening them \u2014 a high lift was what made this read as faded."
+      },
+      "gain": {
+        "$type": "number",
+        "$value": 0.94
+      },
+      "saturation": {
+        "$type": "number",
+        "$value": -0.24,
+        "$description": "Negative extrapolates away from luminance, so this saturates rather than desaturates."
+      }
+    },
+    "faithful": {
+      "$description": "The shader's own grade: dark valleys, bright ridges.",
+      "base": {
+        "$type": "color",
+        "$value": "#4d4d4d"
+      },
+      "lift": {
+        "$type": "number",
+        "$value": 0
+      },
+      "gain": {
+        "$type": "number",
+        "$value": 1
+      },
+      "saturation": {
+        "$type": "number",
+        "$value": -0.4
+      }
+    }
+  },
+  "brush": {
+    "$description": "Parameters of the brushed-metal tile (see src/lib/brushSvg.ts). Strokes run diagonally at atan(rise/run); keep rise and run small integers so the tile stays seamless. The grain is anchored to the desktop rather than to the surface it fills: a window does not carry its metal with it, it uncovers a different part of one continuous sheet as it moves. glint flashes the hairlines while that happens.",
+    "opacity": {
+      "$type": "number",
+      "$value": 0.34
+    },
+    "glint": {
+      "$type": "number",
+      "$value": 0.55,
+      "$description": "Extra grain opacity at full speed, as a fraction of brush.opacity."
+    },
+    "contrast": {
+      "$type": "number",
+      "$value": 0.66
+    },
+    "freq-x": {
+      "$type": "number",
+      "$value": 0.02
+    },
+    "freq-y": {
+      "$type": "number",
+      "$value": 0.6
+    },
+    "octaves": {
+      "$type": "number",
+      "$value": 2
+    },
+    "seed": {
+      "$type": "number",
+      "$value": 7
+    },
+    "tile": {
+      "$type": "dimension",
+      "$value": "512px"
+    },
+    "angle": {
+      "$type": "number",
+      "rise": {
+        "$value": 1
+      },
+      "run": {
+        "$value": 2
+      }
+    }
+  },
+  "goo": {
+    "$type": "number",
+    "$description": "Liquid merge. The filter blurs alpha, thresholds it into a silhouette, then lights that silhouette with feSpecularLighting \u2014 the blobs themselves carry no emboss. rest = distinct beads, flow = merges readily; a group swaps between them on hover or speed.",
+    "blur-rest": {
+      "$value": 2.2
+    },
+    "blur-flow": {
+      "$value": 5.5
+    },
+    "slope-rest": {
+      "$value": 26
+    },
+    "slope-flow": {
+      "$value": 15
+    },
+    "intercept-rest": {
+      "$value": -11
+    },
+    "intercept-flow": {
+      "$value": -6,
+      "$description": "Paired with slope so both tensions threshold at ~0.43 alpha: the silhouette keeps its size when a group starts flowing, only its reach changes."
+    },
+    "specular-scale": {
+      "$value": 2.5
+    },
+    "specular-constant": {
+      "$value": 0.6
+    },
+    "specular-exponent": {
+      "$value": 30
+    },
+    "specular-elevation": {
+      "$value": 42
+    },
+    "specular-azimuth": {
+      "$value": 250,
+      "$description": "Degrees CCW from +x in SVG space. Upper-left, so the bead is lit by the same room light as the sheen and the emboss."
+    },
+    "rim-shade": {
+      "$value": 0.42,
+      "$description": "Opacity of the shade offset under the merged silhouette."
+    },
+    "attract": {
+      "$value": 3,
+      "$description": "px a neighbour slides toward the hot blob, forming a neck."
+    },
+    "lag": {
+      "$type": "duration",
+      "$value": "26ms",
+      "$description": "Per-index transition delay, so a smear travels down the row."
+    },
+    "stretch": {
+      "$value": 0.55,
+      "$description": "scaleX added along travel at full lag. This is what closes the gaps: the drops elongate until their ends meet and the filter bridges the rest. Trailing alone would only spread the row."
+    }
+  },
+  "edge": {
+    "$type": "color",
+    "light": {
+      "$value": "rgba(255, 255, 255, 0.78)"
+    },
+    "dark": {
+      "$value": "rgba(0, 0, 0, 0.2)"
+    },
+    "hairline": {
+      "$value": "rgba(0, 0, 0, 0.32)"
+    },
+    "divider": {
+      "$value": "rgba(0, 0, 0, 0.1)"
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "xs": {
+      "$value": "4px"
+    },
+    "sm": {
+      "$value": "6px"
+    },
+    "md": {
+      "$value": "10px"
+    },
+    "lg": {
+      "$value": "14px"
+    },
+    "window": {
+      "$value": "12px",
+      "$description": "Resting window radius. In motion each corner springs independently between window-min and window-max."
+    },
+    "window-min": {
+      "$value": "8px"
+    },
+    "window-max": {
+      "$value": "16px"
+    },
+    "pill": {
+      "$value": "999px"
+    }
+  },
+  "radius-flex": {
+    "$type": "number",
+    "$description": "How a live corner reacts. spread: px a window's leading/trailing corner moves at full speed. base/span: a control multiplies its own radius by base + span * --lp-radius-k, so it rests at 1 and swells while its window moves. press: the multiplier while a control is held down.",
+    "spread": {
+      "$value": 6
+    },
+    "velocity-ref": {
+      "$value": 1100,
+      "$description": "px/s that counts as full deflection for the corners. Deliberately far below motion.velocity-ref: 2500 px/s is a hard fling, and a careful drag peaks nearer 400."
+    },
+    "gamma": {
+      "$value": 0.7,
+      "$description": "Response curve on corner speed. Below 1 so an ordinary drag registers instead of hugging rest."
+    },
+    "impulse": {
+      "$value": 26,
+      "$description": "px/s kicked into each corner spring on grab and on release. The springs are detuned, so one kick sets all four wobbling out of phase."
+    },
+    "base": {
+      "$value": 1
+    },
+    "span": {
+      "$value": 0.35
+    },
+    "press": {
+      "$value": 1.35
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "window": {
+      "$value": [
+        {
+          "offsetX": "0",
+          "offsetY": "14px",
+          "blur": "36px",
+          "spread": "0",
+          "color": "rgba(20, 22, 28, 0.26)"
+        },
+        {
+          "offsetX": "0",
+          "offsetY": "0",
+          "blur": "0",
+          "spread": "1px",
+          "color": "rgba(0, 0, 0, 0.28)"
+        }
+      ]
+    },
+    "window-focused": {
+      "$value": [
+        {
+          "offsetX": "0",
+          "offsetY": "24px",
+          "blur": "56px",
+          "spread": "0",
+          "color": "rgba(20, 22, 28, 0.4)"
+        },
+        {
+          "offsetX": "0",
+          "offsetY": "0",
+          "blur": "0",
+          "spread": "1px",
+          "color": "rgba(0, 0, 0, 0.34)"
+        }
+      ]
+    },
+    "menu": {
+      "$value": [
+        {
+          "offsetX": "0",
+          "offsetY": "10px",
+          "blur": "30px",
+          "spread": "0",
+          "color": "rgba(20, 22, 28, 0.3)"
+        },
+        {
+          "offsetX": "0",
+          "offsetY": "0",
+          "blur": "0",
+          "spread": "1px",
+          "color": "rgba(0, 0, 0, 0.22)"
+        }
+      ]
+    },
+    "emboss-raised": {
+      "$value": [
+        {
+          "inset": true,
+          "offsetX": "0",
+          "offsetY": "1px",
+          "blur": "0",
+          "spread": "0",
+          "color": "{edge.light}"
+        },
+        {
+          "inset": true,
+          "offsetX": "0",
+          "offsetY": "-1px",
+          "blur": "0",
+          "spread": "0",
+          "color": "{edge.dark}"
+        }
+      ]
+    },
+    "emboss-well": {
+      "$value": [
+        {
+          "inset": true,
+          "offsetX": "0",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0",
+          "color": "rgba(0, 0, 0, 0.28)"
+        },
+        {
+          "inset": true,
+          "offsetX": "0",
+          "offsetY": "0",
+          "blur": "0",
+          "spread": "1px",
+          "color": "rgba(0, 0, 0, 0.12)"
+        }
+      ]
+    },
+    "emboss-pressed": {
+      "$value": [
+        {
+          "inset": true,
+          "offsetX": "0",
+          "offsetY": "2px",
+          "blur": "4px",
+          "spread": "0",
+          "color": "rgba(0, 0, 0, 0.3)"
+        }
+      ]
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "1": {
+      "$value": "4px"
+    },
+    "2": {
+      "$value": "8px"
+    },
+    "3": {
+      "$value": "12px"
+    },
+    "4": {
+      "$value": "16px"
+    },
+    "5": {
+      "$value": "20px"
+    },
+    "6": {
+      "$value": "24px"
+    },
+    "7": {
+      "$value": "32px"
+    },
+    "8": {
+      "$value": "40px"
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "menubar-height": {
+      "$value": "24px"
+    },
+    "titlebar-height": {
+      "$value": "42px"
+    },
+    "titlebar-title-inset": {
+      "$value": "90px",
+      "$description": "Left/right inset of the centered title, clearing the traffic lights."
+    },
+    "traffic": {
+      "$value": "18px"
+    },
+    "traffic-gap": {
+      "$value": "10px"
+    },
+    "control-height": {
+      "$value": "22px"
+    },
+    "control-height-sm": {
+      "$value": "18px"
+    },
+    "segmented-height": {
+      "$value": "28px",
+      "$description": "Segmented controls carry a label inside a thumb inside a track inside the track padding, so they need more room than a button's control-height gives them."
+    },
+    "segmented-height-sm": {
+      "$value": "22px"
+    },
+    "segmented-pad": {
+      "$value": "3px",
+      "$description": "Gap between the track and the thumb inside it. At 2px the thumb looked jammed against the track's own curve."
+    },
+    "resize-grip": {
+      "$value": "6px"
+    },
+    "resize-corner": {
+      "$value": "14px"
+    },
+    "window-min-w": {
+      "$value": "240px"
+    },
+    "window-min-h": {
+      "$value": "160px"
+    },
+    "spotlight-width": {
+      "$value": "560px"
+    },
+    "spotlight-bar-height": {
+      "$value": "44px"
+    },
+    "spotlight-tile": {
+      "$value": "56px"
+    }
+  },
+  "font": {
+    "$type": "fontFamily",
+    "ui": {
+      "$value": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "SF Pro Text",
+        "Helvetica Neue",
+        "Helvetica",
+        "Arial",
+        "Inter",
+        "sans-serif"
+      ]
+    },
+    "display": {
+      "$value": [
+        "Iowan Old Style",
+        "Palatino Linotype",
+        "Palatino",
+        "Georgia",
+        "P052",
+        "serif"
+      ]
+    },
+    "mono": {
+      "$value": [
+        "SFMono-Regular",
+        "ui-monospace",
+        "Menlo",
+        "Consolas",
+        "JetBrains Mono",
+        "monospace"
+      ]
+    }
+  },
+  "text": {
+    "xs": {
+      "$type": "dimension",
+      "$value": "11px"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "13px"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "15px"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "20px"
+    },
+    "xxl": {
+      "$type": "dimension",
+      "$value": "28px"
+    },
+    "weight-regular": {
+      "$type": "fontWeight",
+      "$value": 400
+    },
+    "weight-medium": {
+      "$type": "fontWeight",
+      "$value": 500
+    },
+    "weight-semibold": {
+      "$type": "fontWeight",
+      "$value": 600
+    },
+    "weight-bold": {
+      "$type": "fontWeight",
+      "$value": 700
+    },
+    "leading-tight": {
+      "$type": "number",
+      "$value": 1.2
+    },
+    "leading-normal": {
+      "$type": "number",
+      "$value": 1.45
+    }
+  },
+  "motion": {
+    "$description": "Durations for discrete transitions; springs as {frequency Hz, damping ratio}; slosh is the bubble pendulum.",
+    "fast": {
+      "$type": "duration",
+      "$value": "120ms"
+    },
+    "normal": {
+      "$type": "duration",
+      "$value": "200ms"
+    },
+    "slow": {
+      "$type": "duration",
+      "$value": "360ms"
+    },
+    "ease-out": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+    },
+    "ease-spring": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+    },
+    "spring-sheen": {
+      "$type": "number",
+      "frequency": {
+        "$value": 1.2
+      },
+      "damping": {
+        "$value": 0.45
+      }
+    },
+    "spring-tilt": {
+      "$type": "number",
+      "frequency": {
+        "$value": 1.6
+      },
+      "damping": {
+        "$value": 0.6
+      }
+    },
+    "spring-jelly": {
+      "$type": "number",
+      "frequency": {
+        "$value": 2.2
+      },
+      "damping": {
+        "$value": 0.55
+      }
+    },
+    "spring-fly": {
+      "$type": "number",
+      "frequency": {
+        "$value": 2.3
+      },
+      "damping": {
+        "$value": 0.8
+      }
+    },
+    "spring-radius": {
+      "$type": "number",
+      "frequency": {
+        "$value": 2.6
+      },
+      "damping": {
+        "$value": 0.35
+      }
+    },
+    "spring-vx-lag": {
+      "$type": "number",
+      "frequency": {
+        "$value": 0.9
+      },
+      "damping": {
+        "$value": 0.9
+      }
+    },
+    "radius-detune": {
+      "$type": "number",
+      "$value": 0.08,
+      "$description": "Per-corner spring frequency spread, so the four corners never settle in lockstep."
+    },
+    "slosh-frequency": {
+      "$type": "number",
+      "$value": 1.3,
+      "$description": "A 1.3 Hz wave is slow enough to watch; 1.7 read as a twitch."
+    },
+    "slosh-damping": {
+      "$type": "number",
+      "$value": 0.16,
+      "$description": "About two and a half visible swings, and a ring-out tail of ~3.4s so an idle desktop goes quiet as promptly as it used to."
+    },
+    "slosh-gain": {
+      "$type": "number",
+      "$value": 0.0009,
+      "$description": "Radians of tilt per px/s2 of container acceleration. This is now only the kick at the start and end of a gesture; the sustained lean comes from slosh-shear-gain."
+    },
+    "slosh-max": {
+      "$type": "number",
+      "$value": 0.5,
+      "$description": "Hard limit, ~29 degrees. A hard fling reaches it; anything more would pour out."
+    },
+    "slosh-max-accel": {
+      "$type": "number",
+      "$value": 12000
+    },
+    "slosh-lift": {
+      "$type": "number",
+      "$value": 10,
+      "$description": "px the liquid rides up or down per radian of vertical slosh, before the bubble scales it by its own size."
+    },
+    "slosh-shift": {
+      "$type": "number",
+      "$value": 7,
+      "$description": "px the liquid banks sideways per unit of sin(tilt). Piling against a wall reads far better at 18px than rotation alone."
+    },
+    "slosh-velocity-ref": {
+      "$type": "number",
+      "$value": 1200,
+      "$description": "px/s that counts as fully sheared. Like the corners, the liquid needs its own reference: motion.velocity-ref is scaled for the jelly, where full deflection should take a hard fling, and a careful drag peaks nearer 400."
+    },
+    "slosh-shear-gain": {
+      "$type": "number",
+      "$value": 18,
+      "$description": "Drive per unit of shear \u2014 how far the liquid's own speed lags the well's. A dragged window is mostly constant velocity, where acceleration is zero, so this is what keeps the liquid leaning through the middle of a gesture instead of only twitching at its ends."
+    },
+    "slosh-shear-gamma": {
+      "$type": "number",
+      "$value": 0.7,
+      "$description": "Response curve on the shear. Below 1 it lifts slow, careful drags, which would otherwise sit near zero."
+    },
+    "jelly-max-scale": {
+      "$type": "number",
+      "$value": 0.035
+    },
+    "jelly-max-skew": {
+      "$type": "number",
+      "$value": 2.5
+    },
+    "tilt-max": {
+      "$type": "number",
+      "$value": 3
+    },
+    "velocity-ref": {
+      "$type": "number",
+      "$value": 2500
+    },
+    "drift-period": {
+      "$type": "duration",
+      "$value": "45s"
+    }
+  },
+  "z": {
+    "$type": "number",
+    "wallpaper": {
+      "$value": 0
+    },
+    "windows": {
+      "$value": 100
+    },
+    "menubar": {
+      "$value": 600
+    },
+    "menus": {
+      "$value": 700
+    },
+    "spotlight": {
+      "$value": 800
+    }
+  }
+}

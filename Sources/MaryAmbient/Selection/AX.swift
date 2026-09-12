@@ -10,13 +10,39 @@
 import ApplicationServices
 import CoreGraphics
 import Foundation
+import os
 
 public enum AX {
+
+    /// Every Accessibility round trip this process has made, when asked for.
+    ///
+    /// PIN: THE ROUND TRIP IS THE COST, AND WALL CLOCK CANNOT SEE IT. MEASURED
+    /// on Apple Music, the SAME 729-node walk took 4.1s and 52.6s on
+    /// consecutive runs of the same binary with the player paused — a 12x
+    /// spread on identical work, because what is being timed is the target's
+    /// AX server answering, not anything this process does. A traversal that
+    /// claims to be cheaper therefore cannot prove it by being faster; it
+    /// proves it by making fewer calls, which is what this counts.
+    ///
+    /// Off unless `MARY_AX_COUNT=1`, so the check is one static Bool on a path
+    /// that is already an IPC round trip.
+    public enum Accounting {
+        public static let enabled =
+            ProcessInfo.processInfo.environment["MARY_AX_COUNT"] == "1"
+
+        private static let box = OSAllocatedUnfairLock<Int>(initialState: 0)
+
+        static func note() { box.withLock { $0 += 1 } }
+
+        /// Round trips since this process started.
+        public static var reads: Int { box.withLock { $0 } }
+    }
 
     /// The raw, untyped attribute value. `nil` on any failure, including a
     /// present-but-unreadable attribute — this file never distinguishes "absent" from "AX
     /// declined to answer" because no caller in this tree has needed to.
     public static func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
+        if Accounting.enabled { Accounting.note() }
         var ref: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, name as CFString, &ref) == .success
         else { return nil }
@@ -98,6 +124,7 @@ public enum AX {
     public static func parameterized(
         _ element: AXUIElement, _ name: String, parameter: CFTypeRef
     ) -> CFTypeRef? {
+        if Accounting.enabled { Accounting.note() }
         var ref: CFTypeRef?
         guard AXUIElementCopyParameterizedAttributeValue(
             element, name as CFString, parameter, &ref) == .success

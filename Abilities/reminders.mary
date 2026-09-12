@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8ca720be69689022bb935d1e768a6339f3361613b99008bd7fb09ada9191113b"
+    "digest" : "8f4ba913ce4d818123b89e5f909f3a5659a6aaa7944b1acb600a43bc87845cca"
   },
   "interactions" : [
 
@@ -185,7 +185,7 @@
   "package" : {
     "id" : "reminders",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary Reminders through the generic EventKit adapter.",
     "version" : "1.0.0"
   },

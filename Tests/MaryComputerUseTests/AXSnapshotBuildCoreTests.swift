@@ -107,6 +107,96 @@ final class AXSnapshotBuildCoreTests: XCTestCase {
         XCTAssertTrue(tallies.native.truncated, "its withheld children are a truncation")
     }
 
+    // MARK: - Cancellation
+
+    private func cancellable(
+        _ root: Node,
+        native: AXTreeWalker.Budget = .init(maxDepth: 10, maxNodes: 1000),
+        source: AXSnapshotBuilder.AXNodeSource<Node>,
+        tallies: inout AXSnapshotBuilder.LaneTallies,
+        isCancelled: @escaping () -> Bool
+    ) -> AXNodeSnapshot {
+        AXSnapshotBuilder.buildNodeCore(
+            from: root,
+            lane: .native,
+            depth: 0,
+            source: source,
+            options: options(),
+            budgets: .init(native: native, web: nil),
+            tallies: &tallies,
+            isCancelled: isCancelled)
+    }
+
+    /// THE REGRESSION GUARD. An uncancelled walk must be arithmetically
+    /// identical to one with no hook at all — the whole change is invisible
+    /// until somebody is actually cancelled.
+    func testAnUncancelledWalkIsIdenticalToOneWithNoHook() {
+        let shape = { self.node("AXWindow", [self.node("AXGroup", [self.node("AXButton")])]) }
+
+        var withoutHook = AXSnapshotBuilder.LaneTallies()
+        let plain = build(
+            shape(), native: .init(maxDepth: 10, maxNodes: 1000), tallies: &withoutHook)
+
+        var withHook = AXSnapshotBuilder.LaneTallies()
+        let hooked = cancellable(
+            shape(), source: source(), tallies: &withHook, isCancelled: { false })
+
+        XCTAssertEqual(withHook.native.visited, withoutHook.native.visited)
+        XCTAssertEqual(withHook.native.truncated, withoutHook.native.truncated)
+        XCTAssertEqual(hooked.subtreeCount, plain.subtreeCount)
+    }
+
+    /// Cancelled before it starts: the node in hand is still described
+    /// honestly, and nothing below it is touched.
+    func testACancelledWalkKeepsTheNodeInHandAndStopsThere() {
+        let root = node("AXWindow", (1...5).map { _ in self.node("AXButton") })
+        var tallies = AXSnapshotBuilder.LaneTallies()
+        let snapshot = cancellable(
+            root, source: source(), tallies: &tallies, isCancelled: { true })
+
+        XCTAssertEqual(tallies.native.visited, 1)
+        XCTAssertTrue(tallies.native.truncated, "an incomplete tree is a truncated one")
+        XCTAssertTrue(snapshot.children.isEmpty)
+    }
+
+    /// THE POINT OF STOPPING THERE. `children` is itself a round trip, so a
+    /// cancelled walk must not ask for it — otherwise "stop" still costs one
+    /// IPC call per node on the way out.
+    func testACancelledWalkNeverAsksForChildren() {
+        var childCalls = 0
+        var counting = source()
+        counting.children = { node in
+            childCalls += 1
+            return node.children
+        }
+        let root = node("AXWindow", (1...5).map { _ in self.node("AXButton") })
+        var tallies = AXSnapshotBuilder.LaneTallies()
+        _ = cancellable(
+            root, source: counting, tallies: &tallies, isCancelled: { true })
+
+        XCTAssertEqual(childCalls, 0, "a stopped walk pays for no further reads")
+    }
+
+    /// Cancelled partway: the siblings still queued are never visited, and the
+    /// unwinding costs the depth rather than what was left.
+    func testCancellationPartWayStopsTheRemainingSiblings() {
+        var visits = 0
+        var counting = source()
+        counting.role = { node in
+            visits += 1
+            return node.role
+        }
+        let root = node("AXWindow", (1...20).map { _ in self.node("AXButton") })
+        var tallies = AXSnapshotBuilder.LaneTallies()
+        let snapshot = cancellable(
+            root, source: counting, tallies: &tallies, isCancelled: { visits >= 4 })
+
+        XCTAssertTrue(tallies.native.truncated)
+        XCTAssertLessThan(
+            snapshot.children.count, 20, "the queued siblings were abandoned")
+        XCTAssertLessThan(visits, 20, "and never read")
+    }
+
     // MARK: - The web lane
 
     /// The whole point of the escalation: a page that would have blown the

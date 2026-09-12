@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3ec7c37d71e537d54aacf802426d75846743aa45f5e477f35379b3324c259e72"
+    "digest" : "6f66bb67eed30a284d98a1fb45b108da331dfdd8f678f0671bfeb500928b5929"
   },
   "interactions" : [
 
@@ -125,7 +125,7 @@
   "package" : {
     "id" : "safari",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary Safari. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
     "version" : "1.0.0"
   },

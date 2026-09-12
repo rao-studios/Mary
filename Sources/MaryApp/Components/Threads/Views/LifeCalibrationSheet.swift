@@ -3,16 +3,21 @@
 //  Mary
 //
 //  WHAT: One bar per installed discipline as sealed episodes accumulate.
-//  IN:   Runtime train. OUT: LifeCalibrationViewModel
+//  IN:   Runtime train. OUT: LifeCalibrationViewModel; the mode, saved to config
+//  PIN:  The mode is saved, not just applied: training follows it, and a
+//        relaunch must not quietly pause or resume training.
 //
 
+import Granite
 import SwiftUI
 import MaryBrain
+import MaryFoundation
 import MaryRuntime
 
 struct LifeCalibrationSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = LifeCalibrationViewModel()
+    @Relay(.silence) var config: ConfigService
 
     var body: some View {
         ScrollView {
@@ -177,7 +182,10 @@ struct LifeCalibrationSheet: View {
     private var modeBinding: Binding<LifeMode> {
         Binding(
             get: { viewModel.engine.mode },
-            set: { viewModel.setMode($0) })
+            set: { mode in
+                viewModel.setMode(mode)
+                config.center.update.send(ConfigService.Update.Meta(lifeMode: mode))
+            })
     }
 
     private var phaseLine: String {
@@ -189,7 +197,7 @@ struct LifeCalibrationSheet: View {
     private var modeExplanation: String {
         switch viewModel.engine.mode {
         case .off:
-            return "Mary does nothing while you're away."
+            return "Mary does nothing while you're away, and training pauses: each discipline keeps its latest \(LifeTrainPolicy.windowSize) turns — the oldest roll off — until Life is on again."
         case .observe:
             return "Mary works out what she would do and records it. She never acts."
         case .act:

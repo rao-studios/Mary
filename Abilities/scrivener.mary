@@ -132,7 +132,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3c454b224ee8835a66894e0415b22573072bfa88ae7c9e0c9be9d6d164f259d8"
+    "digest" : "94852cd9fc28f808c5db53dd2ad165f8ff6efe55fdac9e9a6bafb5d750c73530"
   },
   "interactions" : [
 
@@ -140,7 +140,7 @@
   "package" : {
     "id" : "scrivener",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teach Mary how a Scrivener project is shaped and how to drive it.",
     "version" : "1.0.0"
   },

@@ -725,7 +725,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "245da104e63808d6dacfee3b60854b970a21fb9611464e8a0e1eef1418f0812b"
+    "digest" : "a91669aa06c9f0f88244885459091f9f46ee175f25e324d7b26fc5eeece11d47"
   },
   "interactions" : [
     {
@@ -780,7 +780,7 @@
   "package" : {
     "id" : "window-management",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Global application and window foregrounding, with portable contracts and no application named in the package.",
     "version" : "1.0.0"
   },

@@ -115,7 +115,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "1bd7f3f9c8f390999b8625cfde477c5f2c66e77b7a99f1787a06bb1da522660e"
+    "digest" : "0bd4877f33ea011b6635c2a429748a18f3631bb6522f97a555f721a296e99dee"
   },
   "interactions" : [
 
@@ -123,7 +123,7 @@
   "package" : {
     "id" : "apple-music",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary one music player: where its transport lives, what its buttons say, and how to open it.",
     "version" : "1.0.0"
   },

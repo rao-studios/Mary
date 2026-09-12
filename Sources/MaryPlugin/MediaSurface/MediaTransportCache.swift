@@ -55,8 +55,10 @@ public final class MediaTransportCache: @unchecked Sendable {
 
     private let entries = OSAllocatedUnfairLock<[pid_t: Entry]>(initialState: [:])
 
+    /// The media surface's own category, shared with `MediaSurfaceLibrary` —
+    /// see the note there on why a surface does not borrow `turns`.
     private static let log = Logger(
-        subsystem: "nyc.rao.mary", category: "turns")
+        subsystem: "nyc.rao.mary", category: "media")
 
     private init() {}
 
@@ -136,9 +138,17 @@ public final class MediaTransportCache: @unchecked Sendable {
     /// dispatch budget — so the act worked and Mary reported a timeout.
     /// PIN: BOUNDED, SO THE FIRST ONE IS NOT THE EXPENSIVE ONE. The cache can
     /// only learn a player is slow by reading it once, and charging 25s for
-    /// that lesson is the very thing being fixed. The abandoned walk finishes
-    /// on its own time and records what it cost, so the lesson is still learned
-    /// — just not at anyone's expense.
+    /// that lesson is the very thing being fixed.
+    /// PIN: AND THE LESSON IS RECORDED BY THE READ THAT WAS CUT SHORT, not by
+    /// one that ran to completion afterwards. It used to be the latter — the
+    /// abandoned walk finished on its own time and wrote its true cost. It no
+    /// longer does: `AXSnapshotBuilder.build` stops when its task is cancelled,
+    /// which is exactly what `bounded` does to the loser, so the walk returns
+    /// EARLY and its elapsed time is roughly the bound. Writing that would
+    /// teach the opposite of what happened — "this player answers in three
+    /// seconds" about a player that did not answer at all — so a cancelled
+    /// read records "longer than the bound" instead, which is the one thing
+    /// actually known about it.
     public func freshReadingIfAffordable(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> MediaSurfaceAX.Reading? {
@@ -152,10 +162,17 @@ public final class MediaTransportCache: @unchecked Sendable {
             let fresh = MediaSurfaceAX.read(pid: pid, registration: registration)
             let ms = (DispatchTime.now().uptimeNanoseconds
                 &- started.uptimeNanoseconds) / 1_000_000
+            // Read INSIDE the worker, so there is no race with the deadline
+            // writing a verdict of its own after this one lands.
+            let cutShort = Task.isCancelled
             entries.withLock { state in
+                let taught = UInt64(Self.learningWaitSeconds * 1000) + 1
                 state[pid] = Entry(
                     reading: fresh ?? state[pid]?.reading,
-                    readAt: Date(), refreshing: false, lastReadMs: ms)
+                    readAt: Date(), refreshing: false,
+                    lastReadMs: cutShort
+                        ? max(state[pid]?.lastReadMs ?? 0, taught)
+                        : ms)
             }
             return fresh
         } ?? nil

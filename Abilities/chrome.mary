@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "56025a165cd4afb61593dbc2e23ad4b71e704cffcdf75657ef644b65432ddc2d"
+    "digest" : "025ce18ba1a4bc81bf82da17382a87af59d827cc27e81155415aea6800e48012"
   },
   "interactions" : [
 
@@ -125,7 +125,7 @@
   "package" : {
     "id" : "chrome",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary Chrome. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
     "version" : "1.0.0"
   },

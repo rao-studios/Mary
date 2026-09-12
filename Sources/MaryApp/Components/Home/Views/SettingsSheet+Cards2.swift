@@ -26,6 +26,9 @@ extension SettingsSheet {
                 Text("Both transcribe on this Mac; nothing you say leaves it.")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
+                if config.state.sttBackend == .analyzer {
+                    speechModelRow
+                }
                 Toggle("Wake word — \u{201C}Hey Mary\u{201D}", isOn: wakeWordBinding)
                 Text("While sessions are off, a wake-only microphone listens for her name — the macOS mic indicator stays lit. Anything not addressed to her is discarded on-device, never stored. \u{201C}Stop listening\u{201D} ends a session by voice.")
                     .font(.marySans(10))
@@ -58,6 +61,52 @@ extension SettingsSheet {
                     .foregroundStyle(Color.maryInk.opacity(0.45))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    var speechModelRow: some View {
+        VStack(alignment: .leading, spacing: .layer1) {
+            HStack(spacing: .layer2) {
+                Circle()
+                    .fill(speechModelDotColor)
+                    .frame(width: 6, height: 6)
+                Text(speechModelStatusText)
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.6))
+                Spacer()
+                if speechModelStatus == .notInstalled {
+                    Button(speechModelDownloading ? "Downloading…" : "Download") {
+                        downloadSpeechModel()
+                    }
+                    .buttonStyle(.maryQuiet)
+                    .disabled(speechModelDownloading)
+                }
+            }
+            if let speechModelError {
+                Text(speechModelError)
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryError)
+            }
+        }
+    }
+
+    var speechModelDotColor: Color {
+        switch speechModelStatus {
+        case .installed: return .maryGreen
+        case .notInstalled, .downloading: return .maryGold
+        case .unsupported: return .maryError
+        case nil: return Color.maryInk.opacity(0.25)
+        }
+    }
+
+    var speechModelStatusText: String {
+        if speechModelDownloading { return "Downloading the on-device model\u{2026}" }
+        switch speechModelStatus {
+        case .installed: return "On-device model ready."
+        case .notInstalled: return "On-device model not downloaded yet."
+        case .downloading: return "Someone else is already downloading it."
+        case .unsupported: return "Unsupported for \(Locale.current.identifier)."
+        case nil: return "Checking the on-device model\u{2026}"
         }
     }
 

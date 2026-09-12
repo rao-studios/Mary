@@ -232,7 +232,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f229d9a145e001811773b82f13f4b07155d321043abe81fcb4364825ad765839"
+    "digest" : "9223f8dc6dc14c496a1180b72babd442f6097e6eee0fa9e82e62d12bb5435af3"
   },
   "interactions" : [
 
@@ -240,7 +240,7 @@
   "package" : {
     "id" : "canvas",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Mary's own windows to show a page in: the faculty every plugin that communicates visually leans on.",
     "version" : "1.0.0"
   },

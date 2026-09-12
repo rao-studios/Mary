@@ -1042,7 +1042,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "7a0b26518c6dfd71f12c2caf20fe8efe39afc81df278ab9ea7b96089e926e487"
+    "digest" : "6c5de5d5ddf541571ff11eee3f7d7e205777f2e8b875237cd210749f181b4587"
   },
   "interactions" : [
     {
@@ -1102,7 +1102,7 @@
   "package" : {
     "id" : "writing",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Machine-readable composition, selection revision, typing, and passage editing.",
     "version" : "1.0.0"
   },

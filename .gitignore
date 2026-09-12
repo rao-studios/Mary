@@ -68,8 +68,15 @@ build/
 .swiftpm/xcode/package.xcworkspace/
 .swiftpm/xcode/xcuserdata/
 
+# Node. `site/` (the Ability Workshop) is the only Node project in the tree, but
+# this belongs at the root rather than in site/.gitignore: a per-directory
+# ignore file disappears the moment you check out a branch that predates it,
+# and the build output is left behind untracked on whatever branch you land on.
+node_modules/
+
 # Editor state. The Swift extension generates launch configs per target;
 # they are per-developer, not project contract.
 .vscode/
 .DS_Store
 /.cursor
+.claude/

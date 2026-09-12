@@ -1590,7 +1590,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3ae9e7b972a9a80286a7742c0da6335d891137c0e3367ea34ac8da0ea895307f"
+    "digest" : "8d3618a1e904e0ab5650fdb8b1b9acfbef24c3501840d29ea960f33a7c7c3c64"
   },
   "interactions" : [
 
@@ -1598,7 +1598,7 @@
   "package" : {
     "id" : "browsing",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "The browsing craft: the browser's own controls through Accessibility, and the page inside it through sight.",
     "version" : "1.0.0"
   },

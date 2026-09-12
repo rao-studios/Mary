@@ -238,7 +238,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "218000d8c5e7b4c98386c8ca4c2abdc2ed0992898ed88d1f981995415abcd149"
+    "digest" : "48678fbcaa4d540255ac0b076c4c250cba7dfb7d280eddd8e94d25a9899ca55e"
   },
   "interactions" : [
 
@@ -246,7 +246,7 @@
   "package" : {
     "id" : "awareness",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Read the unit the user is inside, and trace what reaches it.",
     "version" : "1.0.0"
   },

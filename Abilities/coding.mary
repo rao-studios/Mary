@@ -1075,7 +1075,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "9b1842e34fdab9a4e4f7b9a3f81522e3306d931abf80fb81682adde08f9b8c19"
+    "digest" : "198125266209d997a261b90601ff92cc97f15946a893846759b62a97d2c785fa"
   },
   "interactions" : [
     {
@@ -1140,7 +1140,7 @@
   "package" : {
     "id" : "coding",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Build, run, test and save a project through the editor's own commands.",
     "version" : "1.0.0"
   },

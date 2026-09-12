@@ -405,7 +405,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6a1c6e4cc41c4f83e25a46435e2c91024dbc2ca93187da11ed18e01747edcf03"
+    "digest" : "ac184ce58c3600749c1572a84b1e5d8eb928e8ac2c8b2537e706491d4df33e8f"
   },
   "interactions" : [
 
@@ -413,7 +413,7 @@
   "package" : {
     "id" : "dance",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "The canvas's flagship: a shader composed on the fly, danced to a beat or held as a mood.",
     "version" : "1.0.0"
   },

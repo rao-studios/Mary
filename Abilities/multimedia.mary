@@ -672,7 +672,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "40922c3ddfd5ede5abfef988b747cc43d7ad5f2c7c8fc687c3c8592f5f8e7866"
+    "digest" : "fd5f8a9151e67e1c3bcc571a8dba92955a972dbd1aa9ac51ae6bbe53d859f473"
   },
   "interactions" : [
 
@@ -680,7 +680,7 @@
   "package" : {
     "id" : "multimedia",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Say what is playing, drive the transport, and search the Apple Music catalog.",
     "version" : "1.0.0"
   },

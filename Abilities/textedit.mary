@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "33b135d7ecafa911f9f92efbb8f59b73083a655638f7c9416a3e2a792d018a07"
+    "digest" : "f04343b0a93ac2615f977680cb4a2005b272dfb949c85f4c05eb70f67bc3bc74"
   },
   "interactions" : [
 
@@ -125,7 +125,7 @@
   "package" : {
     "id" : "textedit",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary one text editor: where its prose lives, what its documents are called, and how to make a new one.",
     "version" : "1.0.0"
   },

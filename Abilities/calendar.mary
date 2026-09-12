@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "e01afaf43acabf47ea170b035b4c67346ed97d485b3e73a1df759780db840d32"
+    "digest" : "288f5d659ae14957c458cfbc4d2b08ac79ea746543c76863a9d8a8f52274f480"
   },
   "interactions" : [
 
@@ -185,7 +185,7 @@
   "package" : {
     "id" : "calendar",
     "minimumMaryVersion" : "1.0.0",
-    "publisher" : "Mary Project",
+    "publisher" : "Rao Studios",
     "summary" : "Teaches Mary Calendar through the generic EventKit adapter.",
     "version" : "1.0.0"
   },

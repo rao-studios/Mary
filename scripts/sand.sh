@@ -43,7 +43,12 @@ fi
 
 # Close to free when the shaders are current. Without them a page read keeps the ONNX
 # backbone on CPU and says so — Sand still runs.
-"$REPO_ROOT/../Frigate/scripts/build-metallib.sh" "$CONFIG" --package "$REPO_ROOT" \
+# Frigate is a URL dependency now: prefer a sibling checkout when one exists,
+# otherwise the copy SwiftPM resolved under .build/checkouts.
+FRIGATE_METALLIB="$REPO_ROOT/../Frigate/scripts/build-metallib.sh"
+[ -x "$FRIGATE_METALLIB" ] \
+    || FRIGATE_METALLIB="$REPO_ROOT/.build/checkouts/Frigate/scripts/build-metallib.sh"
+"$FRIGATE_METALLIB" "$CONFIG" --package "$REPO_ROOT" \
     || echo "sand: no mlx.metallib — page reads will use the ONNX backbone on CPU"
 
 BIN="$REPO_ROOT/.build/$CONFIG/Sand"
