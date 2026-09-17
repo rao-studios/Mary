@@ -1,5 +1,5 @@
 {
-  "originHash" : "e42b8e5250560b80cdc55ee2fcebaacd2b315d4a4de89257bcd62fc38a30efd0",
+  "originHash" : "545e6f16afdac30707261ec2113e612e6f2e28510a6b691172c4523a05b1aa08",
   "pins" : [
     {
       "identity" : "conduit",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/riteshpakala/Granite.git",
       "state" : {
         "branch" : "main",
-        "revision" : "2fd552140bf751d0449575150490d043139c39d2"
+        "revision" : "8dd809d7ed50832e11f72ca7c7100e0ebdba621a"
       }
     },
     {
@@ -241,7 +241,7 @@
       "location" : "https://github.com/rao-studios/VisionAX.git",
       "state" : {
         "branch" : "main",
-        "revision" : "a5655415206d16eb45f380f428338b8abb4d3107"
+        "revision" : "960421685b574579ad80dd3d207a3901867d06c3"
       }
     },
     {
